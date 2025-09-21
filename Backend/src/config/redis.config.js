@@ -1,19 +1,26 @@
-import Redis from "ioredis";
-import config from "./config.js";
+import { createClient } from 'redis'
+import config from './config'
 
-// connect to redis
-const redis = new Redis({
-  host: config.redis.host,
-  port: config.redis.port,
-  password: config.redis.password,
+const redis = createClient({
+    username: config.redis.username,
+    password: config.redis.password,
+    socket: {
+        host: config.redis.host,
+        port: config.redis.port
+    }
 });
 
-redis.on("connect", () => {
-  console.log("✅ Redis connected successfully");
-});
+redis.on('error', err => console.log('Redis Client Error', err));
 
-redis.on("error", (err) => {
-  console.error("❌ Redis error:", err);
-});
+await redis.connect();
 
-export default redis;
+// Remove it on production this is only for dbug
+if(config.nodeEnv == "development"){
+  await redis.set('foo', 'bar');
+  const result = await redis.get('foo');
+  console.log(result)
+}
+
+console.log('✅ Redis connected successfully')
+
+export default redis

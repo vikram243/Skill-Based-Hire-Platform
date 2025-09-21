@@ -39,7 +39,7 @@ if (RedisStore && redisClient) {
     try {
         app.use(rateLimit({
             ...limiterOptions,
-            store: new RedisStore({ sendCommand: (...args) => redisClient.call(...args) }),
+            store: new RedisStore({ sendCommand: (...args) => redisClient.sendCommand(args) }),
         }));
         console.log('✅ Rate limiter: using Redis store');
     } catch (err) {

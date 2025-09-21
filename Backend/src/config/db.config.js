@@ -2,29 +2,39 @@ import mongoose from 'mongoose';
 import config from './config.js';
 import { asyncHandler } from '../utils/async.handeller.js';
 
-const connectDB = asyncHandler(async (req, res, next) => {
-    // Check if already connected
-    if (mongoose.connection.readyState === 1) {
-        console.log("⚡ MongoDB already connected");
-        return;
+const connectDB = async () => {
+    try {
+        // Check if already connected
+        if (mongoose.connection.readyState === 1) {
+            console.log("⚡ MongoDB already connected");
+            return;
+        }
+
+        // If not connected, try to connect
+        const connectionInstance = await mongoose.connect(
+            `${config.mongo.uri}/${config.mongo.dbName}`,
+            { serverSelectionTimeoutMS: 5000 }
+        );
+
+        console.log(
+            `✅ Database connected: ${connectionInstance.connection.host}/${connectionInstance.connection.name}`
+        );
+    } catch (error) {
+        console.log("❌ Database connection failure:", error);
+        process.exit(1);
     }
+};
 
-    // If not connected, try to connect
-    const connectionInstance = await mongoose.connect(
-        `${config.mongo.uri}/${config.mongo.dbName}`,
-        { serverSelectionTimeoutMS: 5000 }
-    );
-
-    console.log(
-        `✅ Database connected: ${connectionInstance.connection.host}/${connectionInstance.connection.name}`
-    );
-});
-
-const gracefullShutdown = asyncHandler(async (signal) => {
-    await mongoose.connection.close();
-    console.log(`⚠️ MongoDB connection closed due to ${signal}`);
-    process.exit(0);
-});
+const gracefullShutdown = async (signal) => {
+    try {
+        await mongoose.connection.close();
+        console.log(`⚠️ MongoDB connection closed due to ${signal}`);
+        process.exit(0);
+    } catch (error) {
+        console.log("❌ Error while closing MongoDB connection:", error);
+        process.exit(1);
+    }
+};
 
 // Handle shutdown signals
 process.on("SIGINT", () => gracefullShutdown("app termination (SIGINT)"));

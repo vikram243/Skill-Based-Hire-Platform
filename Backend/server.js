@@ -3,6 +3,7 @@ import {connectDB, gracefullShutdown} from "./src/config/db.config.js"
 import config from "./src/config/config.js";
 import app from "./src/app.js";
 import { initializeSocket } from "./src/config/socket.io.config.js";
+import asyncHandeller from "./src/utils/async.handeller.js"
 
 const PORT = config.port;
 
