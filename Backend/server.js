@@ -20,6 +20,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"))
 connectDB()
 
+import userRouter from './src/routes/user.routes.js';
+
+app.use("/api/users",userRouter);
+
 
 app.get("/", (req, res) => {
   res.send("API is running...");
