@@ -10,7 +10,11 @@ const config = {
     origin:process.env.CORS_ORIGIN,
     cloudName : process.env.CLOUDINARY_CLOUD_NAME,
     cloudApiKey : process.env.CLOUDINARY_API_KEY,
-    cloudSecretKey : process.env.CLOUDINARY_API_SECRET
+    cloudSecretKey : process.env.CLOUDINARY_API_SECRET,
+    jwtSecret : process.env.JWT_SECRET,
+    jwtTokenExpiry : process.env.JWT_TOKEN_EXPIRY,
+    googleClientId : process.env.GOOGLE_CLIENT_ID,
+    googleClientSecret : process.env.GOOGLE_CLIENT_SECRET
 }
 
 export default config;
