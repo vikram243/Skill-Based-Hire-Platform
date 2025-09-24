@@ -1,11 +1,7 @@
 import http from "http";
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import morgan from "morgan";
-import { Server } from "socket.io";
-import connectDB from "./src/config/db.config.js"
+import {connectDB, gracefullShutdown} from "./src/config/db.config.js"
 import config from "./src/config/config.js";
+<<<<<<< HEAD
 import userRouter from './src/routes/user.routes.js';
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"
@@ -42,6 +38,63 @@ app.use("/api/users",userRouter);
 app.get("/", (req, res) => {
   res.send(`<h1>Home</h1><a href="/auth/google">Login With Google</a>`);
 });
+=======
+import app from "./src/app.js";
+import { initializeSocket } from "./src/config/socket.io.config.js";
+import asyncHandeller from "./src/utils/async.handeller.js"
+>>>>>>> 50880371c0ac92d8fee46c5b85b287e38f56e6ca
 
 const PORT = config.port;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+(async () => {
+    try {
+        await connectDB();
+
+        // Create HTTP server & attach app
+        let server = http.createServer(app);
+
+        // Initialize socket.io
+        console.log('Setting up socket.io');
+        const io = initializeSocket(server);
+        if (!io) {
+            throw new Error('Failed to initialize socket.io');
+        }
+
+        // Make io available to the app (if controllers need to emit)
+        app.set('io', io);
+
+        server.listen(PORT, () => {
+            console.log(`✅ Server listening on http://localhost:${PORT}`);
+        });
+    } catch (err) {
+        console.error('❌ Failed to start server:', err);
+        process.exit(1);
+    }
+})();
+
+// Graceful shutdown
+const shutdown = async (signal) => {
+    try {
+        console.log(`\n${signal} received. Shutting down gracefully...`);
+        if (server) {
+            await new Promise((resolve) => server.close(resolve));
+        }
+        // Use the DB module's graceful shutdown helper (it will close the connection and exit)
+        await gracefullShutdown(signal);
+        process.exit(0);
+    } catch (err) {
+        console.error('Error during shutdown:', err);
+        process.exit(1);
+    }
+};
+
+['SIGINT', 'SIGTERM'].forEach((sig) => process.on(sig, () => shutdown(sig)));
+
+process.on('unhandledRejection', (reason) => {
+    console.error('UNHANDLED REJECTION', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION', err);
+    process.exit(1);
+});
