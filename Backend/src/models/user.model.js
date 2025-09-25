@@ -1,10 +1,21 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import config from "../config/config.js";
+
 
 const userSchema = new mongoose.Schema({
-  fullname: {
-    firstname: { type: String, minlength: 3, maxlength: 20, trim: true },
-    lastname: { type: String, minlength: 3, maxlength: 20, trim: true },
+  firstName: { 
+    type: String,
+    minlength: 3,
+    maxlength: 20,
+    trim: true 
   },
+  lastName: {
+    type: String,
+    minlength: 3,
+    maxlength: 20,
+    trim: true },
   email: {
     type: String,
     required: true,
@@ -34,7 +45,7 @@ const userSchema = new mongoose.Schema({
 
   isProvider: { type: Boolean, default: false },
   providerProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Provider', default: null },
-  providerStatus: { type: String, enum: ['none','draft','pending','approved','rejected'], default: 'none' },
+  providerStatus: { type: String, enum: ['none', 'draft', 'pending', 'approved', 'rejected'], default: 'none' },
 
   avatar: {
     type: String,
@@ -47,4 +58,30 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('User', userSchema);
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next()
+  this.password = bcrypt.hash(this.password, 10)
+  next()
+})
+
+userSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password)
+}
+
+userSchema.methods.generateJwtToken = function () {
+  return jwt.sign(
+    {
+      id: this._id,
+      fullname: this.fullname,
+      email: this.email,
+      number: this.number
+    },
+    config.jwtSecret,
+    {
+      expiresIn: config.jwtTokenExpiry
+    }
+  )
+}
+
+const User = mongoose.model('User', userSchema);
+export default User;
