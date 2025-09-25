@@ -9,6 +9,8 @@ import router from './routes/index.routes.js';
 import config from "./config/config.js";
 import redisClient from './config/redis.config.js';
 import rateLimit from 'express-rate-limit';
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20"
 
 
 let RedisStore;
@@ -55,6 +57,19 @@ if (RedisStore && redisClient) {
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(express.static("public"))
+app.use(passport.initialize());
+
+
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: '/auth/google/callback',
+}, (accessToken, refreshToken, profile, done) => {
+  console.log('profile',profile)
+  return done(null, profile);
+}));
+
 
 // Basic request logging (dev only)
 if (config.nodeEnv !== 'production') {

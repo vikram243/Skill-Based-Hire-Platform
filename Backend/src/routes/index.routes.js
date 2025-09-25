@@ -9,6 +9,10 @@ import { Router } from 'express';
 const router = Router();
 
 // // Mount individual route modules
+
+router.use("/", (req, res) => {
+  res.send(`<h1>Home</h1><a href="/auth/google">Login With Google</a>`);
+});
 // router.use('/auth', authRoutes);
 // router.use('/users', userRoutes);
 // router.use('/orders', orderRoutes);
