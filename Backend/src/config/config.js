@@ -13,23 +13,15 @@ const config = {
     cloudSecretKey: process.env.CLOUDINARY_API_SECRET,
     jwtSecret: process.env.JWT_SECRET,
     nodeEnv: process.env.NODE_ENV,
+    jwtTokenExpiry : process.env.JWT_TOKEN_EXPIRY,
+    googleClientId : process.env.GOOGLE_CLIENT_ID,
+    googleClientSecret : process.env.GOOGLE_CLIENT_SECRET,
     redis: {
         username: process.env.REDIS_USERNAME,
         host: process.env.REDIS_HOST,
         port: process.env.REDIS_PORT,
         password: process.env.REDIS_PASSWORD || null,
     },
-<<<<<<< HEAD
-    origin:process.env.CORS_ORIGIN,
-    cloudName : process.env.CLOUDINARY_CLOUD_NAME,
-    cloudApiKey : process.env.CLOUDINARY_API_KEY,
-    cloudSecretKey : process.env.CLOUDINARY_API_SECRET,
-    jwtSecret : process.env.JWT_SECRET,
-    jwtTokenExpiry : process.env.JWT_TOKEN_EXPIRY,
-    googleClientId : process.env.GOOGLE_CLIENT_ID,
-    googleClientSecret : process.env.GOOGLE_CLIENT_SECRET
-=======
->>>>>>> 50880371c0ac92d8fee46c5b85b287e38f56e6ca
 }
 
 export default config;

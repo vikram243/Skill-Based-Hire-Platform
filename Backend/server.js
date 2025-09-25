@@ -1,48 +1,8 @@
 import http from "http";
 import {connectDB, gracefullShutdown} from "./src/config/db.config.js"
 import config from "./src/config/config.js";
-<<<<<<< HEAD
-import userRouter from './src/routes/user.routes.js';
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20"
-
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: config.origin } });
-
-// Middlewares
-app.use(cors());
-app.use(express.json());
-app.use(cookieParser());
-app.use(morgan("dev"));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"))
-app.use(passport.initialize());
-
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: '/auth/google/callback',
-}, (accessToken, refreshToken, profile, done) => {
-  console.log('profile',profile)
-  return done(null, profile);
-}));
-
-connectDB()
-
-
-app.use("/api/users",userRouter);
-
-
-app.get("/", (req, res) => {
-  res.send(`<h1>Home</h1><a href="/auth/google">Login With Google</a>`);
-});
-=======
 import app from "./src/app.js";
 import { initializeSocket } from "./src/config/socket.io.config.js";
-import asyncHandeller from "./src/utils/async.handeller.js"
->>>>>>> 50880371c0ac92d8fee46c5b85b287e38f56e6ca
 
 const PORT = config.port;
 
