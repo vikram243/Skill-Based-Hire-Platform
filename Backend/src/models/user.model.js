@@ -15,7 +15,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     minlength: 3,
     maxlength: 20,
-    trim: true },
+    trim: true 
+  },
+  fullName:{
+    type:String,
+    trim:true
+  },
   email: {
     type: String,
     required: true,
@@ -30,6 +35,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true,
     trim: true,
+    required:false
   },
   password: {
     type: String,
@@ -72,7 +78,9 @@ userSchema.methods.generateJwtToken = function () {
   return jwt.sign(
     {
       id: this._id,
-      fullname: this.fullname,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      fullName: this.fullName,
       email: this.email,
       number: this.number
     },
