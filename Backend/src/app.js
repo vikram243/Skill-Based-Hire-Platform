@@ -70,7 +70,6 @@ passport.use(new GoogleStrategy({
   return done(null, profile);
 }));
 
-
 // Basic request logging (dev only)
 if (config.nodeEnv !== 'production') {
     app.use(morgan('dev'));
