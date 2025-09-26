@@ -10,6 +10,7 @@ import { RegisterProviderPage } from './components/RegisterProviderPage.jsx'
 import { MapPage } from './components/MapPage.jsx'
 import { CartPage } from './components/CartPage.jsx'
 import { HistoryPage } from './components/HistoryPage.jsx'
+import {GoogleOAuthProvider} from '@react-oauth/google'
 
 export default function App() {
   const [appState, setAppState] = useState({
@@ -60,13 +61,19 @@ export default function App() {
       isAuthenticated: false
     })
   }
-
+  const GoogleAuthWrapper = () => {
+    return (
+      <GoogleOAuthProvider clientId='77380748987-c2s4lh5r95bpk1m3bmclodaeohct8bf6.apps.googleusercontent.com'>
+        <AuthPage></AuthPage>
+      </GoogleOAuthProvider>
+    )
+  }
   const renderPage = () => {
     switch (appState.currentPage) {
       case 'landing':
         return <LandingPage onNavigate={navigate} onLogin={() => navigate('auth')} />
       case 'auth':
-        return <AuthPage onLogin={login} onBack={() => navigate('landing')} />
+        return <GoogleAuthWrapper onLogin={login}  onBack={() => navigate('landing')} />
       case 'home':
         return <HomeFeed onNavigate={navigate} user={appState.user} />
       case 'skill-detail':

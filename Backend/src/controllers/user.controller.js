@@ -1,5 +1,5 @@
 import { asyncHandler } from '../utils/async.handeller.js';
-import { ApiError, ApiResponse } from '../utils/error.handeller.js';
+import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import User from '../models/user.model.js';
 import { uploadOnCloudinary } from '../config/cloudinary.config.js';
 
@@ -31,10 +31,9 @@ const registerUser = asyncHandler( async (req,res) => {
     }
 
     const user = await User.create({
-        fullname : {
-            firstName,
-            lastName
-        },
+        firstName,
+        lastName,
+        fullName: `${firstName} ${lastName}`,
         email,
         number,
         password,
@@ -48,9 +47,9 @@ const registerUser = asyncHandler( async (req,res) => {
     if(!createdUser){
         throw new ApiError(500,"Something went wrong while registering the user")
     }
-
+    const token = createdUser.generateJwtToken();
     return res.status(201).json(
-        new ApiResponse(200,createdUser,"User Registered Successfully")
+        new ApiResponse(200,{ user: createdUser, token },"User Registered Successfully")
     )
 
 })

@@ -6,6 +6,9 @@ import { Card } from './ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 import { Separator } from './ui/separator'
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
+import {useGoogleLogin} from '@react-oauth/google';
+import { googleAuth } from '../api/api.js'
+
 
 export function AuthPage({ onLogin, onBack }) {
   const [showPassword, setShowPassword] = useState(false)
@@ -63,20 +66,34 @@ export function AuthPage({ onLogin, onBack }) {
     }, 1000)
   }
 
-  const handleSocialLogin = (provider) => {
-    setIsLoading(true)
-    // Simulate social login
-    setTimeout(() => {
-      const user = {
-        id: '3',
-        name: 'Social User',
-        email: `user@${provider}.com`,
-        isProvider: false
+  const responseGoogle = async(authResult) => {
+    try {
+      if(authResult['code']){
+        const result = await googleAuth(authResult['code']);
+        const {email,fullName,avatar} = result.data.user;
+        console.log("result data :",result.data.user)
       }
-      onLogin(user)
-      setIsLoading(false)
-    }, 1000)
+    } catch (error) {
+      console.log("error while requesting the code",error);
+    }
   }
+  const handleSocialLogin = useGoogleLogin({
+    onSuccess:responseGoogle,
+    onSuccess:responseGoogle,
+    flow:'auth-code'
+    // setIsLoading(true)
+    // // Simulate social login
+    // setTimeout(() => {
+    //   const user = {
+    //     id: '3',
+    //     name: 'Social User',
+    //     email: `user@${provider}.com`,
+    //     isProvider: false
+    //   }
+    //   onLogin(user)
+    //   setIsLoading(false)
+    // }, 1000)
+  })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-surface/30 to-background flex items-center justify-center p-4">
@@ -265,7 +282,7 @@ export function AuthPage({ onLogin, onBack }) {
             <div className="grid grid-cols-2 gap-3 mt-4">
               <Button 
                 variant="outline" 
-                onClick={() => handleSocialLogin('google')}
+                onClick={() => handleSocialLogin()}
                 disabled={isLoading}
                 className="border-border/40 hover:bg-accent/5 transition-all duration-200"
               >
