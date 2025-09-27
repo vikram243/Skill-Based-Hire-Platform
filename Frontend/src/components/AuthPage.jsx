@@ -70,8 +70,7 @@ export function AuthPage({ onLogin, onBack }) {
     try {
       if(authResult['code']){
         const result = await googleAuth(authResult['code']);
-        const {email,fullName,avatar} = result.data.user;
-        console.log("result data :",result.data.user)
+        const {email,fullName,avatar} = result.data.data.user;
       }
     } catch (error) {
       console.log("error while requesting the code",error);
