@@ -8,16 +8,20 @@ cloudinary.config({
     api_secret: config.cloudSecretKey,
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (filePathOrUrl) => {
     try {
-        if(!localFilePath) return null;
-        const response = await cloudinary.uploader.upload(localFilePath,{
+        if(!filePathOrUrl) return null;
+        const response = await cloudinary.uploader.upload(filePathOrUrl,{
             resource_type:"auto"
         })
-        fs.unlinkSync(localFilePath)
+        if(!filePathOrUrl.startsWith('http')){
+            fs.unlinkSync(filePathOrUrl)
+        }
         return response;
     } catch (error) {
-        fs.unlinkSync(localFilePath)
+        if(filePathOrUrl&&!filePathOrUrl.startsWith('http')){
+            fs.unlinkSync(filePathOrUrl)
+        }
         return null;
     }
 }
