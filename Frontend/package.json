@@ -1,6 +1,6 @@
 {
-      "name": "Skill-Based Hire Platform",
-      "version": "0.1.0",
+      "name": "skill-based-hire-plateform-frontend",
+      "version": "1.0.0",
       "private": true,
       "dependencies": {
             "@radix-ui/react-accordion": "^1.2.3",
