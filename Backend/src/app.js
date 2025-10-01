@@ -53,7 +53,6 @@ if (RedisStore && redisClient) {
     console.log('✅ Rate limiter: using in-memory store');
 }
 
-// Body parsers
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
