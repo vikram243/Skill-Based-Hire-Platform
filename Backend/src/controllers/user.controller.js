@@ -41,9 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
         avatar: avatar.url
     })
 
-    const createdUser = await User.findById(user._id).select(
-        "-password"
-    )
+    const createdUser = await User.findById(user._id);
 
     if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user")
@@ -54,7 +52,7 @@ const registerUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: config.nodeEnv,
         sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000;
+        maxAge: 7 * 24 * 60 * 60 * 1000
     })
     return res.status(201).json(
         new ApiResponse(200, { user: createdUser, token }, "User Registered Successfully")
@@ -62,17 +60,13 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const loginUser = asyncHandler(async (req, res) => {
-    // req body -> data,
-    // username or email,
-    // find the user,
-    // password checkPrime,
-    // jwt token,
-    // send cookie
     const { email, password } = req.body;
+    console.log(email,password);
     if (!email || !password) throw new ApiError(401, "email and password are required for login");
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user || !(await user.isPasswordCorrect(password))) throw new ApiError(401, "invalid credentials");
     const token = user.generateJwtToken();
+    console.log(token)
     if (!token) throw new ApiError(400, "error while generating the token")
     res.cookie("token", token, {
         httpOnly: true,
