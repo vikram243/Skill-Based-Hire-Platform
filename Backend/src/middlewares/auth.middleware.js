@@ -10,6 +10,5 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
   const decoded = jwt.verify(token, config.jwtSecret);
   req.user = await User.findById(decoded.id).select("-password");
   if (!req.user) throw new ApiError(401, "User not found");
-
   next();
 });
