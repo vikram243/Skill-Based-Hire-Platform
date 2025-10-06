@@ -22,6 +22,8 @@ const config = {
         port: process.env.REDIS_PORT,
         password: process.env.REDIS_PASSWORD || null,
     },
+    EmailUser: process.env.EMAIL_USER,
+    EmailPass: process.env.EMAIL_PASS
 }
 
 export default config;
