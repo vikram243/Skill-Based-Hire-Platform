@@ -6,7 +6,7 @@ import {
   Search, 
   Home, 
   ShoppingCart, 
-  FileText, 
+  File, 
   User, 
   Map,
   MapPin,
@@ -24,9 +24,10 @@ export function Navigation({
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'map', label: 'Map', icon: Map },
-    { id: 'orders', label: 'Orders', icon: FileText },
+    { id: 'orders', label: 'Orders', icon: File },
     { id: 'cart', label: 'Cart', icon: ShoppingCart },
-    { id: 'profile', label: 'Profile', icon: null }
+    { id: 'profile', label: 'Profile', icon: null },
+    { id: 'history', label: 'History', icon: File}, 
   ];
 
   return (
@@ -80,6 +81,9 @@ export function Navigation({
             </Button>
             <Button variant="ghost" onClick={() => onNavigate('orders')}>
               Orders
+            </Button>
+            <Button variant="ghost" onClick={() => onNavigate('history')}>
+              History
             </Button>
             <Button variant="ghost" onClick={() => onNavigate('cart')}>
               <ShoppingCart className="w-4 h-4 mr-2" />
