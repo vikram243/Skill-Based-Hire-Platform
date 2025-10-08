@@ -3,6 +3,8 @@ import { auth2client } from '../utils/googleConfig.js';
 import User from '../models/user.model.js';
 import { uploadOnCloudinary } from "../config/cloudinary.config.js";
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
+import { getSafeUser } from '../utils/userSafe.helper.js';
+import { logActivity } from '../utils/activity.handeller.js';
 
 const googleLogin = asyncHandler(async (req, res) => {
   const { code } = req.query;
@@ -39,10 +41,19 @@ const googleLogin = asyncHandler(async (req, res) => {
     { new: true, upsert: true }
   );
 
+  const userSafe = getSafeUser(user);
+
+  await logActivity({
+    action: "User Registered",
+    target: user._id,
+    targetModel: "User",
+    description: `${user.fullName} has registered`
+  })
+
   const token = user.generateJwtToken();
 
   return res.status(200).json(
-    new ApiResponse(200, { user, token }, "success")
+    new ApiResponse(200, { user: userSafe, token }, "success")
   );
 });
 
