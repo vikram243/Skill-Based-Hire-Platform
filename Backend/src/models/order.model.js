@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const AddressSchema = new mongoose.Schema({
   full: { type: String, required: true },
@@ -71,4 +71,6 @@ OrderSchema.index({ provider: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ 'schedule.preferredDate': 1 });
 
-module.exports = mongoose.model('Order', OrderSchema);
+const Order = mongoose.model('Order', OrderSchema);
+
+export default Order;

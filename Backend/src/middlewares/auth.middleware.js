@@ -12,3 +12,10 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
   if (!req.user) throw new ApiError(401, "User not found");
   next();
 });
+
+export const isAdmin = asyncHandler(async (req,res,next) => {
+  if(!req.user || req.user.role !== 'admin'){
+    throw new ApiError(403,"access denied : only admin can access");
+  }
+  next();
+})
