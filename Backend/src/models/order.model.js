@@ -6,12 +6,6 @@ const AddressSchema = new mongoose.Schema({
   lng: { type: Number, default: null }
 }, { _id: false });
 
-const ScheduleSchema = new mongoose.Schema({
-  preferredDate: { type: Date, required: true },
-  preferredTime: { type: String, default: null }, // optional time string -- frontend may provide
-  estimatedDurationHours: { type: Number, default: 1, min: 0 }
-}, { _id: false });
-
 const PricingSchema = new mongoose.Schema({
   hourlyRate: { type: Number, required: true, min: 0 },
   estimatedHours: { type: Number, required: true, min: 0 },
@@ -27,12 +21,10 @@ const OrderSchema = new mongoose.Schema({
 
   // allow linking to a known Skill, but also keep a snapshot of the name
   skill: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', default: null },
-  skillName: { type: String, required: true, trim: true },
 
   description: { type: String, trim: true, default: '' },
 
   address: { type: AddressSchema, required: true },
-  schedule: { type: ScheduleSchema, required: true },
 
   urgency: {
     type: String,
@@ -72,5 +64,4 @@ OrderSchema.index({ status: 1 });
 OrderSchema.index({ 'schedule.preferredDate': 1 });
 
 const Order = mongoose.model('Order', OrderSchema);
-
 export default Order;

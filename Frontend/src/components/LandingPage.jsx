@@ -67,12 +67,6 @@ export function LandingPage({ onNavigate, onLogin }) {
             <Button variant="ghost" onClick={() => onNavigate('auth')}>
               Sign In
             </Button>
-            <Button 
-              className="bg-gradient-to-r from-[var(--primary-gradient-start)] to-[var(--primary-gradient-end)] text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-              onClick={() => onNavigate('auth')}
-            >
-              Get Started
-            </Button>
           </div>
           
           <Button 
