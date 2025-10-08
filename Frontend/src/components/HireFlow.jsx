@@ -28,9 +28,6 @@ export function HireFlow({ providerId, onComplete, onBack, user }) {
   const [bookingData, setBookingData] = useState({
     service: '',
     description: '',
-    date: '',
-    time: '',
-    duration: '1',
     address: '',
     phone: '',
     urgency: 'normal'
@@ -75,7 +72,7 @@ export function HireFlow({ providerId, onComplete, onBack, user }) {
     );
   }
 
-  const estimatedCost = parseInt(bookingData.duration) * provider.hourlyRate;
+  const estimatedCost = provider.hourlyRate;
 
   return (
     <div className="min-h-screen bg-gradient-to-br pb-18 from-background via-surface/30 to-background authenticated-page">
@@ -176,45 +173,8 @@ export function HireFlow({ providerId, onComplete, onBack, user }) {
                 {currentStep === 2 && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold mb-2">Schedule & Location</h2>
-                      <p className="text-muted-foreground">When and where do you need the service?</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="date">Preferred Date</Label>
-                        <Input
-                          id="date"
-                          type="date"
-                          value={bookingData.date}
-                          onChange={(e) => setBookingData({...bookingData, date: e.target.value})}
-                          className="bg-input-background mt-2 border-border/40 focus:border-[var(--primary-gradient-start)]/50 focus:ring-[var(--primary-gradient-start)]/20"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="time">Preferred Time</Label>
-                        <Input
-                          id="time"
-                          type="time"
-                          value={bookingData.time}
-                          onChange={(e) => setBookingData({...bookingData, time: e.target.value})}
-                          className="bg-input-background mt-2 border-border/40 focus:border-[var(--primary-gradient-start)]/50 focus:ring-[var(--primary-gradient-start)]/20"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="duration">Estimated Duration (hours)</Label>
-                      <Input
-                        id="duration"
-                        type="number"
-                        min="1"
-                        max="8"
-                        value={bookingData.duration}
-                        onChange={(e) => setBookingData({...bookingData, duration: e.target.value})}
-                        className="bg-input-background mt-2 border-border/40 focus:border-[var(--primary-gradient-start)]/50 focus:ring-[var(--primary-gradient-start)]/20"
-                      />
+                      <h2 className="text-2xl font-bold mb-2">Location</h2>
+                      <p className="text-muted-foreground">Where do you need the service?</p>
                     </div>
 
                     <div>
@@ -255,14 +215,6 @@ export function HireFlow({ providerId, onComplete, onBack, user }) {
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Service:</span>
                           <span>{bookingData.service}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Date & Time:</span>
-                          <span>{bookingData.date} at {bookingData.time}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Duration:</span>
-                          <span>{bookingData.duration} hour(s)</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Urgency:</span>
@@ -315,7 +267,7 @@ export function HireFlow({ providerId, onComplete, onBack, user }) {
                         className="bg-gradient-to-r from-[var(--primary-gradient-start)] to-[var(--primary-gradient-end)] text-white"
                         disabled={
                           (currentStep === 1 && (!bookingData.service || !bookingData.description)) ||
-                          (currentStep === 2 && (!bookingData.date || !bookingData.time || !bookingData.address || !bookingData.phone))
+                          (currentStep === 2 && (!bookingData.address || !bookingData.phone))
                         }
                       >
                         Next

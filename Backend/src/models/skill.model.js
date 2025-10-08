@@ -20,14 +20,12 @@ const SkillSchema = new mongoose.Schema({
   icon: {
     type: String, 
     default: null
-    // store URL or icon name (for frontend display)
   },
-  isActive: {
-    type: Boolean,
-    default: true
+  popularity: {
+    type: Number,
+    default: 0
   }
 }, { timestamps: true });
 
 const Skill = mongoose.model('Skill', SkillSchema);
-
 export default Skill;
