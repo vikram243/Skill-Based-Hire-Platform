@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const ServiceAreaSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -39,7 +39,6 @@ const ProviderSchema = new mongoose.Schema({
   selectedSkills: { type: [SkillEntrySchema], default: [] },
   customSkills: { type: [String], default: [] },
   pricing: { type: [PricingSchema], default: [] },
-
   documents: { type: [DocumentSchema], default: [] },
   agreedToTOS: { type: Boolean, default: false },
   consentBackgroundCheck: { type: Boolean, default: false },
@@ -51,7 +50,6 @@ const ProviderSchema = new mongoose.Schema({
     default: 'pending'
   },
   submittedAt: { type: Date, default: Date.now },
-
   meta: {
     avgRating: { type: Number, default: 0 },
     totalReviews: { type: Number, default: 0 }
@@ -61,4 +59,5 @@ const ProviderSchema = new mongoose.Schema({
 ProviderSchema.index({ businessName: 'text', professionalDescription: 'text' });
 ProviderSchema.index({ 'serviceArea.geo': '2dsphere' });
 
-module.exports = mongoose.model('Provider', ProviderSchema);
+const Provider = mongoose.model('Provider', ProviderSchema);
+export default Provider;

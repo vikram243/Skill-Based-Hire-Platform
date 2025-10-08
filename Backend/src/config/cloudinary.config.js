@@ -19,12 +19,11 @@ const uploadOnCloudinary = async (filePathOrUrl) => {
         }
         return response;
     } catch (error) {
+        console.error("Cloudinary Upload Error:", error.message);
         if(filePathOrUrl&&!filePathOrUrl.startsWith('http')){
-            fs.unlinkSync(filePathOrUrl)
+            await fs.unlinkSync(filePathOrUrl)
         }
         return null;
     }
 }
-
-
 export {uploadOnCloudinary}
