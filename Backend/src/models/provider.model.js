@@ -17,7 +17,7 @@ const SkillEntrySchema = new mongoose.Schema({
 
 const PricingSchema = new mongoose.Schema({
   skill: SkillEntrySchema,
-  hourlyRate: { type: Number, required: true, min: 0 }
+  serviceRate: { type: Number, required: true, min: 0 }
 }, { _id: false });
 
 const DocumentSchema = new mongoose.Schema({
