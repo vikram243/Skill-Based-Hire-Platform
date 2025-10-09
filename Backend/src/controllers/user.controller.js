@@ -2,7 +2,9 @@ import { asyncHandler } from '../utils/async.handeller.js';
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import User from '../models/user.model.js';
 import { uploadOnCloudinary } from '../config/cloudinary.config.js';
-import config from '../config/config.js'
+import config from '../config/config.js';
+import { logActivity } from '../utils/activity.handeller.js';
+import { getSafeUser } from '../utils/userSafe.helper.js';
 
 const registerUser = asyncHandler(async (req, res) => {
     const { firstName, lastName, email, number, password } = req.body;
@@ -54,8 +56,17 @@ const registerUser = asyncHandler(async (req, res) => {
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     })
+
+    await logActivity({
+        action:"User Registered",
+        target: createdUser._id,
+        targetModel : "User",
+        description:`${createdUser.fullName} has registered`
+    })
+
+    const userSafe = getSafeUser(createdUser);
     return res.status(201).json(
-        new ApiResponse(200, { user: createdUser, token }, "User Registered Successfully")
+        new ApiResponse(200, { user: userSafe, token }, "User Registered Successfully")
     )
 })
 
@@ -74,7 +85,9 @@ const loginUser = asyncHandler(async (req, res) => {
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     })
-    return res.status(200).json(new ApiResponse(200, { user }, "user login successfully"));
+
+    const userSafe = getSafeUser(user);
+    return res.status(200).json(new ApiResponse(200, { user:userSafe }, "user login successfully"));
 })
 
 const logoutUser = (req, res) => {

@@ -3,22 +3,23 @@ import { asyncHandler } from '../utils/async.handeller.js';
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import User from '../models/user.model.js';
 import Order from '../models/order.model.js';
+import Review from '../models/review.model.js';
 import { getSafeUser } from '../utils/userSafe.helper.js';
+import { logActivity } from '../utils/activity.handeller.js'
 
 export const getAllUsers = asyncHandler(async (req, res) => {
     const users = await User.find().sort({ createdAt: -1 });
     const safeUsers = users.map(getSafeUser)
     res.status(200).json(
-        new ApiResponse(200, { users:safeUsers , count: users.length }, "All users fetched successfully")
+        new ApiResponse(200, { users: safeUsers, count: users.length }, "All users fetched successfully")
     );
 });
-
 
 export const getAllProviders = asyncHandler(async (req, res) => {
     const { status } = req.query;
     const filter = status ? { applicationStatus: status } : {};
     const providers = await Provider.find(filter)
-        .populate('user', "firstName lastName email");
+        .populate('user', "fullName email");
 
     return res.status(200).json(
         new ApiResponse(200, providers, "All Pending Providers")
@@ -45,18 +46,17 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     const { status } = req.query;
     const query = status ? { status } : {};
     const orders = await Order.find(query)
-        .populate("customer", "firstName lastName email")
-        .populate("provider", "firstName lastName email")
+        .populate("customer", "fullName email")
+        .populate("provider", "fullName email")
         .populate("skill", "name")
         .sort({ createdAt: -1 });
 
     res.status(200).json(
         new ApiResponse(200, { orders, success: true, count: orders.length }, 'all orders fetched')
     )
-
 });
 
-export const deleteOrder = asyncHandler(async (req, res) => {
+export const deleteOrders = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
     const order = await Order.findByIdAndDelete(orderId);
     if (!order) {
@@ -80,11 +80,85 @@ export const updateProviderStatus = asyncHandler(async (req, res) => {
         id,
         { applicationStatus: status },
         { new: true }
-    ).populate("user", "firstName lastName email");
+    ).populate("user", "fullName email");
 
     if (!provider) throw new ApiError(404, "Provider Not Found")
 
+    await logActivity({
+        action: `Provider ${status}`,
+        performedBy: req.user._id,
+        target: provider._id,
+        targetModel: "Provider",
+        description: `Admin ${req.user.fullName} ${status} provider ${provider.user.fullName}`,
+    })
+
     return res.status(200).json(
         new ApiResponse(200, provider, `Provider ${status} successfully`)
+    )
+})
+
+export const getAllReviews = asyncHandler(async (req, res) => {
+    const reviews = await Review.find()
+        .populate("user", "fullName email")
+        .populate("provider", "fullName email")
+        .sort({ createdAt: -1 })
+
+    res.status(200).json(
+        new ApiResponse(200, { reviews, count: reviews.length }, "all reviews fatched successfully")
+    )
+})
+
+export const updateReviewStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["approved", "rejected"].includes(status)) {
+        throw new ApiError(400, "invalid status")
+    }
+
+    const review = await Review.findByIdAndUpdate(id, { status }, { new: true });
+
+    if (!review) throw new ApiError(404, "review not find");
+
+    res.status(200).json(
+        new ApiResponse(200, review, `review ${status} successfully`)
+    )
+})
+
+export const toggleReviewVisibility = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const review = await Review.findById(id);
+
+    if (!review) throw new ApiError(404, "review not found!")
+
+    review.isHidden = !review.isHidden;
+
+    res.status(200).json(
+        new ApiResponse(200, review, `review ${review.isHidden ? "hidden" : "visible"} successfully`)
+    )
+})
+
+export const flagReview = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const review = await Review.findByIdAndUpdate(id, { isFlagged: true }, { new: true })
+
+    if (!review) throw new ApiError(404, "review not found!");
+
+    res.status(200).json(
+        new ApiResponse(200, review, "review flagged successfully")
+    )
+})
+
+export const getAllActivities = asyncHandler(async (req, res) => {
+    const activities = await ActivityLog.find()
+        .populate("performedBy", "firstName lastName email")
+        .populate("target")
+        .sort({ createdAt: -1 })
+        .limit(50);
+
+    res.status(200).json(
+        new ApiResponse(200, { activities }, "Recent activities fetched successfully")
     )
 })
