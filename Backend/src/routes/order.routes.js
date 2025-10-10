@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { isAuthenticated } from "../middlewares/auth.middleware.js";
 import {
   createOrder,
   getOrders,
@@ -9,10 +10,25 @@ import {
 
 const router = Router();
 
-router.route("/create").post(createOrder);
-router.route("/get").get(getOrders);
-router.route("/status/:status").get(getOrdersByStatus);
-router.route("/:id/update-status").put(updateOrderStatus);
-router.route("/stats/me").get(getOrderStats);
+router.route("/createOrder").post(
+  isAuthenticated,
+  createOrder
+);
+router.route("/getAllOrders").get(
+  isAuthenticated,
+  getOrders
+);
+router.route("/status/:status").get(  
+  isAuthenticated,
+  getOrdersByStatus
+);
+router.route("/:id/update-status").patch(
+  isAuthenticated,
+  updateOrderStatus
+);
+router.route("/stats/me").get(
+  isAuthenticated,
+  getOrderStats
+);
 
 export default router;

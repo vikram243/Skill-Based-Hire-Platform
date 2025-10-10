@@ -22,7 +22,7 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User Already Exists");
     }
     const avatarLocalPath = req.file?.path;
-    console.log(avatarLocalPath);
+
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar is required")
     }
@@ -85,7 +85,6 @@ const loginUser = asyncHandler(async (req, res) => {
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     })
-
     const userSafe = getSafeUser(user);
     return res.status(200).json(new ApiResponse(200, { user:userSafe }, "user login successfully"));
 })
