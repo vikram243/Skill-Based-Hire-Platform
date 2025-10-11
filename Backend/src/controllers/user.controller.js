@@ -6,78 +6,8 @@ import { sendEmail } from '../services/email.service.js';
 import { sendSms } from '../services/sms.service.js';
 import config from '../config/config.js';
 
-const registerUser = asyncHandler(async (req, res) => {
-    const { firstName, lastName, email, number, password } = req.body;
-    if (
-        [firstName, lastName, email, number, password].some((field) => field?.trim() === "")
-    ) {
-        throw new ApiError(400, "All fields are required")
-    }
-
-    const existedUser = await User.findOne({
-        $or: [{ email }, { number }]
-    })
-
-    if (existedUser) {
-        throw new ApiError(409, "User Already Exists");
-    }
-    const avatarLocalPath = req.file?.path;
-
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar is required")
-    }
-
-    const avatar = await uploadOnCloudinary(avatarLocalPath);
-
-    if (!avatar) {
-        throw new ApiError(400, "Avatar file is required")
-    }
-
-    const user = await User.create({
-        firstName,
-        lastName,
-        fullName: `${firstName} ${lastName}`,
-        email,
-        number,
-        password,
-        avatar: avatar.url
-    })
-
-    const createdUser = await User.findById(user._id);
-
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user")
-    }
-    const token = createdUser.generateJwtToken();
-    if (!token) throw new ApiError(400, "error while generating the token")
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: config.nodeEnv,
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    })
-
-    await logActivity({
-        action:"User Registered",
-        target: createdUser._id,
-        targetModel : "User",
-        description:`${createdUser.fullName} has registered`
-    })
-
-    const userSafe = getSafeUser(createdUser);
-    return res.status(201).json(
-        new ApiResponse(200, { user: userSafe, token }, "User Registered Successfully")
-    )
-})
-
-const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    console.log(email,password);
-    if (!email || !password) throw new ApiError(401, "email and password are required for login");
-    const user = await User.findOne({ email }).select("+password");
-    if (!user || !(await user.isPasswordCorrect(password))) throw new ApiError(401, "invalid credentials");
 // 🔹 Step 1: Send OTP
-const sendOtpToUser = asyncHandler(async (req, res) => {
+const  sendOtpToUser = asyncHandler(async (req, res) => {
   const { email, number } = req.body;
   const identifier = email || number;
 
@@ -113,17 +43,7 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
     })
     const userSafe = getSafeUser(user);
     return res.status(200).json(new ApiResponse(200, { user:userSafe }, "user login successfully"));
-})
-      httpOnly: true,
-      secure: config.nodeEnv === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    return res.status(200).json(new ApiResponse(200, { token, user }, "Login successful"));
   }
-
-  return res.status(200).json(new ApiResponse(200, null, "User not found, show registration panel"));
 });
 
 // 🔹 Step 3: Register New User
@@ -158,9 +78,9 @@ const logoutUser = (req, res) => {
   return res.status(200).json(new ApiResponse(200, {}, "User logout successfully"));
 };
 
-export {
+export{
   sendOtpToUser,
   verifyOtpAndLogin,
   registerUser,
   logoutUser
-};
+}
