@@ -3,7 +3,7 @@ import { ApiError, ApiResponse } from "../utils/api.handeller.js";
 import { asyncHandler } from "../utils/async.handeller.js";
 
 // Create a new order
-const createOrder = asyncHandler(async (req, res) => {
+export const createOrder = asyncHandler(async (req, res) => {
   const {
     provider,
     skill,
@@ -37,7 +37,7 @@ const createOrder = asyncHandler(async (req, res) => {
 });
 
 // Get all orders for logged-in customer or provider
-const getOrders = asyncHandler(async (req, res) => {
+export const getOrders = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   const role = req.query.role || "customer"; // 'customer' or 'provider'
 
@@ -56,7 +56,7 @@ const getOrders = asyncHandler(async (req, res) => {
 });
 
 // Get orders by status
-const getOrdersByStatus = asyncHandler(async (req, res) => {
+export const getOrdersByStatus = asyncHandler(async (req, res) => {
   const { status } = req.params;
   const userId = req.user?._id;
 
@@ -77,7 +77,7 @@ const getOrdersByStatus = asyncHandler(async (req, res) => {
 });
 
 // Update order status
-const updateOrderStatus = asyncHandler(async (req, res) => {
+export const updateOrderStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -99,7 +99,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 });
 
 // Get order stats for dashboard
-const getOrderStats = asyncHandler(async (req, res) => {
+export const getOrderStats = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
 
   const completed = await Order.countDocuments({ customer: userId, status: "completed" });
@@ -117,15 +117,7 @@ const getOrderStats = asyncHandler(async (req, res) => {
     // ratings could be handled separately if you store them in reviews collection
   };
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, stats, "Order stats fetched successfully"));
+  return res.status(200).json(
+    new ApiResponse(200, stats, "Order stats fetched successfully")
+  );
 });
-
-export {
-  createOrder,
-  getOrders,
-  getOrdersByStatus,
-  updateOrderStatus,
-  getOrderStats,
-};

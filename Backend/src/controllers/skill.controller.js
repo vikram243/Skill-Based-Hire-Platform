@@ -1,10 +1,11 @@
 import Skill from "../models/skill.model.js";
 import { ApiError, ApiResponse } from "../utils/api.handeller.js";
 import { asyncHandler } from "../utils/async.handeller.js";
+import { uploadOnCloudinary } from "../config/cloudinary.config.js";
 
 // CREATE a new skill
 const createSkill = asyncHandler(async (req, res) => {
-    const { name, category, description, icon } = req.body;
+    const { name, category, description } = req.body;
 
     if (!name) {
         throw new ApiError(400, "Skill name is required");
@@ -15,11 +16,20 @@ const createSkill = asyncHandler(async (req, res) => {
         throw new ApiError(409, "Skill already exists");
     }
 
-    const skill = await Skill.create({ name, category, description, icon });
+    const iconLocalPath = req.file?.path;
 
-    return res
-        .status(201)
-        .json(new ApiResponse(201, skill, "Skill created successfully"));
+    const icon = await uploadOnCloudinary(iconLocalPath);
+
+    const skill = await Skill.create({ 
+        name,
+        category,
+        description,
+        icon : icon.url
+    });
+
+    return res.status(201).json(
+        new ApiResponse(201, skill, "Skill created successfully"
+    ));
 });
 
 // GET all skills
