@@ -1,18 +1,16 @@
 import { Router } from 'express';
-import { loginUser, logoutUser, registerUser } from '../controllers/user.controller.js';
-import { upload } from '../middlewares/upload.middleware.js';
+import {
+  sendOtpToUser,
+  verifyOtpAndLogin,
+  registerUser,
+  logoutUser
+} from '../controllers/user.controller.js';
 
 const router = Router();
 
-router.route("/register").post(
-    upload.single('avatar'),
-    registerUser
-)
-router.route("/login").post(
-    loginUser
-)
-router.route("/logout").get(
-    logoutUser
-)
+router.post("/send-otp", sendOtpToUser);
+router.post("/verify-otp", verifyOtpAndLogin);
+router.post("/register", registerUser);
+router.get("/logout", logoutUser);
 
 export default router;

@@ -24,10 +24,6 @@ const config = {
     },
     EmailUser: process.env.EMAIL_USER,
     EmailPass: process.env.EMAIL_PASS,
-    AwsRegion: process.env.AWS_REGION,
-    AwsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    AwsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    AwsSesVerifiedEmail: process.env.AWS_SES_VERIFIED_EMAIL,
 }
 
 export default config;

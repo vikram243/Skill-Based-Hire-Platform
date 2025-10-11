@@ -36,19 +36,15 @@ const userSchema = new mongoose.Schema({
     trim: true,
     required:false
   },
-  password: {
-    type: String,
-    select: false,
-    minlength: 6,
-    maxlength: 200,
-  },
   googleId: {
     type: String,
     unique: true,
     sparse: true,
   },
 
+  isUser: {type: Boolean, default: false},
   isProvider: { type: Boolean, default: false },
+  isAdmin: { type: Boolean, default: false },
   providerProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Provider', default: null },
   providerStatus: { type: String, enum: ['none', 'draft', 'pending', 'approved', 'rejected'], default: 'none' },
 
@@ -60,12 +56,6 @@ const userSchema = new mongoose.Schema({
   socketId: {
     type: String,
     default: null
-  },
-
-  role:{
-    type : String,
-    enum: ['user','admin'],
-    default:'user'
   },
 
   isActive:{
