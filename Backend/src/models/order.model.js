@@ -7,10 +7,7 @@ const AddressSchema = new mongoose.Schema({
 }, { _id: false });
 
 const PricingSchema = new mongoose.Schema({
-  hourlyRate: { type: Number, required: true, min: 0 },
-  estimatedHours: { type: Number, required: true, min: 0 },
-  subtotal: { type: Number, required: true, min: 0 },
-  serviceFee: { type: Number, default: 0, min: 0 },
+  serviceRate: { type: Number, default: 0, min: 0 },
   taxes: { type: Number, default: 0, min: 0 },
   total: { type: Number, required: true, min: 0 }
 }, { _id: false });
@@ -46,9 +43,6 @@ const OrderSchema = new mongoose.Schema({
 
   // contact phone captured at booking time
   contactPhone: { type: String, trim: true, default: '' },
-
-  // provider/customer notes
-  notes: { type: String, trim: true, default: '' },
 
   meta: {
     providerRated: { type: Boolean, default: false },
