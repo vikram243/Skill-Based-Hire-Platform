@@ -11,6 +11,6 @@ const router = Router();
 router.post("/send-otp", sendOtpToUser);
 router.post("/verify-otp", verifyOtpAndLogin);
 router.post("/register", registerUser);
-router.get("/logout", logoutUser);
+router.post("/logout", logoutUser);
 
 export default router;

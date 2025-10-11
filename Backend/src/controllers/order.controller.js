@@ -39,16 +39,58 @@ export const createOrder = asyncHandler(async (req, res) => {
 // Get all orders for logged-in customer or provider
 export const getOrders = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
-  const role = req.query.role || "customer"; // 'customer' or 'provider'
+  const role = req.query.role || "customer";
 
-  let filter = {};
-  if (role === "customer") filter.customer = userId;
-  if (role === "provider") filter.provider = userId;
+  const matchStage = role === "provider"
+    ? { provider: userId }
+    : { customer: userId };
 
-  const orders = await Order.find(filter)
-    .populate("customer", "name email")
-    .populate("provider", "name email")
-    .populate("skill", "name category");
+  const orders = await Order.aggregate([
+    { $match: matchStage },
+    {
+      $lookup: {
+        from: "users",
+        localField: "customer",
+        foreignField: "_id",
+        as: "customer"
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "provider",
+        foreignField: "_id",
+        as: "provider"
+      }
+    },
+    {
+      $lookup: {
+        from: "skills",
+        localField: "skill",
+        foreignField: "_id",
+        as: "skill"
+      }
+    },
+    { $unwind: "$customer" },
+    { $unwind: "$provider" },
+    { $unwind: "$skill" },
+    {
+      $project: {
+        _id: 1,
+        description: 1,
+        address: 1,
+        urgency: 1,
+        pricing: 1,
+        contactPhone: 1,
+        status: 1,
+        createdAt: 1,
+        customer: { name: "$customer.fullName", email: "$customer.email" },
+        provider: { name: "$provider.fullName", email: "$provider.email" },
+        skill: { name: "$skill.name", category: "$skill.category" }
+      }
+    },
+    { $sort: { createdAt: -1 } }
+  ]);
 
   return res
     .status(200)
@@ -60,12 +102,57 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
   const { status } = req.params;
   const userId = req.user?._id;
 
-  const orders = await Order.find({
-    customer: userId,
-    status,
-  })
-    .populate("provider", "name email")
-    .populate("skill", "name category");
+  if (!status) {
+    throw new ApiError(400, "Order status is required");
+  }
+
+  const orders = await Order.aggregate([
+    {
+      $match: {
+        customer: userId,
+        status
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "provider",
+        foreignField: "_id",
+        as: "provider"
+      }
+    },
+    {
+      $lookup: {
+        from: "skills",
+        localField: "skill",
+        foreignField: "_id",
+        as: "skill"
+      }
+    },
+    { $unwind: "$provider" },
+    { $unwind: "$skill" },
+    {
+      $project: {
+        _id: 1,
+        description: 1,
+        address: 1,
+        urgency: 1,
+        pricing: 1,
+        contactPhone: 1,
+        status: 1,
+        createdAt: 1,
+        provider: {
+          name: "$provider.fullName",
+          email: "$provider.email"
+        },
+        skill: {
+          name: "$skill.name",
+          category: "$skill.category"
+        }
+      }
+    },
+    { $sort: { createdAt: -1 } }
+  ]);
 
   if (!orders || orders.length === 0) {
     throw new ApiError(404, `No ${status} orders found`);

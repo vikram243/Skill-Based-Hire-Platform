@@ -8,23 +8,67 @@ import { getSafeUser } from '../utils/userSafe.helper.js';
 import { logActivity } from '../utils/activity.handeller.js'
 
 export const getAllUsers = asyncHandler(async (req, res) => {
-    const users = await User.find().sort({ createdAt: -1 });
-    const safeUsers = users.map(getSafeUser)
-    res.status(200).json(
-        new ApiResponse(200, { users: safeUsers, count: users.length }, "All users fetched successfully")
-    );
+  const users = await User.aggregate([
+    {
+      $project: {
+        _id: 1,
+        fullName: 1,
+        email: 1,
+        number: 1,
+        isUser: 1,
+        isProvider: 1,
+        isAdmin: 1,
+        providerStatus: 1,
+        isActive: 1,
+        createdAt: 1
+      }
+    },
+    { $sort: { createdAt: -1 } }
+  ]);
+
+  res.status(200).json(
+    new ApiResponse(200, { users, count: users.length }, "All users fetched successfully")
+  );
 });
 
 export const getAllProviders = asyncHandler(async (req, res) => {
-    const { status } = req.query;
-    const filter = status ? { applicationStatus: status } : {};
-    const providers = await Provider.find(filter)
-        .populate('user', "fullName email");
+  const { status } = req.query;
+  const matchStage = status ? { applicationStatus: status } : {};
 
-    return res.status(200).json(
-        new ApiResponse(200, providers, "All Pending Providers")
-    )
-})
+  const providers = await Provider.aggregate([
+    { $match: matchStage },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    { $unwind: "$user" },
+    {
+      $project: {
+        _id: 1,
+        businessName: 1,
+        professionalDescription: 1,
+        yearsExperience: 1,
+        contactPhone: 1,
+        applicationStatus: 1,
+        submittedAt: 1,
+        meta: 1,
+        user: {
+          fullName: "$user.fullName",
+          email: "$user.email"
+        }
+      }
+    },
+    { $sort: { submittedAt: -1 } }
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(200, providers, "All providers fetched successfully")
+  );
+});
 
 export const suspendUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -98,15 +142,45 @@ export const updateProviderStatus = asyncHandler(async (req, res) => {
 })
 
 export const getAllReviews = asyncHandler(async (req, res) => {
-    const reviews = await Review.find()
-        .populate("user", "fullName email")
-        .populate("provider", "fullName email")
-        .sort({ createdAt: -1 })
+  const reviews = await Review.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "provider",
+        foreignField: "_id",
+        as: "provider"
+      }
+    },
+    { $unwind: "$user" },
+    { $unwind: "$provider" },
+    {
+      $project: {
+        _id: 1,
+        rating: 1,
+        comment: 1,
+        status: 1,
+        isHidden: 1,
+        isFlagged: 1,
+        createdAt: 1,
+        user: { fullName: "$user.fullName", email: "$user.email" },
+        provider: { fullName: "$provider.fullName", email: "$provider.email" }
+      }
+    },
+    { $sort: { createdAt: -1 } }
+  ]);
 
-    res.status(200).json(
-        new ApiResponse(200, { reviews, count: reviews.length }, "all reviews fatched successfully")
-    )
-})
+  return res.status(200).json(
+    new ApiResponse(200, { reviews, count: reviews.length }, "All reviews fetched successfully")
+  );
+});
 
 export const updateReviewStatus = asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -152,13 +226,36 @@ export const flagReview = asyncHandler(async (req, res) => {
 })
 
 export const getAllActivities = asyncHandler(async (req, res) => {
-    const activities = await ActivityLog.find()
-        .populate("performedBy", "firstName lastName email")
-        .populate("target")
-        .sort({ createdAt: -1 })
-        .limit(50);
+  const activities = await ActivityLog.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "performedBy",
+        foreignField: "_id",
+        as: "performedBy"
+      }
+    },
+    { $unwind: "$performedBy" },
+    {
+      $project: {
+        _id: 1,
+        action: 1,
+        description: 1,
+        createdAt: 1,
+        performedBy: {
+          fullName: {
+            $concat: ["$performedBy.firstName", " ", "$performedBy.lastName"]
+          },
+          email: "$performedBy.email"
+        },
+        target: 1
+      }
+    },
+    { $sort: { createdAt: -1 } },
+    { $limit: 50 }
+  ]);
 
-    res.status(200).json(
-        new ApiResponse(200, { activities }, "Recent activities fetched successfully")
-    )
-})
+  return res.status(200).json(
+    new ApiResponse(200, { activities }, "Recent activities fetched successfully")
+  );
+});

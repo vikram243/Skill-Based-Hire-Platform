@@ -54,20 +54,31 @@ const getAllSkillsName = asyncHandler(async (req, res) => {
 
 // GET skills by category
 const getSkillsByCategory = asyncHandler(async (req, res) => {
-    const { category } = req.params;
+  const { category } = req.params;
 
-    if (!category) {
-        throw new ApiError(400, "Category is required");
-    }
+  if (!category) {
+    throw new ApiError(400, "Category is required");
+  }
 
-    const skills = await Skill.find({ category });
-    if (!skills || skills.length === 0) {
-        throw new ApiError(404, `No skills found in category: ${category}`);
-    }
+  const skills = await Skill.aggregate([
+    { $match: { category } },
+    {
+      $project: {
+        name: 1,
+        category: 1,
+        description: 1,
+      }
+    },
+    { $sort: { name: 1 } }
+  ]);
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, skills, "Skills by category fetched successfully"));
+  if (!skills || skills.length === 0) {
+    throw new ApiError(404, `No skills found in category: ${category}`);
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, skills, "Skills by category fetched successfully"));
 });
 
 // GET skills by popularity (top N)
@@ -94,6 +105,5 @@ const getPopularSkillsName = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, skills, "Popular skills fetched successfully"));
 });
-
 
 export { createSkill, getAllSkillsName, getSkillsByCategory, getPopularSkillsName };
