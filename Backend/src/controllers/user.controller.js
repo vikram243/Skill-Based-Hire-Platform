@@ -8,7 +8,7 @@ import config from '../config/config.js';
 import {getSafeUser} from '../utils/userSafe.helper.js'
 
 // 🔹 Step 1: Send OTP
-const  sendOtpToUser = asyncHandler(async (req, res) => {
+const sendOtpToUser = asyncHandler(async (req, res) => {
   const { email, number } = req.body;
   const identifier = email || number;
 
@@ -23,7 +23,7 @@ const  sendOtpToUser = asyncHandler(async (req, res) => {
       text: `Your OTP is ${otpResponse.data.otp} to verify your identity on Skill-Hub. It expires in ${otpResponse.data.expiresIn/60}min`
     });
   } else {
-    await sendSms(number, `Your OTP is ${otpResponse.data.otp}`);
+    await sendSms(`+91${number}`, `Your OTP is ${otpResponse.data.otp}`);
   }
 
   return res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));

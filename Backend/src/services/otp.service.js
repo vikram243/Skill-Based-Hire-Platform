@@ -10,8 +10,8 @@ const generateOtp = async (identifier, length = 6) => {
 
   const otp = crypto.randomInt(10 ** (length - 1), 10 ** length).toString();
   const hashedOtp = await bcrypt.hash(otp, 10);
-  const redisKey = `otp:${identifier}`;
-  await redis.setEx(redisKey, 180, hashedOtp);
+  const redisKey = `loginOtp:${identifier}`;
+  await redis.setEx(redisKey, 300, hashedOtp);
 
   return new ApiResponse(200, { otp, expiresIn: 180 }, "OTP generated successfully");
 };
@@ -20,7 +20,7 @@ const verifyOtp = async (identifier, enteredOtp) => {
     if (!identifier || !enteredOtp) {
         throw new ApiError(400, "Identifier and OTP are required");
     }
-    const redisKey = `otp:${identifier}`;
+    const redisKey = `loginOtp:${identifier}`;
     const storedHashedOtp = await redis.get(redisKey);
 
     if (!storedHashedOtp) {
