@@ -3,11 +3,7 @@ import { asyncHandler } from '../utils/async.handeller.js';
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import { generateOtp, verifyOtp } from '../services/otp.service.js';
 import { sendEmail } from '../services/email.service.js';
-<<<<<<< HEAD
 import { sendSms } from '../services/twilio.service.js';
-=======
-// import { sendSms } from '../services/sms.service.js';
->>>>>>> 9f8d8df094ddd0ba2389318fe7c98691c7c553c5
 import config from '../config/config.js';
 import {getSafeUser} from '../utils/userSafe.helper.js'
 
