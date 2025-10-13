@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/async.handeller.js';
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import { generateOtp, verifyOtp } from '../services/otp.service.js';
 import { sendEmail } from '../services/email.service.js';
-import { sendSms } from '../services/sms.service.js';
+import { sendSms } from '../services/twilio.service.js';
 import config from '../config/config.js';
 
 // 🔹 Step 1: Send OTP
