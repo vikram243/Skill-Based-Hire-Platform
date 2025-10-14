@@ -5,6 +5,7 @@ import providerRoutes from './provider.routes.js'
 import adminRoutes from './admin.routes.js'
 import orderRoutes from './order.routes.js';
 import skillRoutes from './skill.routes.js';
+import reviewRoutes from './review.route.js'
 // import paymentRoutes from './payment.routes.js';
 // import chatRoutes from './chat.routes.js';
 
@@ -16,6 +17,7 @@ router.use('/provider', providerRoutes);
 router.use('/admin', adminRoutes);
 router.use('/orders', orderRoutes);
 router.use('/skills', skillRoutes);
+router.use('/review', reviewRoutes);
 // router.use('/payments', paymentRoutes);
 // router.use('/chats', chatRoutes);
 router.use("/", (req, res) => {
