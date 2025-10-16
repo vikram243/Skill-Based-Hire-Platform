@@ -27,7 +27,6 @@ export function Navigation({
     { id: 'orders', label: 'Orders', icon: File },
     { id: 'cart', label: 'Cart', icon: ShoppingCart },
     { id: 'profile', label: 'Profile', icon: null },
-    { id: 'history', label: 'History', icon: File}, 
   ];
 
   return (

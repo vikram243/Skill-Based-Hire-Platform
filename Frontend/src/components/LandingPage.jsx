@@ -82,8 +82,8 @@ export function LandingPage({ onNavigate, onLogin }) {
       {/* Hero Section */}
       <section className="relative pt-24 pb-20 px-6 overflow-hidden">
         {/* Background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-blue-50/30" />
         <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-br from-[var(--primary-gradient-start)]/10 to-[var(--primary-gradient-end)]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-72 h-72 bg-gradient-to-br from-[var(--primary-gradient-start)]/10 to-[var(--primary-gradient-end)]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-tr from-accent/5 to-transparent rounded-full blur-3xl" />
         
         <div className="container max-w-5xl mx-auto text-center relative z-10">
