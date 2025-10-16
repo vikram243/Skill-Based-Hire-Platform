@@ -9,7 +9,6 @@ import { ProfilePage } from './components/ProfilePage.jsx'
 import { RegisterProviderPage } from './components/RegisterProviderPage.jsx'
 import { MapPage } from './components/MapPage.jsx'
 import { CartPage } from './components/CartPage.jsx'
-import { HistoryPage } from './components/HistoryPage.jsx'
 import {GoogleOAuthProvider} from '@react-oauth/google'
 
 export default function App() {
@@ -94,8 +93,6 @@ export default function App() {
         )
       case 'orders':
         return <OrdersPage onNavigate={navigate} user={appState.user} />
-      case 'history':
-        return <HistoryPage onNavigate={navigate} user={appState.user} />
       case 'cart':
         return <CartPage onNavigate={navigate} user={appState.user} />
       case 'profile':

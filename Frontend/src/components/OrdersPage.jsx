@@ -161,7 +161,7 @@ export function OrdersPage({ onNavigate, user }) {
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsList className="w-full grid-cols-5 mb-6">
             <TabsTrigger value="pending">Pending</TabsTrigger>
             <TabsTrigger value="accepted">Accepted</TabsTrigger>
             <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
