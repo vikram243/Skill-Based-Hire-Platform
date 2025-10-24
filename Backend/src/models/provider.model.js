@@ -42,6 +42,7 @@ const ProviderSchema = new mongoose.Schema({
   documents: { type: [DocumentSchema], default: [] },
   agreedToTOS: { type: Boolean, default: false },
   consentBackgroundCheck: { type: Boolean, default: false },
+  isOnline: { type: Boolean, default: false },
 
   // minimal lifecycle (user submits → pending → approved)
   applicationStatus: {
