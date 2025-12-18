@@ -1,0 +1,201 @@
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------
+   1. THEME TOKENS (light mode)
+--------------------------------*/
+:root {
+  --font-size: 16px;
+  --background: #FAFBFC;
+  --foreground: #0A0E1A;
+  --card: #FFFFFF;
+  --card-foreground: #0A0E1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0E1A;
+  --primary: linear-gradient(135deg, #3B82F6, #1E40AF);
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0A0E1A;
+  --muted: #E2E8F0;
+  --muted-foreground: #64748B;
+  --accent: #FF6B6B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --success: #059669;
+  --success-foreground: #FFFFFF;
+  --border: rgba(15, 23, 42, 0.08);
+  --input: transparent;
+  --input-background: #F8FAFC;
+  --switch-background: #CBD5E1;
+  --ring: rgba(59, 130, 246, 0.3);
+  --radius: 0.875rem;
+  --sidebar: #F8FAFC;
+  --sidebar-foreground: #0A0E1A;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F1F5F9;
+  --sidebar-accent-foreground: #0A0E1A;
+  --sidebar-border: rgba(15, 23, 42, 0.08);
+  --sidebar-ring: rgba(59, 130, 246, 0.3);
+
+  /* SkillHub specific */
+  --primary-gradient-start: #3B82F6;
+  --primary-gradient-end: #1E40AF;
+  --surface: #F8FAFC;
+  --text-primary: #0A0E1A;
+  --text-secondary: #64748B;
+  --shadow-low: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-mid: 0 8px 25px rgba(15, 23, 42, 0.12);
+  --shadow-high: 0 25px 50px rgba(15, 23, 42, 0.15);
+}
+
+/* ------------------------------
+   2. DARK MODE TOKENS
+--------------------------------*/
+.dark {
+  --background: #0B1426;
+  --foreground: #F1F5F9;
+  --card: #0F1629;
+  --card-foreground: #F1F5F9;
+  --popover: #1E293B;
+  --popover-foreground: #F1F5F9;
+  --primary: linear-gradient(135deg, #60A5FA, #3B82F6);
+  --primary-foreground: #F1F5F9;
+  --secondary: #1E293B;
+  --secondary-foreground: #F1F5F9;
+  --muted: #334155;
+  --muted-foreground: #94A3B8;
+  --accent: #FF6B6B;
+  --accent-foreground: #F1F5F9;
+  --destructive: #F87171;
+  --destructive-foreground: #F1F5F9;
+  --success: #10B981;
+  --success-foreground: #F1F5F9;
+  --border: rgba(241, 245, 249, 0.08);
+  --input: transparent;
+  --input-background: #1E293B;
+  --ring: rgba(96, 165, 250, 0.3);
+  --sidebar: #1E293B;
+  --sidebar-foreground: #F1F5F9;
+  --sidebar-primary: #60A5FA;
+  --sidebar-primary-foreground: #F1F5F9;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #F1F5F9;
+  --sidebar-border: rgba(241, 245, 249, 0.08);
+  --sidebar-ring: rgba(96, 165, 250, 0.3);
+
+  /* SkillHub dark */
+  --primary-gradient-start: #60A5FA;
+  --primary-gradient-end: #3B82F6;
+  --surface: #1E293B;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --shadow-low: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-mid: 0 8px 25px rgba(0, 0, 0, 0.5);
+  --shadow-high: 0 25px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* ----------------------------------------
+   3. TAILWIND V4 THEME MAPPING
+-----------------------------------------*/
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ----------------------------------------
+   4. BASE STYLES (NO @apply in v4)
+-----------------------------------------*/
+
+html {
+  font-size: var(--font-size);
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--primary-gradient-start);
+  outline-offset: 2px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-gradient-start);
+}
+
+/* Typography defaults */
+h1 {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+}
+
+h2 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+h3 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+p, input, button, label {
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
