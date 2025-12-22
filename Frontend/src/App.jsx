@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 // import { Button } from './components/ui/button';
-import AuthPage from './components/AuthPage';
+import LandingPage from './components/Landing.Page'
 
 
 const App = () => {
 
   return (
-   <AuthPage></AuthPage>
+   <LandingPage></LandingPage>
   )
 }
 
