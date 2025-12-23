@@ -39,6 +39,7 @@ router.route("/orders/delete").delete(
     isAdmin,
     deleteOrders
 )
+
 router.route("/Providers").get(
     isAuthenticated,
     isAdmin,

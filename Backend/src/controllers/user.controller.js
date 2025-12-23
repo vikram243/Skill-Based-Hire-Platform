@@ -5,9 +5,9 @@ import { generateOtp, verifyOtp } from '../services/otp.service.js';
 import { sendEmail } from '../services/email.service.js';
 import { sendSms } from '../services/twilio.service.js';
 import config from '../config/config.js';
-import {getSafeUser} from '../utils/userSafe.helper.js'
+import {getSafeUser} from '../utils/userSafe.helper.js';
 
-// 🔹 Step 1: Send OTP
+
 const sendOtpToUser = asyncHandler(async (req, res) => {
   const { email, number } = req.body;
   const identifier = email || number;
@@ -29,12 +29,12 @@ const sendOtpToUser = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
 });
 
-// 🔹 Step 2: Verify OTP and Login or Prompt Registration
+
 const verifyOtpAndLogin = asyncHandler(async (req, res) => {
   const { email, number, otp } = req.body;
   const identifier = email || number;
 
-  await verifyOtp(identifier, otp); // throws error if invalid
+  await verifyOtp(identifier, otp);
 
   const user = await User.findOne(email ? { email } : { number });
 
@@ -51,7 +51,7 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
   }
 });
 
-// 🔹 Step 3: Register New User
+
 const registerUser = asyncHandler(async (req, res) => {
   const { firstName, lastName, email, number } = req.body || {};
 
@@ -79,7 +79,7 @@ const registerUser = asyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, { token, user }, "User registered and logged in"));
 });
 
-// 🔹 Step 4: Logout (already done)
+
 const logoutUser = async (req, res) => {
   const token = req.cookies?.token || req.headers['authorization']?.split(' ')[1];
     if (token) {

@@ -17,7 +17,7 @@ export function AccordionTrigger({ children ,...props}){
             </AccordionPrimitive.Trigger>
         </AccordionPrimitive.Header>
     )
-} 
+}
 
 export function AccordionContent({className, children, ...props}){
     return <AccordionPrimitive.Content className = {cn("",className)} {...props}>{children}</AccordionPrimitive.Content>

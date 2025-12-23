@@ -2,7 +2,6 @@ import Order from "../models/order.model.js";
 import { ApiError, ApiResponse } from "../utils/api.handeller.js";
 import { asyncHandler } from "../utils/async.handeller.js";
 
-// Create a new order
 export const createOrder = asyncHandler(async (req, res) => {
   const {
     provider,
@@ -36,7 +35,6 @@ export const createOrder = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, order, "Order created successfully"));
 });
 
-// Get all orders for logged-in customer or provider
 export const getOrders = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   const role = req.query.role || "customer";
@@ -97,7 +95,6 @@ export const getOrders = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, orders, "Orders fetched successfully"));
 });
 
-// Get orders by status
 export const getOrdersByStatus = asyncHandler(async (req, res) => {
   const { status } = req.params;
   const userId = req.user?._id;
@@ -163,7 +160,6 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, orders, `${status} orders fetched successfully`));
 });
 
-// Update order status
 export const updateOrderStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -185,7 +181,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, order, `Order status updated to ${status}`));
 });
 
-// Get order stats for dashboard
 export const getOrderStats = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
 
