@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import logo from '../assets/logo.png';
 import { Search, MapPin, Clock, CheckCircle, Users, Shield, Zap } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
+import { AuthPanel } from './AuthPanel';
 
 function LandingPage() {
+  const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
   const skills = [
     {
       id: '1',
@@ -93,7 +96,7 @@ function LandingPage() {
           <h1 className='font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent'>killHub</h1>
         </div>
         <div className='hidden md:flex md:justify-end items-center gap-2'>
-          <Button variant="ghost">
+          <Button variant="ghost"  onClick={() => setIsAuthPanelOpen(true)}>
             Sign In
           </Button>
           <Button
@@ -291,6 +294,11 @@ function LandingPage() {
           </div>
         </div>
       </div>
+
+      <AuthPanel
+        isOpen={isAuthPanelOpen}
+        onClose={() => setIsAuthPanelOpen(false)}
+      />
     </div>
   )
 }
