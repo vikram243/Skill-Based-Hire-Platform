@@ -177,8 +177,8 @@ export function AuthPanel({ isOpen, onClose, onSuccess }) {
                 <ArrowLeft size={16} />
               </Button>
             )}
-            <div>
-              <DialogTitle>
+            <div className="flex-1">
+              <DialogTitle className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
                 {step === "method" && "Welcome"}
                 {step === "identifier" && "Enter Details"}
                 {step === "otp" && "Verify OTP"}
@@ -209,13 +209,15 @@ export function AuthPanel({ isOpen, onClose, onSuccess }) {
         )}
 
         {step === "identifier" && (
-          <>
+          <div className="space-y-4">
+            <div className="space-y-2">
             <Label> {method === 'email' ? 'Email Address' : 'Phone Number'}</Label>
             <Input value={identifier} placeholder={method === 'email' ? 'you@example.com' : '1234567890'} autoFocus onChange={(e) => setIdentifier(e.target.value)} />
             <Button onClick={handleSendOtp} className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white">
               Send OTP
             </Button>
-          </>
+            </div>
+          </div>
         )}
 
         {step === "otp" && (
