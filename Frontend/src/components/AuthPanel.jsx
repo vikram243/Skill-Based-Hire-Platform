@@ -186,8 +186,8 @@ export function AuthPanel({ isOpen, onClose, onSuccess }) {
               </DialogTitle>
               <DialogDescription>
                 {step === "method" && "Choose login method"}
-                {step === "identifier" && "Enter email or phone"}
-                {step === "otp" && "Enter OTP"}
+                {step === "identifier" && `Enter your ${method === 'email' ? 'email address' : 'phone number'}`}
+                {step === "otp" && `Enter the OTP sent to ${identifier}`}
                 {step === "register" && "Complete registration"}
               </DialogDescription>
             </div>
@@ -196,46 +196,62 @@ export function AuthPanel({ isOpen, onClose, onSuccess }) {
 
         {step === "method" && (
           <div className="space-y-3">
-            <Button onClick={() => handleMethodSelect("email")} className="w-full">
-              <Mail className="mr-2" /> Email
+            <Button onClick={() => handleMethodSelect("email")} className="w-full h-14 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg">
+              <Mail className="mr-2" /> Continue With Email
             </Button>
-            <Button onClick={() => handleMethodSelect("number")} className="w-full">
-              <Phone className="mr-2" /> Phone
+            <Button onClick={() => handleMethodSelect("number")} className="w-full h-14 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg">
+              <Phone className="mr-2" /> Continue With Phone
             </Button>
-            <Button onClick={() => handleMethodSelect("google")} className="w-full">
-              <Chrome className="mr-2" /> Google
+            <Button onClick={() => handleMethodSelect("google")} className="w-full h-14 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 shadow-lg dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:border-gray-600">
+              <Chrome className="mr-2" /> Continue With Google
             </Button>
           </div>
         )}
 
         {step === "identifier" && (
           <>
-            <Label>Enter value</Label>
-            <Input value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
-            <Button onClick={handleSendOtp} className="w-full">
+            <Label> {method === 'email' ? 'Email Address' : 'Phone Number'}</Label>
+            <Input value={identifier} placeholder={method === 'email' ? 'you@example.com' : '1234567890'} autoFocus onChange={(e) => setIdentifier(e.target.value)} />
+            <Button onClick={handleSendOtp} className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white">
               Send OTP
             </Button>
           </>
         )}
 
         {step === "otp" && (
-          <>
-            <Label>OTP</Label>
-            <Input value={otp} onChange={(e) => setOtp(e.target.value)} />
-            <Button onClick={handleVerifyOtp} className="w-full">
-              Verify
-            </Button>
-          </>
-        )}
-
-        {step === "register" && (
-          <>
-            <Input placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            <Input placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-            <Button onClick={handleRegister} className="w-full">
-              Register
-            </Button>
-          </>
+          <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="otp">Enter 6-digit OTP</Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  placeholder="******"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
+                  className="text-center text-2xl tracking-widest"
+                  autoFocus
+                />
+              </div>
+              <div className="text-sm text-muted-foreground text-center">
+                Didn't receive the code?{' '}
+                <button
+                  onClick={handleSendOtp}
+                  className="text-primary hover:underline"
+                  disabled={isLoading}
+                >
+                  Resend OTP
+                </button>
+              </div>
+              <Button
+                onClick={handleVerifyOtp}
+                className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
+                disabled={isLoading || otp.length !== 6}
+              >
+                {isLoading ? 'Verifying...' : 'Verify & Continue'}
+              </Button>
+            </div>
         )}
       </DialogContent>
     </Dialog>
