@@ -16,14 +16,14 @@ import {
   Calendar,
   Star
 } from 'lucide-react';
-import { orders } from '../data/mockData.js';
+import { Orders } from '../data/mockData.js';
 
 export default function OrdersPage({ onNavigate, user }) {
   const [selectedTab, setSelectedTab] = useState('pending');
 
   const getOrdersByStatus = (status) => {
-    if (status === 'all') return orders;
-    return orders.filter(order => order.status === status);
+    if (status === 'all') return Orders;
+    return Orders.filter(order => order.status === status);
   };
 
   const getStatusColor = (status) => {
@@ -151,7 +151,7 @@ export default function OrdersPage({ onNavigate, user }) {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation
-        currentPage="orders"
+        currentPage="Orders"
         onNavigate={onNavigate}
         user={user}
       />
@@ -182,11 +182,11 @@ export default function OrdersPage({ onNavigate, user }) {
                 {getOrdersByStatus(status).length === 0 ? (
                   <Card className="p-8 text-center">
                     <div className="text-muted-foreground mb-4">
-                      {status === 'pending' && "No pending orders"}
-                      {status === 'accepted' && "No accepted orders"}
-                      {status === 'ongoing' && "No ongoing orders"}
-                      {status === 'completed' && "No completed orders"}
-                      {status === 'cancelled' && "No cancelled orders"}
+                      {status === 'pending' && "No pending Orders"}
+                      {status === 'accepted' && "No accepted Orders"}
+                      {status === 'ongoing' && "No ongoing Orders"}
+                      {status === 'completed' && "No completed Orders"}
+                      {status === 'cancelled' && "No cancelled Orders"}
                     </div>
                     <Button 
                       variant="outline"
@@ -209,21 +209,21 @@ export default function OrdersPage({ onNavigate, user }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              {orders.filter(o => o.status === 'completed').length}
+              {Orders.filter(o => o.status === 'completed').length}
             </div>
             <div className="text-sm text-muted-foreground">Completed</div>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              {orders.filter(o => o.status === 'pending').length}
+              {Orders.filter(o => o.status === 'pending').length}
             </div>
             <div className="text-sm text-muted-foreground">Pending</div>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              ${orders.reduce((sum, o) => sum + o.price, 0)}
+              ${Orders.reduce((sum, o) => sum + o.price, 0)}
             </div>
             <div className="text-sm text-muted-foreground">Total Spent</div>
           </Card>

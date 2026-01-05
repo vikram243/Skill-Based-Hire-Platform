@@ -4,7 +4,7 @@ import { Search, MapPin, Clock, CheckCircle, Users, Shield, Zap } from 'lucide-r
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { AuthPanel } from './AuthPanel';
+import AuthPanel from './AuthPanel';
 
 function LandingPage() {
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);

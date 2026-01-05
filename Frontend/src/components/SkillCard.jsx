@@ -4,20 +4,24 @@ import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Star, MapPin, Clock, CheckCircle, MessageCircle } from 'lucide-react';
+import { Provider } from '../data/mockData.js';
 
-function SkillCard({ provider, onClick, variant = 'default' }) {
+function SkillCard({ variant = 'default' }) {
   const isCompact = variant === 'compact';
 
+  // 🛡️ SAFETY FIXES (IMPORTANT)
+  const skills = Provider?.skills ?? [];
+  const availability = Provider?.availability ?? 'offline';
+
   return (
-    <Card 
+    <Card
       className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-2 border-border/40 hover:border-(--primary-gradient-start)/30 relative overflow-hidden ${
         isCompact ? 'p-4' : 'p-6'
       }`}
-      onClick={onClick}
     >
       {/* Hover Effect Overlay */}
       <div className="absolute inset-0 bg-linear-to-br from-(--primary-gradient-start)/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
+
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
@@ -26,9 +30,9 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
             <Avatar
               className={`${isCompact ? 'h-10 w-10' : 'h-12 w-12'} ring-2 ring-border/20 group-hover:ring-(--primary-gradient-start)/30 transition-all duration-300`}
             >
-              <AvatarImage src={provider.avatar} alt={provider.name} />
+              <AvatarImage src={Provider?.avatar} alt={Provider?.name} />
               <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                {provider?.name?.charAt(0) ?? 'U'}
+                {Provider?.name?.charAt(0) ?? 'U'}
               </AvatarFallback>
             </Avatar>
 
@@ -39,10 +43,10 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
                     isCompact ? 'text-sm' : 'text-base'
                   }`}
                 >
-                  {provider.name}
+                  {Provider?.name ?? 'Unknown Provider'}
                 </h3>
 
-                {provider.isVerified && (
+                {Provider?.isVerified && (
                   <CheckCircle
                     className={`text-(--primary-gradient-start) ${
                       isCompact ? 'w-3 h-3' : 'w-4 h-4'
@@ -52,7 +56,7 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
               </div>
 
               <p className={`text-muted-foreground ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                {provider.location}
+                {Provider?.location ?? 'Unknown location'}
               </p>
             </div>
           </div>
@@ -60,22 +64,22 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
           {/* Availability */}
           <div className="flex flex-col items-end space-y-1">
             <Badge
-              variant={provider.availability === 'available' ? 'default' : 'secondary'}
+              variant={availability === 'available' ? 'default' : 'secondary'}
               className={`${
-                provider.availability === 'available'
+                availability === 'available'
                   ? 'bg-success text-success-foreground'
-                  : provider.availability === 'busy'
+                  : availability === 'busy'
                   ? 'bg-accent text-accent-foreground'
                   : 'bg-muted text-muted-foreground'
               } ${isCompact ? 'text-xs px-2 py-0.5' : 'text-xs'}`}
             >
-              {provider.availability}
+              {availability}
             </Badge>
 
             {!isCompact && (
               <p className="text-xs text-muted-foreground flex items-center">
                 <Clock className="w-3 h-3 mr-1" />
-                {provider.responseTime}
+                {Provider?.responseTime ?? 'N/A'}
               </p>
             )}
           </div>
@@ -84,7 +88,7 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
         {/* Skills */}
         <div className={`${isCompact ? 'mb-3' : 'mb-4'}`}>
           <div className="flex flex-wrap gap-1.5">
-            {provider.skills.slice(0, isCompact ? 2 : 3).map((skill) => (
+            {skills.slice(0, isCompact ? 2 : 3).map((skill) => (
               <Badge
                 key={skill}
                 variant="outline"
@@ -96,12 +100,12 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
               </Badge>
             ))}
 
-            {provider.skills.length > (isCompact ? 2 : 3) && (
+            {skills.length > (isCompact ? 2 : 3) && (
               <Badge
                 variant="outline"
                 className={`bg-muted/50 ${isCompact ? 'text-xs px-2 py-0.5' : 'text-xs'}`}
               >
-                +{provider.skills.length - (isCompact ? 2 : 3)}
+                +{skills.length - (isCompact ? 2 : 3)}
               </Badge>
             )}
           </div>
@@ -110,7 +114,7 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
         {/* Bio */}
         {!isCompact && (
           <p className="text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
-            {provider.bio}
+            {Provider?.bio ?? 'No description available.'}
           </p>
         )}
 
@@ -124,17 +128,17 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
                 }`}
               />
               <span className={`font-medium ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                {provider.rating}
+                {Provider?.rating ?? 0}
               </span>
               <span className={`text-muted-foreground ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                ({provider.reviewCount})
+                ({Provider?.reviewCount ?? 0})
               </span>
             </div>
 
             {!isCompact && (
               <div className="flex items-center space-x-1 text-muted-foreground text-sm">
                 <MapPin className="w-3 h-3" />
-                <span>{provider.distance}</span>
+                <span>{Provider?.distance ?? 'N/A'}</span>
               </div>
             )}
           </div>
@@ -145,12 +149,12 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
                 isCompact ? 'text-sm' : 'text-base'
               }`}
             >
-              ${provider.hourlyRate}/hr
+              ${Provider?.hourlyRate ?? 0}/hr
             </p>
 
             {!isCompact && (
               <p className="text-xs text-muted-foreground">
-                {provider.completedJobs} jobs
+                {Provider?.completedJobs ?? 0} jobs
               </p>
             )}
           </div>
@@ -161,10 +165,7 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
           <Button
             size={isCompact ? 'sm' : 'default'}
             className="flex-1 bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick && onClick();
-            }}
+            onClick={(e) => e.stopPropagation()}
           >
             Hire Now
           </Button>
@@ -176,7 +177,7 @@ function SkillCard({ provider, onClick, variant = 'default' }) {
               className="flex-1 border-border/40 hover:border-(--primary-gradient-start)/40 hover:bg-(--primary-gradient-start)/5 transition-all duration-200"
               onClick={(e) => {
                 e.stopPropagation();
-                console.log('Open chat with', provider.name);
+                console.log('Open chat with', Provider?.name);
               }}
             >
               <MessageCircle className="w-4 h-4 mr-2" />
