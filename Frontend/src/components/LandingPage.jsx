@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import logo from '../assets/logo.png';
 import { Search, MapPin, Clock, CheckCircle, Users, Shield, Zap } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
+import { AuthPanel } from './AuthPanel';
 
 function LandingPage() {
+  const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
   const skills = [
     {
       id: '1',
@@ -295,6 +298,11 @@ function LandingPage() {
           </div>
         </div>
       </div>
+
+      <AuthPanel
+        isOpen={isAuthPanelOpen}
+        onClose={() => setIsAuthPanelOpen(false)}
+      />
     </div>
   )
 }
