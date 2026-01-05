@@ -5,12 +5,12 @@ import Navigation from './components/Navigation';
 import HomeFeed from './components/HomeFeed';
 import { AuthPanel } from './components/AuthPanel'
 import OrdersPage from './components/OrdersPage';
-import SkillCard from './components/SkillCard';
+// import SkillCard from './components/SkillCard';
 
 const App = () => {
 
   return (
-   <SkillCard></SkillCard>
+  //  <SkillCard></SkillCard>
   )
 }
 

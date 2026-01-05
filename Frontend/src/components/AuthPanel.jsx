@@ -166,7 +166,6 @@ export function AuthPanel({ isOpen, onClose, onSuccess }) {
     else if (step === "otp") setStep("identifier");
     else if (step === "register") setStep("otp");
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
