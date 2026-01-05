@@ -87,30 +87,34 @@ function LandingPage() {
   ];
   return (
     <div className="min-h-screen bg-background">
-      <div className='grid sm:grid-cols-2 grid-cols-2 md:p-4 p-2 sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60'>
-        <div className='flex m-2'>
-          <img src={logo} alt="logo" className='max-w-[35px] max-h-[35px]' />
-          <h1 className='font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent'>killHub</h1>
-        </div>
-        <div className='hidden md:flex md:justify-end items-center gap-2'>
-          <Button variant="ghost">
+      <div className='sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60'>
+        <div className='container flex h-18 items-center justify-between px-4 mx-auto py-3'>
+          <div className='flex items-center cursor-pointer group'>
+            <img src={logo} alt="logo" className='max-w-[35px] max-h-[35px]' />
+            <h1 className="font-bold! text-xl! bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
+              killHub
+            </h1>
+          </div>
+          <div className='hidden md:flex md:justify-end items-center gap-2'>
+            <Button variant="ghost">
+              Sign In
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Admin
+            </Button>
+          </div>
+          <Button
+            variant="ghost"
+            className="md:hidden flex justify-end"
+            onClick={() => setIsAuthPanelOpen(true)}
+          >
             Sign In
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Admin
-          </Button>
         </div>
-        <Button
-          variant="ghost"
-          className="md:hidden flex justify-end"
-          onClick={() => setIsAuthPanelOpen(true)}
-        >
-          Sign In
-        </Button>
       </div>
       <div className='flex sm:flex-col flex-col items-center text-center md:mt-26 mt-24'>
         <h1 className='text-6xl! md:text-7xl! font-bold! mb-8 bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent leading-tight'>Hire skills near you, anytime!</h1>
