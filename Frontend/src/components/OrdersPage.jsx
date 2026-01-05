@@ -5,10 +5,10 @@ import { Card, CardContent } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
-import { 
-  Clock, 
-  MapPin, 
-  MessageCircle, 
+import {
+  Clock,
+  MapPin,
+  MessageCircle,
   Phone,
   CheckCircle,
   XCircle,
@@ -98,7 +98,7 @@ export default function OrdersPage({ onNavigate, user }) {
               <div className="flex gap-2">
                 {order.status === 'pending' && (
                   <>
-                    <Button size="sm" variant="outline">Cancel</Button>
+                    <Button size="sm" variant="ghost">Cancel</Button>
                     <Button size="sm" variant="ghost">
                       <MessageCircle className="w-4 h-4" />
                     </Button>
@@ -107,11 +107,11 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'accepted' && (
                   <>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="ghost">
                       <Phone className="w-4 h-4 mr-2" />
                       Call
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="ghost">
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Message
                     </Button>
@@ -120,8 +120,8 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'ongoing' && (
                   <>
-                    <Button size="sm" variant="outline">Track Progress</Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="ghost">Track Progress</Button>
+                    <Button size="sm" variant="ghost">
                       <MessageCircle className="w-4 h-4" />
                     </Button>
                   </>
@@ -129,16 +129,16 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'completed' && (
                   <>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="ghost">
                       <Star className="w-4 h-4 mr-2" />
                       Review
                     </Button>
-                    <Button size="sm" variant="outline">Rebook</Button>
+                    <Button size="sm" variant="ghost">Rebook</Button>
                   </>
                 )}
 
                 {order.status === 'cancelled' && (
-                  <Button size="sm" variant="outline">Book Again</Button>
+                  <Button size="sm" variant="ghost">Book Again</Button>
                 )}
               </div>
             </div>
@@ -159,9 +159,10 @@ export default function OrdersPage({ onNavigate, user }) {
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl! font-bold!">My Orders</h1>
-          <Button 
+          <Button
             onClick={() => onNavigate('home')}
             className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
+            variant="ghost"
           >
             Book New Service
           </Button>
@@ -169,11 +170,25 @@ export default function OrdersPage({ onNavigate, user }) {
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="w-full grid-cols md:grid-cols-5 mb-6">
-            <TabsTrigger value="pending" className="text-xs sm:text-sm">Pending</TabsTrigger>
-            <TabsTrigger value="accepted" className="text-xs sm:text-sm">Accepted</TabsTrigger>
-            <TabsTrigger value="ongoing" className="text-xs sm:text-sm">Ongoing</TabsTrigger>
-            <TabsTrigger value="completed" className="text-xs sm:text-sm">Completed</TabsTrigger>
-            <TabsTrigger value="cancelled" className="text-xs sm:text-sm">Cancelled</TabsTrigger>
+            <TabsTrigger value="pending">
+              <span className="text-xs sm:text-sm">Pending</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="accepted">
+              <span className="text-xs sm:text-sm">Accepted</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="ongoing">
+              <span className="text-xs sm:text-sm">Ongoing</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="completed">
+              <span className="text-xs sm:text-sm">Completed</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="cancelled">
+              <span className="text-xs sm:text-sm">Cancelled</span>
+            </TabsTrigger>
           </TabsList>
 
           {['pending', 'accepted', 'ongoing', 'completed', 'cancelled'].map((status) => (
@@ -188,8 +203,8 @@ export default function OrdersPage({ onNavigate, user }) {
                       {status === 'completed' && "No completed orders"}
                       {status === 'cancelled' && "No cancelled orders"}
                     </div>
-                    <Button 
-                      variant="outline"
+                    <Button
+                      variant="ghost"
                       onClick={() => onNavigate('home')}
                     >
                       Browse Services
@@ -208,7 +223,7 @@ export default function OrdersPage({ onNavigate, user }) {
         {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           <Card className="p-4 text-center">
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold ">
               {orders.filter(o => o.status === 'completed').length}
             </div>
             <div className="text-sm text-muted-foreground">Completed</div>
