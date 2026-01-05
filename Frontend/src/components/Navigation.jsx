@@ -70,7 +70,7 @@ const Navigation = () => {
                     <ChevronDown className="w-4 h-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align='start' className='w-[200px]'>
+                <DropdownMenuContent align='start' className='w-[200px] border-2 border-border/60'>
                   {locations.map((location) => (
                     <DropdownMenuItem
                       key={location}
@@ -162,7 +162,7 @@ const Navigation = () => {
       <div className='md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t'>
         <div className='flex justify-around items-center py-2'>
           {navItems.map((item) => {
-            // const icon = item.icon;
+            const Icon = item.icon;
             // const isActive = currentPage === item.id;
 
             return (
@@ -175,8 +175,11 @@ const Navigation = () => {
                 //   }`
                 // }
                 >
-                
+                {
+                  (Icon && <Icon className='w-5 h-5'/>)
+                }
                 <span className="text-xs">{item.label}</span>
+                
               </Button>
             )
           })}
