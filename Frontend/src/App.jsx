@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 // import { Button } from './components/ui/button';
 import LandingPage from './components/LandingPage'
 import Navigation from './components/Navigation';
@@ -10,7 +10,7 @@ import SkillCard from './components/SkillCard';
 const App = () => {
 
   return (
-   <SkillCard></SkillCard>
+   <OrdersPage/>
   )
 }
 
