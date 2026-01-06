@@ -76,14 +76,14 @@ const HomeFeed = () => {
       role: 'Homeowner',
       avatar: 'https://i.pravatar.cc/150?img=1',
       rating: 5,
-      text: 'Found an amazing electrician within minutes! The booking process was seamless and the service was outstanding.'
+      text: 'Found an amazing electrician within minutes The booking process was seamless and the service was outstanding.'
     },
     {
       name: 'Michael Chen',
       role: 'Small Business Owner',
       avatar: 'https://i.pravatar.cc/150?img=2',
       rating: 5,
-      text: 'SkillHub connected me with a talented graphic designer who transformed my brand. Highly recommend!'
+      text: 'SkillHub connected me with a talented graphic designer who transformed my brand. Highly recommend'
     },
     {
       name: 'Emily Rodriguez',
@@ -104,10 +104,10 @@ const HomeFeed = () => {
             <Badge className="mb-6 bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white px-4 py-1">
               Welcome to SkillHub
             </Badge>
-            <h1 className="text-4xl! md:text-6xl! mb-6 bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl mb-6 bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
               Connect with Skilled Professionals
             </h1>
-            <p className="text-xl! text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
               Find trusted experts for any service you need. From home repairs to creative projects, we've got you covered.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -141,7 +141,7 @@ const HomeFeed = () => {
                 {stat.icon}
               </div>
               <div className="text-2xl md:text-3xl mb-2">{stat.value}</div>
-              <p className="text-sm! text-muted-foreground">{stat.label}</p>
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
             </Card>
           ))}
         </div>
@@ -149,8 +149,8 @@ const HomeFeed = () => {
 
       <div className='mb-16'>
         <div className='text-center mb-10'>
-          <h2 className='text-3xl! md:text-4xl! mb-4'>Explore by Profession</h2>
-          <p className='text-lg! text-muted-foreground max-w-2xl mx-auto'>Discover skilled professionals across various industries ready to help you</p>
+          <h2 className='text-3xl md:text-4xl mb-4'>Explore by Profession</h2>
+          <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>Discover skilled professionals across various industries ready to help you</p>
         </div>
         <div className='grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mx-4'>
           {
@@ -175,8 +175,8 @@ const HomeFeed = () => {
 
       <div className='mb-16'>
         <div className='text-center mb-10'>
-          <h2 className='text-3xl! md:text-4xl! mb-4'>How It Works</h2>
-          <p className='text-lg! text-muted-foreground max-w-2xl mx-auto'>
+          <h2 className='text-3xl md:text-4xl mb-4'>How It Works</h2>
+          <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
             Get Started In Simple Steps
           </p>
         </div>
@@ -199,14 +199,14 @@ const HomeFeed = () => {
 
       <div className='mb-16'>
         <div className='text-center mb-10'>
-          <h2 className='text-3xl! md:text-4xl! mb-4'>What Our Users Say</h2>
-          <p className='text-lg! text-muted-foreground max-w-2xl mx-auto'>
+          <h2 className='text-3xl md:text-4xl mb-4'>What Our Users Say</h2>
+          <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
             Real stories from people who found the help they needed
           </p>
         </div>
         <div className='grid md:grid-cols-3 gap-6 mx-4'>
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="p-6 hover:shadow-xl transition-all duration-300 border-2 border-border/40 hover:border-[var(--primary-gradient-start)]/30">
+            <Card key={index} className="p-6 hover:shadow-xl transition-all duration-300 border-2 border-border/40 hover:border-(--primary-gradient-start)/30">
               <div className="flex gap-1 mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 fill-accent text-accent" />

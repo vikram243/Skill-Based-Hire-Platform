@@ -98,8 +98,8 @@ export default function OrdersPage({ onNavigate, user }) {
               <div className="flex gap-2">
                 {order.status === 'pending' && (
                   <>
-                    <Button size="sm" variant="ghost">Cancel</Button>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">Cancel</Button>
+                    <Button size="sm" variant="outline">
                       <MessageCircle className="w-4 h-4" />
                     </Button>
                   </>
@@ -107,11 +107,11 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'accepted' && (
                   <>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">
                       <Phone className="w-4 h-4 mr-2" />
                       Call
                     </Button>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Message
                     </Button>
@@ -120,8 +120,8 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'ongoing' && (
                   <>
-                    <Button size="sm" variant="ghost">Track Progress</Button>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">Track Progress</Button>
+                    <Button size="sm" variant="outline">
                       <MessageCircle className="w-4 h-4" />
                     </Button>
                   </>
@@ -129,16 +129,16 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'completed' && (
                   <>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">
                       <Star className="w-4 h-4 mr-2" />
                       Review
                     </Button>
-                    <Button size="sm" variant="ghost">Rebook</Button>
+                    <Button size="sm" variant="outline">Rebook</Button>
                   </>
                 )}
 
                 {order.status === 'cancelled' && (
-                  <Button size="sm" variant="ghost">Book Again</Button>
+                  <Button size="sm" variant="outline">Book Again</Button>
                 )}
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function OrdersPage({ onNavigate, user }) {
           <Button
             onClick={() => onNavigate('home')}
             className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
-            variant="ghost"
+            variant="outline"
           >
             Book New Service
           </Button>
@@ -204,7 +204,7 @@ export default function OrdersPage({ onNavigate, user }) {
                       {status === 'cancelled' && "No cancelled Orders"}
                     </div>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => onNavigate('home')}
                     >
                       Browse Services
@@ -224,7 +224,7 @@ export default function OrdersPage({ onNavigate, user }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold ">
-              {orders.filter(o => o.status === 'completed').length}
+              {Orders.filter(o => o.status === 'completed').length}
             </div>
             <div className="text-sm text-muted-foreground">Completed</div>
           </Card>

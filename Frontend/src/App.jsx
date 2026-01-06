@@ -11,7 +11,7 @@ import HireFlow from './components/HireFlow';
 const App = () => {
 
   return (
-   <LandingPage/>
+   <SkillCard/>
   )
 }
 
