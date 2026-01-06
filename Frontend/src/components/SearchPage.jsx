@@ -102,7 +102,7 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
     (sortBy !== 'relevance' ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br pb-8 from-background via-surface/30 to-background">
+    <div className="min-h-screen bg-linear-to-br pb-8 from-background via-surface/30 to-background">
       <Navigation 
         onNavigate={onNavigate}
         onSearch={handleSearch}
@@ -133,12 +133,12 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
             {Skills.slice(0, 8).map((skill) => (
               <Card
                 key={skill.id}
-                className="group p-4 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center bg-card border-2 border-border/40 hover:border-[var(--primary-gradient-start)]/30 relative overflow-hidden"
+                className="group p-4 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center bg-card border-2 border-border/40 hover:border-(--primary-gradient-start)/30 relative overflow-hidden"
                 onClick={() => {
                   setSearchQuery(skill.name);
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary-gradient-start)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-linear-to-br from-(--primary-gradient-start)/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative z-10">
                   <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">{skill.icon}</div>
                   <p className="text-xs">{skill.name}</p>
@@ -159,7 +159,7 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
                   size="sm"
                   onClick={() => handleCategoryFilter(category)}
                   className={selectedCategory === category ? 
-                    "bg-gradient-to-r from-[var(--primary-gradient-start)] to-[var(--primary-gradient-end)] text-white" : 
+                    "bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white" : 
                     ""
                   }
                 >
@@ -178,7 +178,7 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <Badge className="ml-2 bg-[var(--primary-gradient-start)] text-white">
+                  <Badge className="ml-2 bg-(--primary-gradient-start) text-white">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -189,7 +189,7 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
 
         {/* Advanced Filters Panel */}
         {showFilters && (
-          <Card className="mb-6 p-6 border-2 border-[var(--primary-gradient-start)]/20">
+          <Card className="mb-6 p-6 border-2 border-(--primary-gradient-start)/20">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg">Advanced Filters</h3>
               <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
@@ -212,7 +212,7 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
                       key={option.value}
                       variant={priceRange === option.value ? "default" : "outline"}
                       size="sm"
-                      className={`w-full justify-start ${priceRange === option.value ? 'bg-gradient-to-r from-[var(--primary-gradient-start)] to-[var(--primary-gradient-end)] text-white' : ''}`}
+                      className={`w-full justify-start ${priceRange === option.value ? 'bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white' : ''}`}
                       onClick={() => setPriceRange(option.value)}
                     >
                       {option.label}
@@ -235,7 +235,7 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
                       key={option.value}
                       variant={ratingFilter === option.value ? "default" : "outline"}
                       size="sm"
-                      className={`w-full justify-start ${ratingFilter === option.value ? 'bg-gradient-to-r from-[var(--primary-gradient-start)] to-[var(--primary-gradient-end)] text-white' : ''}`}
+                      className={`w-full justify-start ${ratingFilter === option.value ? 'bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white' : ''}`}
                       onClick={() => setRatingFilter(option.value)}
                     >
                       <Star className="w-3 h-3 mr-1 fill-current" />
@@ -260,7 +260,7 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
                       key={option.value}
                       variant={sortBy === option.value ? "default" : "outline"}
                       size="sm"
-                      className={`w-full justify-start ${sortBy === option.value ? 'bg-gradient-to-r from-[var(--primary-gradient-start)] to-[var(--primary-gradient-end)] text-white' : ''}`}
+                      className={`w-full justify-start ${sortBy === option.value ? 'bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white' : ''}`}
                       onClick={() => setSortBy(option.value)}
                     >
                       {option.label}
