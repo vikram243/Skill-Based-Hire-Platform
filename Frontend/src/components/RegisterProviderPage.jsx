@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Skills } from '../data/mockData';
 
-function RegisterProviderPage({ onNavigate, onBack }) {
+export default function RegisterProviderPage({ onNavigate, onBack }) {
   const [currentStep, setCurrentStep] = useState('basic');
   const [formData, setFormData] = useState({
     // Basic Info
@@ -120,16 +120,13 @@ function RegisterProviderPage({ onNavigate, onBack }) {
             Back
           </Button>
           
-          <div className="text center">
+          <div className="text-center w-full absolute pr-8">
             <h1 className="font-semibold">Become a Provider</h1>
           </div>
-          
-          <div className="w-20" />
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-
         
         {/* Progress */}
         <div className="mb-8">
@@ -206,7 +203,7 @@ function RegisterProviderPage({ onNavigate, onBack }) {
                 </div>
               </div>
 
-              <div className='mb-8'>
+              <div>
                 <label className="block text-sm font-medium mb-2">
                   Contact Phone *
                 </label>
@@ -325,7 +322,7 @@ function RegisterProviderPage({ onNavigate, onBack }) {
               {allSelectedSkills.length > 0 ? (
                 <div className="space-y-4">
                   {allSelectedSkills.map((skill) => (
-                    <div key={skill} className="flex items-center justify-between p-4 rounded-lg">
+                    <div key={skill} className="flex items-center justify-between p-4 border border-border rounded-lg">
                       <div>
                         <h4 className="font-medium">{skill}</h4>
                         <p className="text-sm text-muted-foreground">Hourly rate</p>
@@ -479,5 +476,3 @@ function RegisterProviderPage({ onNavigate, onBack }) {
     </div>
   );
 }
-
-export default RegisterProviderPage;
