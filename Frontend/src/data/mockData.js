@@ -57,7 +57,7 @@ export const skills = [
   }
 ];
 
-export const providers = [
+export const Providers = [
   {
     id: '1',
     name: 'Mike Johnson',
@@ -172,7 +172,7 @@ export const providers = [
   }
 ];
 
-export const orders = [
+export const Orders = [
   {
     id: '1',
     providerId: '1',
@@ -226,3 +226,23 @@ export const categories = [
   'Technology'
 ];
 
+export const getProvidersBySkill = (skillName) => {
+  return Providers.filter(provider =>
+    provider.skills.some(skill =>
+      skill.toLowerCase().includes(skillName.toLowerCase())
+    )
+  );
+};
+
+export const getProviderById = (id) => {
+  return Providers.find(provider => provider.id === id);
+};
+
+export const getOrdersByUserId = () => {
+  return Orders;
+};
+
+export const getProvidersByCategory = (category) => {
+  if (category === 'all') return Provider;
+  return Providers.filter(provider => provider.category === category);
+};

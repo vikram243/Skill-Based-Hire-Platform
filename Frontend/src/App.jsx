@@ -6,12 +6,14 @@ import HomeFeed from './components/HomeFeed';
 import { AuthPanel } from './components/AuthPanel.jsx'
 import OrdersPage from './components/OrdersPage';
 // import SkillCard from './components/SkillCard';
+import SearchPage from './components/SearchPage.jsx';
+import ProfilePage from './components/ProfilePage.jsx';
 
 const App = () => {
 
   return (
 
-  <HomeFeed></HomeFeed>
+  <ProfilePage></ProfilePage>
 
   )
 }

@@ -16,14 +16,14 @@ import {
   Calendar,
   Star
 } from 'lucide-react';
-import { orders } from '../data/mockData.js';
+import { Orders } from '../data/mockData.js';
 
 export default function OrdersPage({ onNavigate, user }) {
   const [selectedTab, setSelectedTab] = useState('pending');
 
   const getOrdersByStatus = (status) => {
-    if (status === 'all') return orders;
-    return orders.filter(order => order.status === status);
+    if (status === 'all') return Orders;
+    return Orders.filter(order => order.status === status);
   };
 
   const getStatusColor = (status) => {
@@ -231,14 +231,14 @@ export default function OrdersPage({ onNavigate, user }) {
 
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              {orders.filter(o => o.status === 'pending').length}
+              {Orders.filter(o => o.status === 'pending').length}
             </div>
             <div className="text-sm text-muted-foreground">Pending</div>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              ${orders.reduce((sum, o) => sum + o.price, 0)}
+              ${Orders.reduce((sum, o) => sum + o.price, 0)}
             </div>
             <div className="text-sm text-muted-foreground">Total Spent</div>
           </Card>
