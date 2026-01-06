@@ -7,11 +7,14 @@ import AuthPanel from './components/AuthPanel'
 import OrdersPage from './components/OrdersPage';
 import SkillCard from './components/SkillCard';
 import HireFlow from './components/HireFlow';
+import ProfilePage from './components/ProfilePage';
+import SearchPage from './components/SearchPage';
+
 
 const App = () => {
 
   return (
-   <SkillCard/>
+   <SearchPage/>
   )
 }
 
