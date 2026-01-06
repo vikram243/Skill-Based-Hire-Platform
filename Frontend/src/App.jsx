@@ -9,6 +9,8 @@ import SkillCard from './components/SkillCard';
 import HireFlow from './components/HireFlow';
 import ProfilePage from './components/ProfilePage';
 import SearchPage from './components/SearchPage';
+import SkillDetailPage from './components/SkillDetailPage';
+import RegisterProviderPage from './components/RegisterProviderPage';
 
 
 const App = () => {
