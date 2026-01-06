@@ -1,7 +1,8 @@
-import React from 'react'
-import { cn } from '../../lib/utils';
+import * as React from "react";
 
-const textarea = ({ className, ...props }) => {
+import { cn } from "../../lib/utils.js";
+
+function Textarea({ className, ...props }) {
   return (
     <textarea
       data-slot="textarea"
@@ -11,7 +12,7 @@ const textarea = ({ className, ...props }) => {
       )}
       {...props}
     />
-  )
+  );
 }
 
-export default textarea
+export { Textarea };

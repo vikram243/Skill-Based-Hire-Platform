@@ -13,7 +13,7 @@ import { Mail, Phone, Chrome, ArrowLeft } from "lucide-react";
 // import { mockUsers } from "../data/authMockData";
 import { toast } from "sonner";
 
-export function AuthPanel({ isOpen, onClose, onSuccess }) {
+export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState("method");
   const [method, setMethod] = useState(null);
   const [identifier, setIdentifier] = useState("");
