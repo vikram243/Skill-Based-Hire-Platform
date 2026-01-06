@@ -215,6 +215,17 @@ export const Orders = [
   }
 ];
 
+export const Categories = [
+  'all',
+  'Home Services',
+  'Education', 
+  'Pet Services',
+  'Food Services',
+  'Creative',
+  'Health & Fitness',
+  'Technology'
+];
+
 export const getProvidersBySkill = (skillName) => {
   return Provider.filter(provider =>
     provider.skills.some(skill =>
@@ -234,36 +245,4 @@ export const getOrdersByUserId = () => {
 export const getProvidersByCategory = (category) => {
   if (category === 'all') return Provider;
   return Provider.filter(provider => provider.category === category);
-};
-
-export const Categories = [
-  'all',
-  'Home Services',
-  'Education', 
-  'Pet Services',
-  'Food Services',
-  'Creative',
-  'Health & Fitness',
-  'Technology'
-];
-
-export const getProvidersBySkill = (skillName) => {
-  return Providers.filter(provider =>
-    provider.skills.some(skill =>
-      skill.toLowerCase().includes(skillName.toLowerCase())
-    )
-  );
-};
-
-export const getProviderById = (id) => {
-  return Providers.find(provider => provider.id === id);
-};
-
-export const getOrdersByUserId = () => {
-  return Orders;
-};
-
-export const getProvidersByCategory = (category) => {
-  if (category === 'all') return Provider;
-  return Providers.filter(provider => provider.category === category);
 };

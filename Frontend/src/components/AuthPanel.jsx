@@ -10,7 +10,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Mail, Phone, Chrome, ArrowLeft } from "lucide-react";
-// import { mockUsers } from "../data/authMockData";
+import { mockUsers } from "../data/authMockData";
 import { toast } from "sonner";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
@@ -22,10 +22,10 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Registration state
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPhone, setRegPhone] = useState("");
+  // const [firstName, setFirstName] = useState("");
+  // const [lastName, setLastName] = useState("");
+  // const [regEmail, setRegEmail] = useState("");
+  // const [regPhone, setRegPhone] = useState("");
 
   const resetPanel = () => {
     setStep("method");
@@ -33,10 +33,10 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
     setIdentifier("");
     setOtp("");
     setGeneratedOtp("");
-    setFirstName("");
-    setLastName("");
-    setRegEmail("");
-    setRegPhone("");
+    // setFirstName("");
+    // setLastName("");
+    // setRegEmail("");
+    // setRegPhone("");
   };
 
   const handleClose = () => {
@@ -130,36 +130,36 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       onSuccess(existingUser, "user");
       handleClose();
     } else {
-      if (method === "email") setRegEmail(identifier);
-      if (method === "number") setRegPhone(identifier);
+      // if (method === "email") setRegEmail(identifier);
+      // if (method === "number") setRegPhone(identifier);
       setStep("register");
     }
 
     setIsLoading(false);
   };
 
-  const handleRegister = async () => {
-    if (!firstName || !lastName) {
-      toast.error("Enter name");
-      return;
-    }
+  // const handleRegister = async () => {
+  //   if (!firstName || !lastName) {
+  //     toast.error("Enter name");
+  //     return;
+  //   }
 
-    setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
+  //   setIsLoading(true);
+  //   await new Promise((r) => setTimeout(r, 1000));
 
-    const newUser = {
-      id: Date.now(),
-      name: `${firstName} ${lastName}`,
-      email: regEmail || undefined,
-      phone: regPhone || undefined,
-    };
+  //   const newUser = {
+  //     id: Date.now(),
+  //     name: `${firstName} ${lastName}`,
+  //     email: regEmail || undefined,
+  //     phone: regPhone || undefined,
+  //   };
 
-    mockUsers.push(newUser);
-    toast.success("Account created");
-    onSuccess(newUser, "user");
-    handleClose();
-    setIsLoading(false);
-  };
+  //   mockUsers.push(newUser);
+  //   toast.success("Account created");
+  //   onSuccess(newUser, "user");
+  //   handleClose();
+  //   setIsLoading(false);
+  // };
 
   const handleBack = () => {
     if (step === "identifier") setStep("method");
