@@ -6,10 +6,10 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { SlidersHorizontal, Star, X } from 'lucide-react';
 import {
-  skills,
-  Providers,
+  Skills,
+  Provider,
   getProvidersBySkill,
-  categories,
+  Categories,
   getProvidersByCategory
 } from '../data/mockData';
 
@@ -19,7 +19,7 @@ function SearchPage({
   initialSearchQuery = ''
 }) {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
-  const [filteredProviders, setFilteredProviders] = useState(Providers);
+  const [filteredProviders, setFilteredProviders] = useState(Provider);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState('all');
@@ -28,7 +28,7 @@ function SearchPage({
 
   // Filter and sort providers
   useEffect(() => {
-    let filtered = [...Providers];
+    let filtered = [...Provider];
 
     // Category filter
     if (selectedCategory !== 'all') {
@@ -141,10 +141,10 @@ function SearchPage({
         {/* Popular Skills */}
         <section className="mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-            {skills.slice(0, 8).map(skill => (
+            {Skills.slice(0, 8).map(skill => (
               <Card
                 key={skill.id}
-                className="group p-4 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center bg-card border-2 border-border/40 hover:border-[var(--primary-gradient-start)]/30 relative overflow-hidden"
+                className="group p-4 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center bg-card border-2 border-border/40 hover:border-(--primary-gradient-start)/30 relative overflow-hidden"
                 onClick={() => setSearchQuery(skill.name)}
               >
                 <div className="relative z-10">
@@ -159,7 +159,7 @@ function SearchPage({
         {/* Categories */}
         <section className="mb-6">
           <div className="flex flex-wrap gap-2">
-            {categories.map(category => (
+            {Categories.map(category => (
               <Button
                 key={category}
                 size="sm"
@@ -167,7 +167,7 @@ function SearchPage({
                 onClick={() => handleCategoryFilter(category)}
                 className={
                   selectedCategory === category
-                    ? 'bg-gradient-to-r from-[var(--primary-gradient-start)] to-[var(--primary-gradient-end)] text-white'
+                    ? 'bg-Linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white'
                     : ''
                 }
               >
@@ -183,6 +183,7 @@ function SearchPage({
             {filteredProviders.map(provider => (
               <SkillCard
                 key={provider.id}
+
                 provider={provider}
                 onClick={() => handleSkillCardClick(provider.id)}
               />
