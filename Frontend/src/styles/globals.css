@@ -178,24 +178,3 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-gradient-start);
 }
-
-/* Typography defaults */
-h1 {
-  font-size: var(--text-2xl);
-  font-weight: 600;
-}
-
-h2 {
-  font-size: var(--text-xl);
-  font-weight: 600;
-}
-
-h3 {
-  font-size: var(--text-lg);
-  font-weight: 600;
-}
-
-p, input, button, label {
-  font-size: var(--text-base);
-  line-height: 1.5;
-}

@@ -16,14 +16,14 @@ import {
   Calendar,
   Star
 } from 'lucide-react';
-import { orders } from '../data/mockData.js';
+import { Orders } from '../data/mockData.js';
 
 export default function OrdersPage({ onNavigate, user }) {
   const [selectedTab, setSelectedTab] = useState('pending');
 
   const getOrdersByStatus = (status) => {
-    if (status === 'all') return orders;
-    return orders.filter(order => order.status === status);
+    if (status === 'all') return Orders;
+    return Orders.filter(order => order.status === status);
   };
 
   const getStatusColor = (status) => {
@@ -98,8 +98,8 @@ export default function OrdersPage({ onNavigate, user }) {
               <div className="flex gap-2">
                 {order.status === 'pending' && (
                   <>
-                    <Button size="sm" variant="ghost">Cancel</Button>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">Cancel</Button>
+                    <Button size="sm" variant="outline">
                       <MessageCircle className="w-4 h-4" />
                     </Button>
                   </>
@@ -107,11 +107,11 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'accepted' && (
                   <>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">
                       <Phone className="w-4 h-4 mr-2" />
                       Call
                     </Button>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Message
                     </Button>
@@ -120,8 +120,8 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'ongoing' && (
                   <>
-                    <Button size="sm" variant="ghost">Track Progress</Button>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">Track Progress</Button>
+                    <Button size="sm" variant="outline">
                       <MessageCircle className="w-4 h-4" />
                     </Button>
                   </>
@@ -129,16 +129,16 @@ export default function OrdersPage({ onNavigate, user }) {
 
                 {order.status === 'completed' && (
                   <>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="outline">
                       <Star className="w-4 h-4 mr-2" />
                       Review
                     </Button>
-                    <Button size="sm" variant="ghost">Rebook</Button>
+                    <Button size="sm" variant="outline">Rebook</Button>
                   </>
                 )}
 
                 {order.status === 'cancelled' && (
-                  <Button size="sm" variant="ghost">Book Again</Button>
+                  <Button size="sm" variant="outline">Book Again</Button>
                 )}
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function OrdersPage({ onNavigate, user }) {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation
-        currentPage="orders"
+        currentPage="Orders"
         onNavigate={onNavigate}
         user={user}
       />
@@ -162,7 +162,7 @@ export default function OrdersPage({ onNavigate, user }) {
           <Button
             onClick={() => onNavigate('home')}
             className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
-            variant="ghost"
+            variant="outline"
           >
             Book New Service
           </Button>
@@ -197,14 +197,14 @@ export default function OrdersPage({ onNavigate, user }) {
                 {getOrdersByStatus(status).length === 0 ? (
                   <Card className="p-8 text-center">
                     <div className="text-muted-foreground mb-4">
-                      {status === 'pending' && "No pending orders"}
-                      {status === 'accepted' && "No accepted orders"}
-                      {status === 'ongoing' && "No ongoing orders"}
-                      {status === 'completed' && "No completed orders"}
-                      {status === 'cancelled' && "No cancelled orders"}
+                      {status === 'pending' && "No pending Orders"}
+                      {status === 'accepted' && "No accepted Orders"}
+                      {status === 'ongoing' && "No ongoing Orders"}
+                      {status === 'completed' && "No completed Orders"}
+                      {status === 'cancelled' && "No cancelled Orders"}
                     </div>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => onNavigate('home')}
                     >
                       Browse Services
@@ -224,21 +224,21 @@ export default function OrdersPage({ onNavigate, user }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold ">
-              {orders.filter(o => o.status === 'completed').length}
+              {Orders.filter(o => o.status === 'completed').length}
             </div>
             <div className="text-sm text-muted-foreground">Completed</div>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              {orders.filter(o => o.status === 'pending').length}
+              {Orders.filter(o => o.status === 'pending').length}
             </div>
             <div className="text-sm text-muted-foreground">Pending</div>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              ${orders.reduce((sum, o) => sum + o.price, 0)}
+              ${Orders.reduce((sum, o) => sum + o.price, 0)}
             </div>
             <div className="text-sm text-muted-foreground">Total Spent</div>
           </Card>
