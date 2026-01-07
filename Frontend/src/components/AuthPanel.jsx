@@ -12,6 +12,7 @@ import { Label } from "./ui/label";
 import { Mail, Phone, Chrome, ArrowLeft } from "lucide-react";
 import { mockUsers } from "../data/authMockData";
 import { toast } from "sonner";
+import axios from "axios";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState("method");
@@ -20,6 +21,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  console.log(method,identifier);
 
   // Registration state
   // const [firstName, setFirstName] = useState("");
@@ -91,6 +93,8 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleSendOtp = async () => {
+    axios.post("http://localhost:5000/api/users/send-otp", identifier)
+
     if (!identifier.trim()) {
       toast.error("Please enter value");
       return;

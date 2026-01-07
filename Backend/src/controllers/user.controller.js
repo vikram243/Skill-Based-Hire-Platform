@@ -11,6 +11,7 @@ import {getSafeUser} from '../utils/userSafe.helper.js';
 const sendOtpToUser = asyncHandler(async (req, res) => {
   const { email, number } = req.body;
   const identifier = email || number;
+  console.log("Identifier:", identifier);
 
   if (!identifier) throw new ApiError(400, "Email or phone number is required");
 
