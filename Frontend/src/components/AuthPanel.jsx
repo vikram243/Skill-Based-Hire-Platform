@@ -12,13 +12,13 @@ import { Label } from "./ui/label";
 import { Mail, Phone, Chrome, ArrowLeft } from "lucide-react";
 import { mockUsers } from "../data/authMockData";
 import { toast } from "sonner";
+import api from "../lib/axiosSetup";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState("method");
   const [method, setMethod] = useState(null);
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   // Registration state
@@ -32,7 +32,6 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
     setMethod(null);
     setIdentifier("");
     setOtp("");
-    setGeneratedOtp("");
     // setFirstName("");
     // setLastName("");
     // setRegEmail("");
@@ -91,6 +90,10 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleSendOtp = async () => {
+    api.post("/api/users/send-otp", 
+      method === "email" ? { email: identifier } : { number: identifier }
+    )
+
     if (!identifier.trim()) {
       toast.error("Please enter value");
       return;
@@ -100,7 +103,6 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
     await new Promise((r) => setTimeout(r, 1000));
 
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(newOtp);
 
     toast.success(`OTP sent`, {
       description: `Demo OTP: ${newOtp}`,
@@ -111,35 +113,14 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleVerifyOtp = async () => {
-    if (otp !== generatedOtp) {
-      toast.error("Invalid OTP");
-      return;
-    }
-
-    setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-
-    const existingUser = mockUsers.find(
-      (u) =>
-        (method === "email" && u.email === identifier) ||
-        (method === "number" && u.phone === identifier)
-    );
-
-    if (existingUser) {
-      toast.success("Login successful");
-      onSuccess(existingUser, "user");
-      handleClose();
-    } else {
-      // if (method === "email") setRegEmail(identifier);
-      // if (method === "number") setRegPhone(identifier);
-      setStep("register");
-    }
-
-    setIsLoading(false);
+    await api.post("/api/users/verify-otp",
+      method === "email" ? { email: identifier, otp } : { number: identifier, otp }
+    )
   };
 
   // const handleRegister = async () => {
   //   if (!firstName || !lastName) {
+
   //     toast.error("Enter name");
   //     return;
   //   }
