@@ -16,7 +16,7 @@ import RegisterProviderPage from './components/RegisterProviderPage';
 const App = () => {
 
   return (
-   <SearchPage/>
+   <LandingPage/>
   )
 }
 
