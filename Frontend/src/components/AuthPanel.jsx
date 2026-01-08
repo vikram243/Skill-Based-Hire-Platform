@@ -10,16 +10,37 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Mail, Phone, Chrome, ArrowLeft } from "lucide-react";
-import { mockUsers } from "../data/authMockData";
+// import { mockUsers } from "../data/authMockData";
 import { toast } from "sonner";
 import api from "../lib/axiosSetup";
+import { useGoogleLogin } from '@react-oauth/google';
 
-export default function AuthPanel({ isOpen, onClose, onSuccess }) {
+
+export default function AuthPanel({ isOpen, onClose}) {
   const [step, setStep] = useState("method");
   const [method, setMethod] = useState(null);
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const googleAuth = (code) => api.get(`/api/auth/google?code=${code}`);
+
+  const responseGoogleResult = async(authResult) => {
+        try {
+            if(authResult['code']){
+              const response = await googleAuth(authResult['code']);
+              const { user,token } = response.data.data;
+              console.log("Google login successful:", response.data.data.user);
+            }
+        } catch (error) {
+            console.error("Error during Google login:", error);
+        }
+    }
+    const googleLogin = useGoogleLogin({
+    onSuccess: responseGoogleResult,
+    onError: responseGoogleResult,
+    flow: 'auth-code'
+    });
 
   // Registration state
   // const [firstName, setFirstName] = useState("");
@@ -54,39 +75,41 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise((r) => setTimeout(r, 1500));
+    googleLogin();
 
-      const googleUser = {
-        email: "google.user@example.com",
-        name: "Google User",
-      };
+    // setIsLoading(true);
+    // try {
+    //   await new Promise((r) => setTimeout(r, 1500));
 
-      const existingUser = mockUsers.find(
-        (u) => u.email === googleUser.email
-      );
+    //   const googleUser = {
+    //     email: "google.user@example.com",
+    //     name: "Google User",
+    //   };
 
-      if (existingUser) {
-        toast.success("Signed in with Google");
-        onSuccess(existingUser, "user");
-        handleClose();
-      } else {
-        const newUser = {
-          id: Date.now(),
-          email: googleUser.email,
-          name: googleUser.name,
-        };
-        mockUsers.push(newUser);
-        toast.success("Account created with Google");
-        onSuccess(newUser, "user");
-        handleClose();
-      }
-    } catch {
-      toast.error("Google login failed");
-    } finally {
-      setIsLoading(false);
-    }
+    //   const existingUser = mockUsers.find(
+    //     (u) => u.email === googleUser.email
+    //   );
+
+    //   if (existingUser) {
+    //     toast.success("Signed in with Google");
+    //     onSuccess(existingUser, "user");
+    //     handleClose();
+    //   } else {
+    //     const newUser = {
+    //       id: Date.now(),
+    //       email: googleUser.email,
+    //       name: googleUser.name,
+    //     };
+    //     mockUsers.push(newUser);
+    //     toast.success("Account created with Google");
+    //     onSuccess(newUser, "user");
+    //     handleClose();
+    //   }
+    // } catch {
+    //   toast.error("Google login failed");
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   const handleSendOtp = async () => {
