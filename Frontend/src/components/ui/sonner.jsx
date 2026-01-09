@@ -1,11 +1,21 @@
+import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
-import { cn } from "../../lib/utils.js"
 
-function Toaster({ className, ...props }){
-    return <Sonner
-    className = {cn("",className)}
-    {...props}
+const Toaster = (props) => {
+  const { theme = "system" } = useTheme();
+
+  return (
+    <Sonner
+      theme={theme}
+      className="toaster group"
+      style={{
+        "--normal-bg": "var(--popover)",
+        "--normal-text": "var(--popover-foreground)",
+        "--normal-border": "var(--border)",
+      }}
+      {...props}
     />
-}
+  );
+};
 
 export default Toaster;

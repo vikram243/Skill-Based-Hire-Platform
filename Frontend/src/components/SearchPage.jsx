@@ -102,7 +102,7 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
     (sortBy !== 'relevance' ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-linear-to-br pb-8 from-background via-surface/30 to-background">
+    <div className="min-h-screen bg-linear-to-br pb-16 from-background via-surface/30 to-background">
       <Navigation 
         onNavigate={onNavigate}
         onSearch={handleSearch}

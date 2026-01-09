@@ -23,8 +23,8 @@ export default function LandingPage({ onNavigate, onLogin }) {
     }
   };
   
-  const handleAuthSuccess = (user, userType) => {
-    console.log('🎉 Auth success in LandingPage:', user, userType);
+  const handleAuthSuccess = (user) => {
+    console.log('🎉 Auth success in LandingPage:', user);
     setIsAuthPanelOpen(false);
     onLogin(user);
   };
@@ -95,7 +95,7 @@ export default function LandingPage({ onNavigate, onLogin }) {
         {/* Background decoration */}
         <div className="absolute top-10 right-20 w-72 h-72 bg-linear-to-br from-(--primary-gradient-start)/20 to-(--primary-gradient-end)/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-20 w-62 h-62 bg-linear-to-br from-(--primary-gradient-start)10 to-(--primary-gradient-end)/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-linear-to-tr from-accent/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-linear-to-tr from-accent/20 to-transparent rounded-full blur-3xl" />
         
         <div className="container max-w-5xl mx-auto text-center relative z-10">
           <h1 className="text-6xl md:text-7xl font-bold mb-8 bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent leading-tight">

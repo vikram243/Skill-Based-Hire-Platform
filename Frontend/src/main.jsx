@@ -4,9 +4,11 @@ import { createRoot } from 'react-dom/client'
 // import store from './redux/store.js'/
 import './index.css'
 import App from './App.jsx'
+import { Toaster } from 'sonner'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-      <App />
+    <App />
+    <Toaster richColors closeButton position="top-right" expand/>
   </StrictMode>
 )
