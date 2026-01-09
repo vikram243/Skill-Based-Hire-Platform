@@ -13,7 +13,7 @@ import {
   Zap
 } from 'lucide-react';
 
-export default function LandingPage({ onNavigate, onLogin }) {
+export default function LandingPage({ onNavigate }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
 
@@ -26,7 +26,6 @@ export default function LandingPage({ onNavigate, onLogin }) {
   const handleAuthSuccess = (user) => {
     console.log('🎉 Auth success in LandingPage:', user);
     setIsAuthPanelOpen(false);
-    onLogin(user);
   };
 
   const features = [

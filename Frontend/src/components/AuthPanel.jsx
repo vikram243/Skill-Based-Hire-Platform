@@ -9,8 +9,8 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Mail, Phone, Chrome, ArrowLeft, CheckIcon } from "lucide-react";
-import { GoogleLoginbutton } from "./GoogleAuthButton";
+import { Mail, Phone, ArrowLeft, CheckIcon } from "lucide-react";
+import GoogleLoginbutton from "./GoogleAuthButton";
 import api from "../lib/axiosSetup";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
@@ -143,7 +143,6 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
         setPanelMessage({ type: '', text: '' });
         onSuccess && onSuccess(payload.user);
         handleClose();
-        // navigate to homepage
         window.location.href = '/';
         return;
       }
@@ -263,7 +262,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
               localStorage.setItem('authToken', token);
               onSuccess && onSuccess(user);
               handleClose();
-              window.location.href = '/';
+              // window.location.href = '/';
             }}/> 
           </div>
         )}
