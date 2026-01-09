@@ -10,6 +10,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Mail, Phone, Chrome, ArrowLeft, CheckIcon } from "lucide-react";
+import { GoogleLoginbutton } from "./GoogleAuthButton";
 import api from "../lib/axiosSetup";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
@@ -60,8 +61,10 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleMethodSelect = (selectedMethod) => {
-    setMethod(selectedMethod);
-    setStep("identifier");
+    if (selectedMethod !== "google"){
+      setMethod(selectedMethod);
+      setStep("identifier");
+    }
   };
 
   const validateEmail = (value) => {
@@ -256,9 +259,12 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
             <Button onClick={() => handleMethodSelect("number")} className="w-full h-14 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg">
               <Phone className="mr-2" /> Continue With Phone
             </Button>
-            <Button onClick={() => handleMethodSelect("google")} className="w-full h-14 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 shadow-lg dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:border-gray-600">
-              <Chrome className="mr-2" /> Continue With Google
-            </Button>
+            <GoogleLoginbutton onSuccess = {(user, token) => {
+              localStorage.setItem('authToken', token);
+              onSuccess && onSuccess(user);
+              handleClose();
+              window.location.href = '/';
+            }}/> 
           </div>
         )}
 
