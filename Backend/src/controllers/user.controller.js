@@ -42,13 +42,16 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
     const token = user.generateJwtToken();
     res.cookie("token", token, {
         httpOnly: true,
-        secure: config.nodeEnv,
+        secure: config.nodeEnv === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     })
     const userSafe = getSafeUser(user);
     return res.status(200).json(new ApiResponse(200, { user:userSafe }, "user login successfully"));
   }
+
+  // If OTP was valid but no user exists with this identifier, let frontend know.
+  return res.status(200).json(new ApiResponse(200, { exists: false }, "User does not exist"));
 });
 
 
@@ -63,7 +66,7 @@ const registerUser = asyncHandler(async (req, res) => {
     $or: [{ email }, { number }]
   });
 
-  if (existingUser) throw new ApiError(409, "User already exists");
+  if (existingUser) throw new ApiError(409, "User already exists with given email or phone number");
 
   const fullName = `${firstName} ${lastName}`;
   const user = await User.create({ firstName, lastName, fullName, email, number });

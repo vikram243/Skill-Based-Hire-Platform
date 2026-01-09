@@ -54,7 +54,7 @@ export default function Navigation({
   return (
     <>
       {/* Desktop Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/50">
         <div className="container flex h-18 items-center justify-between px-4 mx-auto py-3">
           {/* Logo */}
             <div className="flex items-center space-x-2 cursor-pointer group" onClick={() => onNavigate('home')}>
@@ -176,7 +176,7 @@ export default function Navigation({
       </header>
       
       {/* Mobile Bottom Navigation */}
-<nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border">
+<nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-xl border-t border-border">
   <div className="flex justify-around items-center py-2">
     {navItems.map((item) => {
       const Icon = item.icon;

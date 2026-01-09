@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
     minlength: 6,
     maxlength: 50,
@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema({
 
   isActive:{
     type:Boolean,
-    default:true
+    default:false
   }
 },{
   timestamps:true,

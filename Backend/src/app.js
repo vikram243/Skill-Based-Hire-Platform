@@ -11,6 +11,7 @@ import redisClient from './config/redis.config.js';
 import rateLimit from 'express-rate-limit';
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"
+import {errorHandler} from './middlewares/error.middleware.js';
 
 
 let RedisStore;
@@ -76,5 +77,6 @@ if (config.nodeEnv !== 'production') {
 
 // API routes
 app.use('/api', router);
+app.use(errorHandler);
 
 export default app;

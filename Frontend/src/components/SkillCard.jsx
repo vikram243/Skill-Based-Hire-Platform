@@ -14,7 +14,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
 
   return (
     <Card 
-      className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-2 border-border/40 hover:border-(--primary-gradient-start)/30 relative overflow-hidden ${
+      className={`h-full group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-2 border-border/40 hover:border-(--primary-gradient-start)/30 relative overflow-hidden ${
         isCompact ? 'p-4' : 'p-6'
       }`}
       onClick={onClick}
@@ -23,11 +23,12 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
       <div className="absolute inset-0 bg-linear-to-br from-(--primary-gradient-start)/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col h-full justify-between">
         {/* Header */}
+        <div>
         <div className={`flex items-start justify-between ${isCompact ? 'mb-3' : 'mb-4'}`}>
-          <div className="flex items-center space-x-3">
-            <Avatar className={`${isCompact ? 'h-10 w-10' : 'h-12 w-12'} ring-2 ring-border/20 group-hover:ring-(--primary-gradient-start)/30 transition-all duration-300`}>
+          <div className="flex flex-col space-x-3">
+            <Avatar className={`${isCompact ? 'h-10 w-10' : 'h-12 w-12'} ring-2 mb-2 ring-border/20 group-hover:ring-(--primary-gradient-start)/30 transition-all duration-300`}>
               <AvatarImage src={provider.avatar} alt={provider.name} />
               <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
                 {provider.name.charAt(0)}
@@ -35,16 +36,16 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             </Avatar>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className={`font-semibold group-hover:text-(--primary-gradient-start) transition-colors duration-200 ${
-                  isCompact ? 'text-sm' : 'text-base'
-                }`}>
-                  {provider.name}
-                </h3>
                 {provider.isVerified && (
                   <CheckCircle className={`text-(--primary-gradient-start) ${
                     isCompact ? 'w-3 h-3' : 'w-4 h-4'
                   }`} />
                 )}
+                <h3 className={`font-semibold group-hover:text-(--primary-gradient-start) transition-colors duration-200 ${
+                  isCompact ? 'text-sm' : 'text-base'
+                }`}>
+                  {provider.name}
+                </h3>
               </div>
               <p className={`text-muted-foreground ${isCompact ? 'text-xs' : 'text-sm'}`}>
                 {provider.location}
@@ -68,7 +69,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             </Badge>
             {!isCompact && (
               <p className="text-xs text-muted-foreground flex items-center">
-                <Clock className="w-3 h-3 mr-1" />
+                <Clock className="w-3 h-3 ml-3 mr-1" />
                 {provider.responseTime}
               </p>
             )}
@@ -103,8 +104,10 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             {provider.bio}
           </p>
         )}
+        </div>
 
         {/* Stats */}
+        <div>
         <div className={`flex items-center justify-between ${isCompact ? 'mb-3' : 'mb-4'}`}>
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1">
@@ -139,7 +142,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
         </div>
 
         {/* Action Buttons */}
-        <div className={`flex gap-2 ${isCompact ? '' : 'pt-2 border-t border-border/30'}`}>
+        <div className={`flex  gap-2 ${isCompact ? '' : 'pt-2 border-t border-border/30'}`}>
           <Button 
             size={isCompact ? "sm" : "default"}
             className="flex-1 bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
@@ -165,6 +168,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
               Message
             </Button>
           )}
+        </div>
         </div>
       </div>
     </Card>
