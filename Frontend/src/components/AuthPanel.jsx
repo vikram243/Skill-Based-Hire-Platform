@@ -10,16 +10,20 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Mail, Phone, Chrome, ArrowLeft } from "lucide-react";
-import { mockUsers } from "../data/authMockData";
+// import { mockUsers } from "../data/authMockData";
 import { toast } from "sonner";
 import api from "../lib/axiosSetup";
+import GoogleAuthButton from "./GoogleAuthButton";
 
-export default function AuthPanel({ isOpen, onClose, onSuccess }) {
+export default function AuthPanel({ isOpen, onClose }) {
   const [step, setStep] = useState("method");
   const [method, setMethod] = useState(null);
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+
+
 
   // Registration state
   // const [firstName, setFirstName] = useState("");
@@ -44,53 +48,14 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleMethodSelect = (selectedMethod) => {
-    setMethod(selectedMethod);
-
-    if (selectedMethod === "google") {
-      handleGoogleLogin();
-    } else {
+    if (selectedMethod !== "google") {
+      setMethod(selectedMethod);
       setStep("identifier");
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise((r) => setTimeout(r, 1500));
-
-      const googleUser = {
-        email: "google.user@example.com",
-        name: "Google User",
-      };
-
-      const existingUser = mockUsers.find(
-        (u) => u.email === googleUser.email
-      );
-
-      if (existingUser) {
-        toast.success("Signed in with Google");
-        onSuccess(existingUser, "user");
-        handleClose();
-      } else {
-        const newUser = {
-          id: Date.now(),
-          email: googleUser.email,
-          name: googleUser.name,
-        };
-        mockUsers.push(newUser);
-        toast.success("Account created with Google");
-        onSuccess(newUser, "user");
-        handleClose();
-      }
-    } catch {
-      toast.error("Google login failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSendOtp = async () => {
-    api.post("/api/users/send-otp", 
+    api.post("/api/users/send-otp",
       method === "email" ? { email: identifier } : { number: identifier }
     )
 
@@ -182,58 +147,61 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
             <Button onClick={() => handleMethodSelect("number")} className="w-full h-14 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg">
               <Phone className="mr-2" /> Continue With Phone
             </Button>
-            <Button onClick={() => handleMethodSelect("google")} className="w-full h-14 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 shadow-lg dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:border-gray-600">
-              <Chrome className="mr-2" /> Continue With Google
-            </Button>
+            <GoogleAuthButton
+              onSuccess={({ user, token }) => {
+                localStorage.setItem("token", token);
+                handleClose();
+              }}
+            />
           </div>
         )}
 
         {step === "identifier" && (
           <div className="space-y-4">
             <div className="space-y-2">
-            <Label> {method === 'email' ? 'Email Address' : 'Phone Number'}</Label>
-            <Input value={identifier} placeholder={method === 'email' ? 'you@example.com' : '1234567890'} autoFocus onChange={(e) => setIdentifier(e.target.value)} />
-            <Button onClick={handleSendOtp} className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white">
-              Send OTP
-            </Button>
+              <Label> {method === 'email' ? 'Email Address' : 'Phone Number'}</Label>
+              <Input value={identifier} placeholder={method === 'email' ? 'you@example.com' : '1234567890'} autoFocus onChange={(e) => setIdentifier(e.target.value)} />
+              <Button onClick={handleSendOtp} className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white">
+                Send OTP
+              </Button>
             </div>
           </div>
         )}
 
         {step === "otp" && (
           <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="otp">Enter 6-digit OTP</Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  placeholder="******"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
-                  className="text-center text-2xl tracking-widest"
-                  autoFocus
-                />
-              </div>
-              <div className="text-sm text-muted-foreground text-center">
-                Didn't receive the code?{' '}
-                <button
-                  onClick={handleSendOtp}
-                  className="text-primary hover:underline"
-                  disabled={isLoading}
-                >
-                  Resend OTP
-                </button>
-              </div>
-              <Button
-                onClick={handleVerifyOtp}
-                className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
-                disabled={isLoading || otp.length !== 6}
-              >
-                {isLoading ? 'Verifying...' : 'Verify & Continue'}
-              </Button>
+            <div className="space-y-2">
+              <Label htmlFor="otp">Enter 6-digit OTP</Label>
+              <Input
+                id="otp"
+                type="text"
+                placeholder="******"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
+                className="text-center text-2xl tracking-widest"
+                autoFocus
+              />
             </div>
+            <div className="text-sm text-muted-foreground text-center">
+              Didn't receive the code?{' '}
+              <button
+                onClick={handleSendOtp}
+                className="text-primary hover:underline"
+                disabled={isLoading}
+              >
+                Resend OTP
+              </button>
+            </div>
+            <Button
+              onClick={handleVerifyOtp}
+              className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
+              disabled={isLoading || otp.length !== 6}
+            >
+              {isLoading ? 'Verifying...' : 'Verify & Continue'}
+            </Button>
+          </div>
         )}
       </DialogContent>
     </Dialog>
