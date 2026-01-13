@@ -28,7 +28,7 @@ export default function Navigation({
   onSearchChange,
   onSearch 
 }) {
-  const [selectedLocation, setSelectedLocation] = useState('Current Location');
+  const [selectedLocation, setSelectedLocation] = useState('Location');
   
   const locations = [
     'Current Location',
@@ -74,7 +74,7 @@ export default function Navigation({
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="outline"
-                    className="h-11 px-4 border-2 border-border hover:border-(--primary-gradient-start) transition-all duration-200 min-w-[180px] justify-between"
+                    className="h-11 px-4 border-2 border-border hover:border-(--primary-gradient-start) transition-all duration-200 min-w-[60px] justify-between"
                   >
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-(--primary-gradient-start)" />
@@ -137,13 +137,6 @@ export default function Navigation({
               >
                 <MapPin className="w-4 h-4 mr-1" />
                 <span className="text-sm">Near you</span>
-            </Button>
-            <Button variant="ghost" onClick={() => onNavigate('orders')}>
-              Orders
-            </Button>
-            <Button variant="ghost" onClick={() => onNavigate('chat')}>
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Chat
             </Button>
             <Avatar className="w-8 h-8 cursor-pointer" onClick={() => onNavigate('profile')}>
               <AvatarImage src={user?.avatar} alt={user?.name} />

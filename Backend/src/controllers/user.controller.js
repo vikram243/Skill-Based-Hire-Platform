@@ -6,6 +6,8 @@ import { sendEmail } from '../services/email.service.js';
 import { sendSms } from '../services/twilio.service.js';
 import config from '../config/config.js';
 import {getSafeUser} from '../utils/userSafe.helper.js';
+import { setRefreshToken, getRefreshToken, deleteRefreshToken } from '../config/redis.config.js';
+import jwt from 'jsonwebtoken';
 
 
 const sendOtpToUser = asyncHandler(async (req, res) => {
@@ -39,18 +41,22 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
   const user = await User.findOne(email ? { email } : { number });
 
   if (user) {
-    const token = user.generateJwtToken();
-    res.cookie("token", token, {
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    await setRefreshToken(user._id.toString(), refreshToken);
+
+    res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: config.nodeEnv === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     })
+
     const userSafe = getSafeUser(user);
-    return res.status(200).json(new ApiResponse(200, { user:userSafe }, "user login successfully"));
+    return res.status(200).json(new ApiResponse(200, { user: userSafe, accessToken }, "user login successfully"));
   }
 
-  // If OTP was valid but no user exists with this identifier, let frontend know.
   return res.status(200).json(new ApiResponse(200, { exists: false }, "User does not exist"));
 });
 
@@ -71,30 +77,61 @@ const registerUser = asyncHandler(async (req, res) => {
   const fullName = `${firstName} ${lastName}`;
   const user = await User.create({ firstName, lastName, fullName, email, number });
 
-  const token = user.generateJwtToken();
-  res.cookie("token", token, {
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
+  await setRefreshToken(user._id.toString(), refreshToken);
+
+  res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: config.nodeEnv === "production",
     sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
-  return res.status(201).json(new ApiResponse(201, { token, user }, "User registered and logged in"));
+  return res.status(201).json(new ApiResponse(201, { accessToken, user }, "User registered and logged in"));
 });
 
 
 const logoutUser = async (req, res) => {
-  const token = req.cookies?.token || req.headers['authorization']?.split(' ')[1];
-    if (token) {
-      await blackListTokenModel.create({ token });
+  const refreshToken = req.cookies?.refreshToken;
+  if (refreshToken) {
+    try {
+      const payload = jwt.verify(refreshToken, config.jwtRefreshSecret || (config.jwtSecret + '_refresh'));
+      if (payload?.id) {
+        await deleteRefreshToken(payload.id.toString());
+      }
+    } catch (e) {
     }
-  res.clearCookie("token", { httpOnly: true, secure: config.nodeEnv, sameSite: "strict" });
+  }
+  res.clearCookie("refreshToken", { httpOnly: true, secure: config.nodeEnv === "production", sameSite: "strict" });
   return res.status(200).json(new ApiResponse(200, {}, "User logout successfully"));
 };
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) throw new ApiError(401, "Refresh token missing");
+
+  let payload;
+  try {
+    payload = jwt.verify(refreshToken, config.jwtRefreshSecret || (config.jwtSecret + '_refresh'));
+  } catch (e) {
+    throw new ApiError(401, "Invalid refresh token");
+  }
+
+  const stored = await getRefreshToken(payload.id.toString());
+  if (!stored || stored !== refreshToken) throw new ApiError(401, "Refresh token not recognized");
+
+  const user = await User.findById(payload.id);
+  if (!user) throw new ApiError(404, "User not found");
+
+  const accessToken = user.generateAccessToken();
+  return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
+});
 
 export{
   sendOtpToUser,
   verifyOtpAndLogin,
   registerUser,
-  logoutUser
+  logoutUser,
+  refreshAccessToken
 }

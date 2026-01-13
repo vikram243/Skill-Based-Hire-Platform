@@ -3,7 +3,8 @@ import {
   sendOtpToUser,
   verifyOtpAndLogin,
   registerUser,
-  logoutUser
+  logoutUser,
+  refreshAccessToken
 } from '../controllers/user.controller.js';
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
 
@@ -24,6 +25,10 @@ router.route("/register").post(
 router.route("/logout").get(
   isAuthenticated,
   logoutUser
+);
+
+router.route("/refresh").post(
+  refreshAccessToken
 );
 
 export default router;

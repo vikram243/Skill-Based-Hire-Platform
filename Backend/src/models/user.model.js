@@ -83,7 +83,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password)
 }
 
-userSchema.methods.generateJwtToken = function () {
+userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       id: this._id,
@@ -95,7 +95,17 @@ userSchema.methods.generateJwtToken = function () {
     },
     config.jwtSecret,
     {
-      expiresIn: config.jwtTokenExpiry
+      expiresIn: config.jwtTokenExpiry || '1d'
+    }
+  )
+}
+
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
+    { id: this._id },
+    config.jwtRefreshSecret,
+    {
+      expiresIn: config.jwtRefreshTokenExpiry || '7d'
     }
   )
 }

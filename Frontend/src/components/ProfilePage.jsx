@@ -28,7 +28,7 @@ function ProfilePage({
   onNavigate,
   user,
   onLogout,
-  isDarkMode = false,
+  isDarkMode,
   onToggleDarkMode
 }) {
   const [isEditing, setIsEditing] = useState(false);
