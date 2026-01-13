@@ -5,7 +5,7 @@ import { generateOtp, verifyOtp } from '../services/otp.service.js';
 import { sendEmail } from '../services/email.service.js';
 import { sendSms } from '../services/twilio.service.js';
 import config from '../config/config.js';
-import {getSafeUser} from '../utils/userSafe.helper.js';
+import { getSafeUser } from '../utils/userSafe.helper.js';
 
 
 const sendOtpToUser = asyncHandler(async (req, res) => {
@@ -47,7 +47,7 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
         maxAge: 7 * 24 * 60 * 60 * 1000
     })
     const userSafe = getSafeUser(user);
-    return res.status(200).json(new ApiResponse(200, { user:userSafe }, "user login successfully"));
+    return res.status(200).json(new ApiResponse(200, { user:userSafe, token }, "user login successfully"));
   }
 
   // If OTP was valid but no user exists with this identifier, let frontend know.

@@ -12,6 +12,7 @@ import { Label } from "./ui/label";
 import { Mail, Phone, ArrowLeft, CheckIcon } from "lucide-react";
 import GoogleLoginbutton from "./GoogleAuthButton";
 import api from "../lib/axiosSetup";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState("method");
@@ -19,6 +20,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Registration state
   const [firstName, setFirstName] = useState("");
@@ -143,7 +145,8 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
         setPanelMessage({ type: '', text: '' });
         onSuccess && onSuccess(payload.user);
         handleClose();
-        window.location.href = '/';
+        console.log(payload);
+        localStorage.setItem('token', payload.token);
         return;
       }
 
@@ -200,7 +203,6 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       setPanelMessage({ type: 'info', text: 'Registered and logged in' });
       onSuccess && onSuccess(user);
       handleClose();
-      window.location.href = '/';
     } catch (err) {
       const msg = err?.response?.data?.message || 'Registration failed';
       setPanelMessage({ type: "error", text: msg });
@@ -262,7 +264,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
               localStorage.setItem('authToken', token);
               onSuccess && onSuccess(user);
               handleClose();
-              // window.location.href = '/';
+              navigate('/home');
             }}/> 
           </div>
         )}
