@@ -5,6 +5,8 @@ import { uploadOnCloudinary } from "../config/cloudinary.config.js";
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import { getSafeUser } from '../utils/userSafe.helper.js';
 import { logActivity } from '../utils/activity.handeller.js';
+import { setRefreshToken } from '../config/redis.config.js';
+import config from '../config/config.js';
 
 const googleLogin = asyncHandler(async (req, res) => {
   const { code } = req.query;
@@ -50,10 +52,23 @@ const googleLogin = asyncHandler(async (req, res) => {
     description: `${user.fullName} has registered`
   })
 
-  const token = user.generateJwtToken();
+  // generate tokens
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
+
+  // store refresh token in Redis keyed by user id
+  await setRefreshToken(user._id.toString(), refreshToken);
+
+  // send refresh token as HttpOnly cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: config.nodeEnv === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
 
   return res.status(200).json(
-    new ApiResponse(200, { user: userSafe, token }, "success")
+    new ApiResponse(200, { user: userSafe, accessToken }, "success")
   );
 });
 

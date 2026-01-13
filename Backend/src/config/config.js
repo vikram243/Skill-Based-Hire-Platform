@@ -12,8 +12,10 @@ const config = {
     cloudApiKey: process.env.CLOUDINARY_API_KEY,
     cloudSecretKey: process.env.CLOUDINARY_API_SECRET,
     jwtSecret: process.env.JWT_SECRET,
+    jwtRefreshSecret : process.env.JWT_REFRESH_SECRET,
     nodeEnv: process.env.NODE_ENV,
     jwtTokenExpiry : process.env.JWT_TOKEN_EXPIRY,
+    jwtRefreshTokenExpiry : process.env.JWT_REFRESH_TOKEN_EXPIRY,
     googleClientId : process.env.GOOGLE_CLIENT_ID,
     googleClientSecret : process.env.GOOGLE_CLIENT_SECRET,
     redis: {
