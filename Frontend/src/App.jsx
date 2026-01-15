@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-import React,{useState,useEffect} from 'react';
-// import { Button } from './components/ui/button';
-import { Route, Routes } from 'react-router-dom';
-=======
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
->>>>>>> e6ae57fdb6f614ac09479dbdc8da5306555da69e
+import { Route, Routes, Navigate } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import Navigation from './components/Navigation';
 import HomeFeed from './components/HomeFeed';

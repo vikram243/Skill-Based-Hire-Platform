@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { 
-  Search, 
-  Home, 
-  MessageCircle, 
-  FileText, 
-  User, 
+import {
+  Search,
+  Home,
+  MessageCircle,
+  FileText,
+  User,
   Map,
   MapPin,
   Menu,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -19,17 +19,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import {
+  Menubar,
+  MenubarMenu,
+  MenubarTrigger,
+  MenubarContent,
+  MenubarItem,
+  MenubarSeparator,
+} from "./ui/menubar";
 
-export default function Navigation({ 
-  currentPage, 
-  onNavigate, 
-  user, 
-  searchQuery = '', 
+export default function Navigation({
+  currentPage,
+  onNavigate,
+  user,
+  searchQuery = '',
   onSearchChange,
-  onSearch 
+  onSearch
 }) {
   const [selectedLocation, setSelectedLocation] = useState('Location');
-  
+
   const locations = [
     'Current Location',
     'New York, NY',
@@ -57,22 +65,22 @@ export default function Navigation({
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/50">
         <div className="container flex h-18 items-center justify-between px-4 mx-auto py-3">
           {/* Logo */}
-            <div className="flex items-center space-x-2 cursor-pointer group" onClick={() => onNavigate('home')}>
-              <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
-                <span className="font-bold text-lg">S</span>
-              </div>
-                <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
-                  SkillHub
-                </h1>
+          <div className="flex items-center space-x-2 cursor-pointer group" onClick={() => onNavigate('home')}>
+            <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
+              <span className="font-bold text-lg">S</span>
             </div>
-          
+            <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
+              SkillHub
+            </h1>
+          </div>
+
           {/* Desktop Search */}
           <div className="hidden md:flex flex-1 max-w-2xl mx-8">
             <div className="flex w-full gap-3">
               {/* Location Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
+                  <Button
                     variant="outline"
                     className="h-11 px-4 border-2 border-border hover:border-(--primary-gradient-start) transition-all duration-200 min-w-[60px] justify-between"
                   >
@@ -117,8 +125,8 @@ export default function Navigation({
                   </kbd>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 onClick={onSearch}
                 className="h-11 w-11 border-2 border-border hover:border-(--primary-gradient-start) hover:bg-(--primary-gradient-start)/10 transition-all duration-200"
@@ -127,29 +135,48 @@ export default function Navigation({
               </Button>
             </div>
           </div>
-          
+
           {/* Desktop User Menu */}
           <div className="hidden md:flex items-center gap-4">
             <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('map')}
-              >
-                <MapPin className="w-4 h-4 mr-1" />
-                <span className="text-sm">Near you</span>
+              variant="ghost"
+              size="sm"
+              onClick={() => onNavigate('map')}
+            >
+              <MapPin className="w-4 h-4 mr-1" />
+              <span className="text-sm">Near you</span>
             </Button>
-            <Avatar className="w-8 h-8 cursor-pointer" onClick={() => onNavigate('profile')}>
-              <AvatarImage src={user?.avatar} alt={user?.name} />
-              <AvatarFallback>{user?.name?.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
-            </Avatar>
+            <Menubar>
+              <MenubarMenu>
+                <MenubarTrigger className="text-sm">
+                  <Avatar className="w-8 h-8 cursor-pointer" onClick={() => onNavigate('profile')}>
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback>{user?.name?.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
+                </MenubarTrigger>
+                <MenubarContent className="min-w-24 mt-3 mr-1">
+                  <MenubarSeparator className="" />
+                  <MenubarItem className="" onClick={() => onNavigate('/chat')}>
+                    <MessageCircle className="w-4 h-4" />Chat
+                  </MenubarItem>
+                  <MenubarSeparator className="" />
+                  <MenubarItem className="" onClick={() => onNavigate('settings')}>
+                    <FileText className="w-4 h-4" />Orders
+                  </MenubarItem>
+                  <MenubarItem className="" onClick={() => onNavigate('profile')}>
+                    <User className="w-4 h-4" />Profile
+                  </MenubarItem>
+                </MenubarContent>
+              </MenubarMenu>
+            </Menubar>
           </div>
-          
+
           {/* Mobile Menu Button */}
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="w-5 h-5" />
           </Button>
         </div>
-        
+
         {/* Mobile Search */}
         <div className="md:hidden px-6 pb-4">
           <div className="flex gap-2">
@@ -163,47 +190,46 @@ export default function Navigation({
                 className="pl-10 bg-input-background"
               />
             </div>
-             
+
           </div>
         </div>
       </header>
-      
-      {/* Mobile Bottom Navigation */}
-<nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-xl border-t border-border">
-  <div className="flex justify-around items-center py-2">
-    {navItems.map((item) => {
-      const Icon = item.icon;
-      const isActive = currentPage === item.id;
 
-      return (
-        <Button
-          key={item.id}
-          variant="ghost"
-          size="sm"
-          onClick={() => onNavigate(item.id)}
-          className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
-            isActive ? 'text-(--primary-gradient-start)' : 'text-muted-foreground'
-          }`}
-        >
-          {item.id === "profile" ? (
-            <Avatar className="w-6 h-6">
-              <AvatarImage src={user?.avatar} alt={user?.name} />
-              <AvatarFallback className="text-xs">
-                {user?.name
-                  ? user.name.split(" ").map((n) => n[0]).join("")
-                  : "U"}
-              </AvatarFallback>
-            </Avatar>
-          )
-            : (
-            Icon && <Icon className="w-5 h-5" />
-          )}
-          <span className="text-xs">{item.label}</span>
-        </Button>
-      );
-    })}
-  </div>
-</nav>
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-xl border-t border-border">
+        <div className="flex justify-around items-center py-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentPage === item.id;
+
+            return (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate(item.id)}
+                className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${isActive ? 'text-(--primary-gradient-start)' : 'text-muted-foreground'
+                  }`}
+              >
+                {item.id === "profile" ? (
+                  <Avatar className="w-6 h-6">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback className="text-xs">
+                      {user?.name
+                        ? user.name.split(" ").map((n) => n[0]).join("")
+                        : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                )
+                  : (
+                    Icon && <Icon className="w-5 h-5" />
+                  )}
+                <span className="text-xs">{item.label}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </nav>
     </>
   );
 }
