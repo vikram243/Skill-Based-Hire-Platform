@@ -5,12 +5,75 @@ const api = axios.create({
   withCredentials: true,
 })
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
+// separate client for refresh to avoid interceptors recursion
+const refreshClient = axios.create({
+  baseURL: api.defaults.baseURL,
+  withCredentials: true,
 })
+
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(p => (error ? p.reject(error) : p.resolve(token)))
+  failedQueue = []
+}
+
+// attach token to every request
+api.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      config.headers = config.headers || {}
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  error => Promise.reject(error)
+)
+
+// handle 401 responses, refresh token once, replay requests
+api.interceptors.response.use(
+  res => res,
+  async error => {
+    const originalRequest = error.config
+    if (!originalRequest) return Promise.reject(error)
+
+    const status = error.response?.status
+    if (status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // queue the request until refresh completes
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`
+          return api(originalRequest)
+        })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        const r = await refreshClient.post('/api/users/refresh')
+        const newToken = r.data?.data?.accessToken
+        if (!newToken) throw new Error('No refresh token returned')
+
+        localStorage.setItem('accessToken', newToken)
+        api.defaults.headers.common.Authorization = `Bearer ${newToken}`
+        processQueue(null, newToken)
+        return api(originalRequest)
+      } catch (err) {
+        processQueue(err, null)
+        localStorage.removeItem('accessToken')
+        return Promise.reject(err)
+      } finally {
+        isRefreshing = false
+      }
+    }
+
+    return Promise.reject(error)
+  }
+)
 
 export default api

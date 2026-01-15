@@ -17,6 +17,7 @@ import ProfilePage from './components/ProfilePage';
 import SearchPage from './components/SearchPage';
 import SkillDetailPage from './components/SkillDetailPage';
 import RegisterProviderPage from './components/RegisterProviderPage';
+import ProtectedWrapper from './components/ProtectedWrapper';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
       }
       return window.matchMedia("(prefers-color-scheme: dark)").matches;
     } catch (e) {
+      console.warn("Error getting initial theme", e);
       return false;
     }
   };
@@ -44,17 +46,15 @@ const App = () => {
   };
 
   return (
-    <BrowserRouter>
       <Routes>
         <Route path='/' element={<GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}><LandingPage /></GoogleOAuthProvider>} />
-        <Route path='/home' element={<HomeFeed />} />
+        <Route path='/home' element={<ProtectedWrapper> <HomeFeed /> </ProtectedWrapper>} />
         <Route path='/orders' element={<OrdersPage />} />
         <Route path='/hire/:skillId' element={<HireFlow />} />
         <Route path='/profile' element={<ProfilePage isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />} />
         <Route path='/search' element={<SearchPage />} />
         <Route path='*' element={<Navigate to='/home' />} />
       </Routes>
-    </BrowserRouter>
   )
 }
 

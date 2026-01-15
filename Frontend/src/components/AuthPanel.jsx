@@ -28,6 +28,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [regEmail, setRegEmail] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [panelMessage, setPanelMessage] = useState({ type: "", text: "" });
+  const navigate = useNavigate();
 
   // Resend OTP cooldown (in seconds)
   const RESEND_COOLDOWN = 60;
@@ -145,8 +146,8 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
         setPanelMessage({ type: '', text: '' });
         onSuccess && onSuccess(payload.user);
         handleClose();
-        console.log(payload);
-        localStorage.setItem('token', payload.token);
+        localStorage.setItem('accessToken', payload?.accessToken);
+        navigate('/home');
         return;
       }
 
@@ -203,6 +204,8 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       setPanelMessage({ type: 'info', text: 'Registered and logged in' });
       onSuccess && onSuccess(user);
       handleClose();
+      localStorage.setItem('accessToken', res?.data?.data?.accessToken);
+      navigate('/home');
     } catch (err) {
       const msg = err?.response?.data?.message || 'Registration failed';
       setPanelMessage({ type: "error", text: msg });
@@ -260,11 +263,9 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
             <Button onClick={() => handleMethodSelect("number")} className="w-full h-14 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg">
               <Phone className="mr-2" /> Continue With Phone
             </Button>
-            <GoogleLoginbutton onSuccess = {(user, token) => {
-              localStorage.setItem('authToken', token);
+            <GoogleLoginbutton onSuccess = {(user) => {
               onSuccess && onSuccess(user);
               handleClose();
-              navigate('/home');
             }}/> 
           </div>
         )}

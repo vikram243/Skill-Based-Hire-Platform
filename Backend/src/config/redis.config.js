@@ -1,12 +1,16 @@
 import { createClient } from 'redis';
 import config from './config.js';
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-const redis = createClient({ url: REDIS_URL });
-
-redis.on('error', (err) => {
-  console.error('Redis Client Error', err);
+const redis = createClient({
+    username: config.redis.username,
+    password: config.redis.password,
+    socket: {
+        host: config.redis.host,
+        port: config.redis.port
+    }
 });
+
+redis.on('error', err => console.log('Redis Client Error', err));
 
 let connected = false;
 async function connect() {
@@ -16,13 +20,24 @@ async function connect() {
   }
 }
 
-// Remove it on production this is only for dbug
-if(config.nodeEnv == "development"){
-  await redis.set('foo', 'bar');
-  const result = await redis.get('foo');
-  console.log(result)
-}
-console.log('✅ Redis connected successfully')
+// Ensure we connect before running any debug commands and handle errors
+(async () => {
+  try {
+    await connect();
+    if (config.nodeEnv === "development") {
+      try {
+        await redis.set('foo', 'bar');
+        const result = await redis.get('foo');
+        console.log('Redis dev check:', result);
+      } catch (e) {
+        console.warn('Redis dev check failed', e);
+      }
+    }
+    console.log('✅ Redis connected successfully');
+  } catch (err) {
+    console.error('Failed to connect to Redis', err);
+  }
+})();
 
 export async function setRefreshToken(key, token, expirySeconds = 7 * 24 * 60 * 60) {
   await connect();
