@@ -12,6 +12,7 @@ import { Label } from "./ui/label";
 import { Mail, Phone, ArrowLeft, CheckIcon } from "lucide-react";
 import GoogleLoginbutton from "./GoogleAuthButton";
 import api from "../lib/axiosSetup";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState("method");
@@ -26,6 +27,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [regEmail, setRegEmail] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [panelMessage, setPanelMessage] = useState({ type: "", text: "" });
+  const navigate = useNavigate();
 
   // Resend OTP cooldown (in seconds)
   const RESEND_COOLDOWN = 60;
@@ -143,7 +145,8 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
         setPanelMessage({ type: '', text: '' });
         onSuccess && onSuccess(payload.user);
         handleClose();
-        window.location.href = '/';
+        localStorage.setItem('accessToken', payload?.accessToken);
+        navigate('/home');
         return;
       }
 
@@ -200,7 +203,8 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       setPanelMessage({ type: 'info', text: 'Registered and logged in' });
       onSuccess && onSuccess(user);
       handleClose();
-      window.location.href = '/';
+      localStorage.setItem('accessToken', res?.data?.data?.accessToken);
+      navigate('/home');
     } catch (err) {
       const msg = err?.response?.data?.message || 'Registration failed';
       setPanelMessage({ type: "error", text: msg });
@@ -258,11 +262,9 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
             <Button onClick={() => handleMethodSelect("number")} className="w-full h-14 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg">
               <Phone className="mr-2" /> Continue With Phone
             </Button>
-            <GoogleLoginbutton onSuccess = {(user, token) => {
-              localStorage.setItem('authToken', token);
+            <GoogleLoginbutton onSuccess = {(user) => {
               onSuccess && onSuccess(user);
               handleClose();
-              // window.location.href = '/';
             }}/> 
           </div>
         )}

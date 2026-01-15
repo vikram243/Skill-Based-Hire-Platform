@@ -11,9 +11,10 @@ const GoogleLoginbutton = ({onSuccess}) => {
         try {
             if(authResult['code']){
               const response = await googleAuth(authResult['code']);
-              const { user,token } = response.data.data;
-              console.log("Google login successful:", response.data.data.user);
-              onSuccess?.({ user, token });
+              const { user, accessToken } = response.data.data;
+              onSuccess?.({ user, accessToken });
+              localStorage.setItem('authToken', accessToken);
+              window.location.href = '/home';
             }
         } catch (error) {
             console.error("Error during Google login:", error);
