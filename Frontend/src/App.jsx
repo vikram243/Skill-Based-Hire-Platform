@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-import React,{useState,useEffect} from 'react';
-// import { Button } from './components/ui/button';
-import { Route, Routes } from 'react-router-dom';
-=======
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
->>>>>>> e6ae57fdb6f614ac09479dbdc8da5306555da69e
+import { Route, Routes, Navigate } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import Navigation from './components/Navigation';
 import HomeFeed from './components/HomeFeed';
@@ -46,15 +40,18 @@ const App = () => {
   };
 
   return (
+    <>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}> <Navigation isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} /> </GoogleOAuthProvider>
       <Routes>
-        <Route path='/' element={<GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}><LandingPage /></GoogleOAuthProvider>} />
+        <Route path='/' element={<LandingPage />} />
         <Route path='/home' element={<ProtectedWrapper> <HomeFeed /> </ProtectedWrapper>} />
-        <Route path='/orders' element={<OrdersPage />} />
-        <Route path='/hire/:skillId' element={<HireFlow />} />
-        <Route path='/profile' element={<ProfilePage isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />} />
-        <Route path='/search' element={<SearchPage />} />
+        <Route path='/orders' element={<ProtectedWrapper> <OrdersPage /> </ProtectedWrapper>} />
+        <Route path='/hire/:skillId' element={<ProtectedWrapper> <HireFlow /> </ProtectedWrapper>} />
+        <Route path='/profile' element={<ProtectedWrapper> <ProfilePage isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} /> </ProtectedWrapper>} />
+        <Route path='/search' element={<ProtectedWrapper> <SearchPage /> </ProtectedWrapper>} />
         <Route path='*' element={<Navigate to='/home' />} />
       </Routes>
+    </>
   )
 }
 

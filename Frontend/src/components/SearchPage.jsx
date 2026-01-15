@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Navigation from './Navigation';
 import SkillCard from './SkillCard';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -7,7 +6,7 @@ import { Badge } from './ui/badge';
 import { Filter, X, SlidersHorizontal, Star } from 'lucide-react';
 import { Skills, Provider, getProvidersBySkill, Categories, getProvidersByCategory } from '../data/mockData';
 
-export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }) {
+export default function SearchPage({ onNavigate, initialSearchQuery = '' }) {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [filteredProviders, setFilteredProviders] = useState(Provider);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -67,24 +66,12 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
     setFilteredProviders(filtered);
   }, [searchQuery, selectedCategory, priceRange, ratingFilter, sortBy]);
 
-  const handleSearch = () => {
-    // Search is already handled by useEffect
-  };
-
-  const handleSearchChange = (query) => {
-    setSearchQuery(query);
-  };
-
   const handleCategoryFilter = (category) => {
     setSelectedCategory(category);
   };
 
   const handleSkillCardClick = (providerId) => {
     onNavigate('skill-detail', { selectedProviderId: providerId });
-  };
-
-  const handleLogout = () => {
-    onNavigate('landing');
   };
 
   const clearAllFilters = () => {
@@ -103,18 +90,6 @@ export default function SearchPage({ onNavigate, user, initialSearchQuery = '' }
 
   return (
     <div className="min-h-screen bg-linear-to-br pb-16 from-background via-surface/30 to-background">
-      <Navigation 
-        onNavigate={onNavigate}
-        onSearch={handleSearch}
-        user={user}
-        onLogout={handleLogout}
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
-        cartItemCount={2}
-        isAuthenticated={!!user}
-        currentPage="search"
-      />
-      
       <div className="container mx-auto px-4 py-6">
         
         {/* Page Title */}

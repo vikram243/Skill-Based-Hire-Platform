@@ -60,14 +60,6 @@ function ProfilePage({
 
   return (
     <div className="min-h-screen pb-16 bg-background">
-      <Navigation
-        onNavigate={onNavigate}
-        isAuthenticated={true}
-        user={user}
-        currentPage="profile"
-        onLogout={onLogout}
-      />
-
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
 
