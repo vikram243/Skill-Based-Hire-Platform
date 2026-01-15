@@ -20,6 +20,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Registration state
   const [firstName, setFirstName] = useState("");

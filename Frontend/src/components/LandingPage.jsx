@@ -5,6 +5,7 @@ import { Card } from './ui/card';
 import { Search, MapPin, Clock, CheckCircle } from 'lucide-react';
 import { Skills, Provider } from '../data/mockData';
 import AuthPanel from './AuthPanel';
+import { useNavigate } from 'react-router-dom';
 import { 
   Star, 
   Users, 
@@ -16,6 +17,7 @@ import {
 export default function LandingPage({ onNavigate }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -24,8 +26,10 @@ export default function LandingPage({ onNavigate }) {
   };
   
   const handleAuthSuccess = (user) => {
-    console.log('🎉 Auth success in LandingPage:', user);
+    console.log('🎉 Auth success in LandingPage:', user.token);
     setIsAuthPanelOpen(false);
+    localStorage.setItem('token', JSON.stringify(user.token));
+    navigate('/home');
   };
 
   const features = [
