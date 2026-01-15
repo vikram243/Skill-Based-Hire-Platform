@@ -72,4 +72,10 @@ const googleLogin = asyncHandler(async (req, res) => {
   );
 });
 
-export { googleLogin };
+const verifyAuth = asyncHandler(async (req, res) => {
+  const userSafe = getSafeUser(req.user);
+  res.set('Cache-Control', 'no-store');
+  return res.status(200).json(new ApiResponse(200, { user: userSafe }, "verified"));
+});
+
+export { verifyAuth, googleLogin };
