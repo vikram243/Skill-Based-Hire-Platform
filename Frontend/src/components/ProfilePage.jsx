@@ -28,8 +28,6 @@ function ProfilePage({
   onNavigate,
   user,
   onLogout,
-  isDarkMode,
-  onToggleDarkMode
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -128,7 +126,7 @@ function ProfilePage({
                 <div className="mt-6 space-y-2">
                   <Button
                     variant="outline"
-                    className="w-full"
+                    className="w-full cursor-pointer"
                     onClick={() => onNavigate('register-provider')}
                   >
                     {user?.isProvider ? 'Update Services' : 'Become Provider'}
@@ -136,7 +134,7 @@ function ProfilePage({
 
                   <Button
                     variant="outline"
-                    className="w-full text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    className="w-full cursor-pointer text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     onClick={onLogout}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
@@ -307,23 +305,6 @@ function ProfilePage({
                           <Separator />
                         </>
                       )}
-                      
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Appearance</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {isDarkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                              <span>Dark mode</span>
-                            </div>
-                            <Switch
-                              className="border border-border"
-                              checked={isDarkMode}
-                              onCheckedChange={onToggleDarkMode}
-                            />
-                          </div>
-                        </div>
-                      </div>
                       
                       <Separator />
                       

@@ -4,10 +4,14 @@ import api from "../lib/axiosSetup";
 import { Button } from "./ui/button";
 import { Chrome } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from "react-redux";
+import { setUser } from "../slices/userSlice";
 
 
 const GoogleLoginbutton = ({onSuccess}) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const googleAuth = (code) => api.get(`/api/auth/google?code=${code}`);
   const responseGoogleResult = async(authResult) => {
         try {
@@ -16,7 +20,8 @@ const GoogleLoginbutton = ({onSuccess}) => {
               const { user, accessToken } = response.data.data;
               onSuccess?.({ user, accessToken });
               localStorage.setItem('accessToken', accessToken);
-              navigate('/home');
+              dispatch(setUser(user));
+              navigate('../home');
             }
         } catch (error) {
             console.error("Error during Google login:", error);
