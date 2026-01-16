@@ -24,6 +24,15 @@ import {
 } from './ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 
+import {
+  Menubar,
+  MenubarMenu,
+  MenubarTrigger,
+  MenubarContent,
+  MenubarItem,
+  MenubarSeparator
+} from './ui/menubar.jsx';
+
 export default function Navigation({
   currentPage,
   user,
@@ -171,10 +180,26 @@ export default function Navigation({
                   <MapPin className="w-4 h-4 mr-1" />
                   <span className="text-sm">Near you</span>
                 </Button>
-                <Avatar className="w-8 h-8 cursor-pointer" onClick={() => handleNavigate('profile')}>
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
-                  <AvatarFallback>{user?.name?.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
-                </Avatar>
+                <Menubar variant="ghost">
+                  <MenubarMenu>
+                    <MenubarTrigger><Avatar className="w-6 h-6">
+                      <AvatarImage src={user?.avatar} alt={user?.name} />
+                      <AvatarFallback className="text-xs">
+                        {user?.name
+                          ? user.name.split(" ").map((n) => n[0]).join("")
+                          : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    </MenubarTrigger>
+                    <MenubarContent className='min-w-36 mr-1 mt-4 font-semibold border border-border'>
+                      <MenubarItem onClick={() => handleNavigate('chat')}><MessageCircle />Chat</MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem onClick={() => handleNavigate('orders')}><FileText />Orders</MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem onClick={() => handleNavigate('profile')}><User />View Profile</MenubarItem>
+                    </MenubarContent>
+                  </MenubarMenu>
+                </Menubar>
               </>
             ) : (
               <div className="flex items-center gap-4">
