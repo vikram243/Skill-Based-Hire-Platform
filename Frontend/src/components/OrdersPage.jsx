@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Navigation from './Navigation';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -18,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Orders } from '../data/mockData.js';
 
-export default function OrdersPage({ onNavigate, user }) {
+export default function OrdersPage({ onNavigate}) {
   const [selectedTab, setSelectedTab] = useState('pending');
 
   const getOrdersByStatus = (status) => {
@@ -150,12 +149,6 @@ export default function OrdersPage({ onNavigate, user }) {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <Navigation
-        currentPage="Orders"
-        onNavigate={onNavigate}
-        user={user}
-      />
-
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl! font-bold!">My Orders</h1>

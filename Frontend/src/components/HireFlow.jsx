@@ -8,11 +8,11 @@ import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Separator } from './ui/separator';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  Clock, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  MapPin,
   CreditCard,
   Shield,
   CheckCircle,
@@ -60,8 +60,8 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
   if (!provider) {
     return (
       <div className="min-h-screen bg-linear-to-br from-background via-surface/30 to-background authenticated-page">
-        <Navigation 
-          onNavigate={() => {}} 
+        <Navigation
+          onNavigate={() => { }}
           user={user}
           isAuthenticated={!!user}
           currentPage="hire-flow"
@@ -80,13 +80,13 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
 
   return (
     <div className="min-h-screen bg-linear-to-br pb-18 from-background via-surface/30 to-background authenticated-page">
-      <Navigation 
-        onNavigate={() => {}} 
+      <Navigation
+        onNavigate={() => { }}
         user={user}
         isAuthenticated={!!user}
         currentPage="hire-flow"
       />
-      
+
       <div className="container mx-auto px-4 py-6">
         {/* Back Button */}
         <Button
@@ -102,11 +102,10 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
           <div className="flex items-center justify-center mb-8">
             {[1, 2, 3].map((step) => (
               <React.Fragment key={step}>
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                  step <= currentStep 
-                    ? 'bg-(--primary-gradient-start) border-(--primary-gradient-start) text-white' 
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${step <= currentStep
+                    ? 'bg-(--primary-gradient-start) border-(--primary-gradient-start) text-white'
                     : 'border-border text-muted-foreground'
-                }`}>
+                  }`}>
                   {step < currentStep ? (
                     <CheckCircle className="w-4 h-4" />
                   ) : (
@@ -114,9 +113,8 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                   )}
                 </div>
                 {step < 3 && (
-                  <div className={`w-16 h-0.5 mx-2 ${
-                    step < currentStep ? 'bg-(--primary-gradient-start)' : 'bg-border'
-                  }`} />
+                  <div className={`w-16 h-0.5 mx-2 ${step < currentStep ? 'bg-(--primary-gradient-start)' : 'bg-border'
+                    }`} />
                 )}
               </React.Fragment>
             ))}
@@ -136,11 +134,11 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                     <div className="space-y-4">
                       <div>
                         <Label htmlFor="service">Select Service</Label>
-                        <select 
+                        <select
                           id="service"
                           className="w-full mt-2 p-3 border border-border/40 rounded-lg bg-input-background focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
                           value={bookingData.service}
-                          onChange={(e) => setBookingData({...bookingData, service: e.target.value})}
+                          onChange={(e) => setBookingData({ ...bookingData, service: e.target.value })}
                         >
                           <option value="">Choose a service...</option>
                           {provider.skills.map((skill) => (
@@ -155,18 +153,18 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                           id="description"
                           placeholder="Describe what you need done..."
                           value={bookingData.description}
-                          onChange={(e) => setBookingData({...bookingData, description: e.target.value})}
+                          onChange={(e) => setBookingData({ ...bookingData, description: e.target.value })}
                           className="min-h-[100px] mt-2 bg-input-background border-border/40 focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
                         />
                       </div>
 
                       <div>
                         <Label htmlFor="urgency">Urgency</Label>
-                        <select 
+                        <select
                           id="urgency"
                           className="w-full mt-2 p-3 border border-border/40 rounded-lg bg-input-background focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
                           value={bookingData.urgency}
-                          onChange={(e) => setBookingData({...bookingData, urgency: e.target.value})}
+                          onChange={(e) => setBookingData({ ...bookingData, urgency: e.target.value })}
                         >
                           <option value="normal">Normal (within 24-48 hours)</option>
                           <option value="urgent">Urgent (within 6-12 hours)</option>
@@ -191,7 +189,7 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                           id="date"
                           type="date"
                           value={bookingData.date}
-                          onChange={(e) => setBookingData({...bookingData, date: e.target.value})}
+                          onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
                           className="bg-input-background mt-2 border-border/40 focus:border-(--primary-gradient-start/50 focus:ring-(--primary-gradient-start)/20"
                         />
                       </div>
@@ -202,7 +200,7 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                           id="time"
                           type="time"
                           value={bookingData.time}
-                          onChange={(e) => setBookingData({...bookingData, time: e.target.value})}
+                          onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
                           className="bg-input-background mt-2 border-border/40 focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
                         />
                       </div>
@@ -216,7 +214,7 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                         min="1"
                         max="8"
                         value={bookingData.duration}
-                        onChange={(e) => setBookingData({...bookingData, duration: e.target.value})}
+                        onChange={(e) => setBookingData({ ...bookingData, duration: e.target.value })}
                         className="bg-input-background mt-2 border-border/40 focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
                       />
                     </div>
@@ -227,7 +225,7 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                         id="address"
                         placeholder="Enter the full address where service is needed..."
                         value={bookingData.address}
-                        onChange={(e) => setBookingData({...bookingData, address: e.target.value})}
+                        onChange={(e) => setBookingData({ ...bookingData, address: e.target.value })}
                         className="bg-input-background mt-2 border-border/40 focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start/20"
                       />
                     </div>
@@ -239,7 +237,7 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                         type="tel"
                         placeholder="Your phone number"
                         value={bookingData.phone}
-                        onChange={(e) => setBookingData({...bookingData, phone: e.target.value})}
+                        onChange={(e) => setBookingData({ ...bookingData, phone: e.target.value })}
                         className="bg-input-background mt-2 border-border/40 focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
                       />
                     </div>
@@ -312,10 +310,10 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                       Previous
                     </Button>
                   )}
-                  
+
                   <div className="ml-auto">
                     {currentStep < 3 ? (
-                      <Button 
+                      <Button
                         onClick={handleNext}
                         className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
                         disabled={
@@ -326,7 +324,7 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                         Next
                       </Button>
                     ) : (
-                      <Button 
+                      <Button
                         onClick={handleSubmit}
                         disabled={isLoading}
                         className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"

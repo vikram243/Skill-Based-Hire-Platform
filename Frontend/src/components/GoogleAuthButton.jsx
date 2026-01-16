@@ -3,9 +3,11 @@ import { useGoogleLogin } from '@react-oauth/google';
 import api from "../lib/axiosSetup";
 import { Button } from "./ui/button";
 import { Chrome } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 
 const GoogleLoginbutton = ({onSuccess}) => {
+  const navigate = useNavigate();
   const googleAuth = (code) => api.get(`/api/auth/google?code=${code}`);
   const responseGoogleResult = async(authResult) => {
         try {
@@ -13,8 +15,8 @@ const GoogleLoginbutton = ({onSuccess}) => {
               const response = await googleAuth(authResult['code']);
               const { user, accessToken } = response.data.data;
               onSuccess?.({ user, accessToken });
-              localStorage.setItem('authToken', accessToken);
-              window.location.href = '/home';
+              localStorage.setItem('accessToken', accessToken);
+              navigate('/home');
             }
         } catch (error) {
             console.error("Error during Google login:", error);

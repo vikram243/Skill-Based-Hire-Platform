@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Navigation from './Navigation';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -30,12 +29,6 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
   if (!provider) {
     return (
       <div className="min-h-screen bg-linear-to-br from-background via-surface/30 to-background authenticated-page">
-        <Navigation 
-          onNavigate={onNavigate} 
-          user={user}
-          isAuthenticated={!!user}
-          currentPage="skill-detail"
-        />
         <div className="container mx-auto px-4 py-8">
           <Card className="p-8 text-center">
             <p className="text-muted-foreground mb-4">Provider not found</p>

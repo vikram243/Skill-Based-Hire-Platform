@@ -1,5 +1,4 @@
 import React from 'react'
-import Navigation from './Navigation';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card } from './ui/card';
@@ -96,8 +95,6 @@ const HomeFeed = () => {
 
   return (
     <div className='min-h-screen bg-linear-to-br pb-8 from-background via-surface/30 to-background authenticated-page'>
-      <Navigation />
-
       <div className='container mx-auto px-4 py-6'>
         <div className='mb-16 text-center py-12 md:py-16'>
           <div className='max-w-4xl mx-auto'>
@@ -158,7 +155,6 @@ const HomeFeed = () => {
               <Card
                 key={index}
                 className="group p-6 cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-center bg-card border-2 border-border/40 hover:border-(--primary-gradient-start)/30 relative overflow-hidden"
-                onClick={() => onNavigate('search')}
               >
                 <div className={`absolute inset-0 bg-linear-to-br ${profession.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
                 <div className="relative z-10">
@@ -241,7 +237,6 @@ const HomeFeed = () => {
                 Share your skills and earn money by helping others in your community. Join thousands of successful providers.
               </p>
               <Button
-                onClick={() => onNavigate('register-provider')}
                 className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
               >
                 Get Started
@@ -262,7 +257,6 @@ const HomeFeed = () => {
               </p>
               <Button
                 variant="outline"
-                onClick={() => onNavigate('search')}
                 className="border-2 border-accent/30 text-accent hover:bg-accent hover:text-white transition-all duration-200"
               >
                 Find Emergency Help
