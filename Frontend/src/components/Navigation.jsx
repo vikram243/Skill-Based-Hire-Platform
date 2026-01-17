@@ -191,12 +191,12 @@ export default function Navigation({
                       </AvatarFallback>
                     </Avatar>
                     </MenubarTrigger>
-                    <MenubarContent className='min-w-36 mr-1 mt-4 font-semibold border border-border'>
-                      <MenubarItem onClick={() => handleNavigate('chat')}><MessageCircle />Chat</MenubarItem>
+                    <MenubarContent className='min-w-36 font-semibold'>
+                      <MenubarItem onClick={() => handleNavigate('chat')}><MessageCircle className='focus:text-accent-foreground' />Chat</MenubarItem>
                       <MenubarSeparator />
-                      <MenubarItem onClick={() => handleNavigate('orders')}><FileText />Orders</MenubarItem>
+                      <MenubarItem onClick={() => handleNavigate('orders')}><FileText className='focus:text-accent-foreground'/>Orders</MenubarItem>
                       <MenubarSeparator />
-                      <MenubarItem onClick={() => handleNavigate('profile')}><User />View Profile</MenubarItem>
+                      <MenubarItem onClick={() => handleNavigate('profile')}><User className='focus:text-accent-foreground' />View Profile</MenubarItem>
                     </MenubarContent>
                   </MenubarMenu>
                 </Menubar>

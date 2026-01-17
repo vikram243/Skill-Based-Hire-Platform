@@ -16,12 +16,12 @@ export function MenubarMenu({ children, ...props }) {
 export function MenubarTrigger({ className, children, ...props }) {
   return <MenubarPrimitive.Trigger data-slot="menubar-trigger"
     className={cn(
-      "flex items-center rounded-sm text-sm font-medium outline-hidden select-none",
+      "",
       className,
     )} {...props}>{children}</MenubarPrimitive.Trigger>;
 }
 
-export function MenubarContent({ className, align = 'start', alignOffset = -4, sideOffset = 8, children, ...props }) {
+export function MenubarContent({ className, align = 'end', alignOffset = -10, sideOffset = 24, children, ...props }) {
   return <MenubarPrimitive.Content data-slot="menubar-content"
     align={align}
     alignOffset={alignOffset}
