@@ -16,9 +16,11 @@ import {
   Star
 } from 'lucide-react';
 import { Orders } from '../data/mockData.js';
+import {useNavigate} from "react-router-dom";
 
 export default function OrdersPage({ onNavigate}) {
   const [selectedTab, setSelectedTab] = useState('pending');
+  const navigate = useNavigate();
 
   const getOrdersByStatus = (status) => {
     if (status === 'all') return Orders;
@@ -153,7 +155,7 @@ export default function OrdersPage({ onNavigate}) {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl! font-bold!">My Orders</h1>
           <Button
-            onClick={() => onNavigate('home')}
+            onClick={() => navigate('/search')}
             className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
             variant="outline"
           >

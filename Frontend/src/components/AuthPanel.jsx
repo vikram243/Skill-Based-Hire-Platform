@@ -13,6 +13,8 @@ import { Mail, Phone, ArrowLeft, CheckIcon } from "lucide-react";
 import GoogleLoginbutton from "./GoogleAuthButton";
 import api from "../lib/axiosSetup";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setUser } from "../slices/userSlice";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState("method");
@@ -20,6 +22,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
 
   // Registration state
   const [firstName, setFirstName] = useState("");
@@ -146,7 +149,8 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
         onSuccess && onSuccess(payload.user);
         handleClose();
         localStorage.setItem('accessToken', payload?.accessToken);
-        navigate('/home');
+        dispatch(setUser(payload.user));
+        navigate('home');
         return;
       }
 
@@ -204,7 +208,8 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       onSuccess && onSuccess(user);
       handleClose();
       localStorage.setItem('accessToken', res?.data?.data?.accessToken);
-      navigate('/home');
+      dispatch(setUser(user));
+      navigate('home');
     } catch (err) {
       const msg = err?.response?.data?.message || 'Registration failed';
       setPanelMessage({ type: "error", text: msg });
