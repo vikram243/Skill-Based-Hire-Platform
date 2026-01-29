@@ -5,7 +5,7 @@ import { generateOtp, verifyOtp } from '../services/otp.service.js';
 import { sendEmail } from '../services/email.service.js';
 import { sendSms } from '../services/twilio.service.js';
 import config from '../config/config.js';
-import {getSafeUser} from '../utils/userSafe.helper.js';
+import { getSafeUser } from '../utils/userSafe.helper.js';
 import { setRefreshToken, getRefreshToken, deleteRefreshToken } from '../config/redis.config.js';
 import jwt from 'jsonwebtoken';
 
@@ -20,9 +20,9 @@ const sendOtpToUser = asyncHandler(async (req, res) => {
 
   if (email) {
     await sendEmail({
-      to: email, 
-      subject: "Your OTP Code", 
-      text: `Your OTP is ${otpResponse.data.otp} to verify your identity on Skill-Hub. It expires in ${otpResponse.data.expiresIn/60}min`
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP is ${otpResponse.data.otp} to verify your identity on Skill-Hub. It expires in ${otpResponse.data.expiresIn / 60}min`
     });
   } else {
     await sendSms(`+91${number}`, `Your OTP is ${otpResponse.data.otp}`);
@@ -47,10 +47,10 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
     await setRefreshToken(user._id.toString(), refreshToken);
 
     res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: config.nodeEnv === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000
+      httpOnly: true,
+      secure: config.nodeEnv === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000
     })
 
     const userSafe = getSafeUser(user);
@@ -68,14 +68,25 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Required fields missing");
   }
 
+  const orConditions = [];
+  if (email) orConditions.push({ email });
+  if (number) orConditions.push({ number });
+
   const existingUser = await User.findOne({
-    $or: [{ email }, { number }]
+    $or: orConditions
   });
 
-  if (existingUser) throw new ApiError(409, "User already exists with given email or phone number");
+  if (existingUser) {
+    throw new ApiError(409, "User already exists with given email or phone number");
+  }
 
   const fullName = `${firstName} ${lastName}`;
-  const user = await User.create({ firstName, lastName, fullName, email, number });
+  const payload = { firstName, lastName, fullName };
+
+  if (email) payload.email = email;
+  if (number) payload.number = number;
+
+  const user = await User.create(payload);
 
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
@@ -88,8 +99,11 @@ const registerUser = asyncHandler(async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
-  return res.status(201).json(new ApiResponse(201, { accessToken, user }, "User registered and logged in"));
+  return res
+    .status(201)
+    .json(new ApiResponse(201, { accessToken, user }, "User registered and logged in"));
 });
+
 
 
 const logoutUser = async (req, res) => {
@@ -128,7 +142,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
 });
 
-export{
+export {
   sendOtpToUser,
   verifyOtpAndLogin,
   registerUser,

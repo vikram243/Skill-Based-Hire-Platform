@@ -19,7 +19,6 @@ const processQueue = (error, token = null) => {
   failedQueue = []
 }
 
-// attach token to every request
 api.interceptors.request.use(
   config => {
     const token = localStorage.getItem('accessToken')
@@ -32,15 +31,24 @@ api.interceptors.request.use(
   error => Promise.reject(error)
 )
 
-// handle 401 responses, refresh token once, replay requests
 api.interceptors.response.use(
   res => res,
   async error => {
     const originalRequest = error.config
     if (!originalRequest) return Promise.reject(error)
-
     const status = error.response?.status
-    if (status === 401 && !originalRequest._retry) {
+  
+    // don't attempt refresh for authentication endpoints
+    const authPaths = ['/api/users/verify-otp', '/api/users/send-otp', '/api/users/register', '/api/users/refresh']
+    if (originalRequest.url && authPaths.some(p => originalRequest.url.includes(p))) {
+      return Promise.reject(error)
+    }
+
+    const hadAuthHeader = Boolean(
+      originalRequest.headers?.Authorization || api.defaults.headers.common.Authorization
+    )
+
+    if (status === 401 && !originalRequest._retry && hadAuthHeader) {
       if (isRefreshing) {
         // queue the request until refresh completes
         return new Promise((resolve, reject) => {
