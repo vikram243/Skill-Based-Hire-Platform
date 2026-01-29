@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import compression from 'compression';
 import router from './routes/index.routes.js';
 import config from "./config/config.js";
+import {cleanupTmpDir} from "./middlewares/upload.middleware.js"
 import redisClient from './config/redis.config.js';
 import rateLimit from 'express-rate-limit';
 import passport from "passport";
@@ -22,6 +23,7 @@ try {
 }
 
 const app = express();
+cleanupTmpDir();
 // Trust proxies if behind Render/NGINX
 app.set('trust proxy', 1);
 

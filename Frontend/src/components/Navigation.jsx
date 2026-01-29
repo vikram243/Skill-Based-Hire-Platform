@@ -41,7 +41,7 @@ export default function Navigation({
   isDarkMode,
   onToggleDarkMode
 }) {
-  const { isAuthenticated, user } = useSelector(state => state.user); 
+  const { isAuthenticated, user } = useSelector(state => state.user);
   const navigate = useNavigate();
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
   const currentPage = window.location.pathname.split('/')[1] || 'home';
@@ -92,7 +92,6 @@ export default function Navigation({
             <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
               SkillHub
             </h1>
-            {console.log(user)}
           </div>
 
           {/* Desktop Search */}

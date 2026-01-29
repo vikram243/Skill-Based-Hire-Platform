@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
   },
   fullName:{
     type:String,
+    minlength: 3,
+    maxlength: 20,
     trim:true
   },
   email: {
@@ -30,11 +32,12 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
   number: {
-    type: String,
+    type: Number,
     unique: true,
-    sparse: true,
     trim: true,
-    required:false
+    required:false,
+    minlength: 9,
+    maxlength: 15,
   },
   googleId: {
     type: String,
@@ -46,7 +49,7 @@ const userSchema = new mongoose.Schema({
   isProvider: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },
   providerProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Provider', default: null },
-  providerStatus: { type: String, enum: ['none', 'draft', 'pending', 'approved', 'rejected'], default: 'none' },
+  providerStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
 
   avatar: {
     type: String,
@@ -64,24 +67,8 @@ const userSchema = new mongoose.Schema({
   }
 },{
   timestamps:true,
-  toJSON:{
-    transform:function(doc,ret){
-      delete ret.password
-      return ret;
-    }
-  }
 }
 );
-
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next()
-  this.password = await bcrypt.hash(this.password, 10)
-  next()
-})
-
-userSchema.methods.isPasswordCorrect = async function (password) {
-  return await bcrypt.compare(password, this.password)
-}
 
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(

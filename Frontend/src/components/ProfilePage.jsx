@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import  Navigation from './Navigation';
+import Navigation from './Navigation';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -7,8 +7,14 @@ import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Textarea  }from './ui/textarea';
+import { Textarea } from './ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import RegisterProviderPanel from './RegisterProviderPage';
+import ApplicationStatusPanel from './ApplicationStatusPanel';
+import api from '../lib/axiosSetup';
+
 import {
   MapPin,
   Phone,
@@ -18,31 +24,20 @@ import {
   Camera,
   Save,
   X,
-  Moon,
-  Sun,
   Briefcase
 } from 'lucide-react';
 import { Switch } from './ui/switch';
 
-function ProfilePage({
-  onNavigate,
-  user,
-  onLogout,
-}) {
+function ProfilePage() {
+  const { user } = useSelector(state => state.user);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    name: user?.name || 'John Doe',
-    email: user?.email || 'john@example.com',
-    phone: '+1 (555) 123-4567',
-    location: 'New York, NY',
-    bio: 'Experienced professional providing quality services in my community.',
-  });
+  const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
+  const [isApplicationStatusOpen, setIsApplicationStatusOpen] = useState(false);
+  const navigate = useNavigate();
 
   const stats = [
-    { label: 'Services Completed', value: '127' },
-    { label: 'Average Rating', value: '4.9' },
-    { label: 'Response Time', value: '< 1hr' },
-    { label: 'Member Since', value: '2023' },
+    { label: 'Total Bookings', value: '127' },
+    { label: 'Active Orders', value: '4' },
   ];
 
   const recentActivity = [
@@ -51,9 +46,19 @@ function ProfilePage({
     { type: 'completed', service: 'Garden Maintenance', date: '2 weeks ago', rating: 4 },
   ];
 
+  const onLogout = async () => {
+    try {
+      const res = await api.get('/api/users/logout');
+      if (res.status === 200)
+        localStorage.removeItem('accessToken');
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const handleSave = () => {
     setIsEditing(false);
-    // Save logic here
   };
 
   return (
@@ -74,9 +79,9 @@ function ProfilePage({
               <Card className="p-6 text-center bg-linear-to-br from-card to-(--surface) border-2 border-border/40 shadow-(--shadow-mid)">
                 <div className="relative inline-block mb-4">
                   <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
-                    <AvatarImage src="/api/placeholder/96/96" />
+                    <AvatarImage src={user?.avatar} alt={user?.firstName} />
                     <AvatarFallback className="text-xl bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                      {formData.name
+                      {user.fullName
                         .split(' ')
                         .map(n => n[0])
                         .join('')}
@@ -90,8 +95,8 @@ function ProfilePage({
                   </Button>
                 </div>
 
-                <h2 className="text-xl font-bold mb-1">{formData.name}</h2>
-                <p className="text-muted-foreground mb-2">{formData.email}</p>
+                <h2 className="text-xl font-bold mb-1">{user.fullName}</h2>
+                <p className="text-muted-foreground mb-2">{user.email}</p>
 
                 <Badge variant="secondary" className="mb-4">
                   {user?.isProvider ? 'Service Provider' : 'Customer'}
@@ -100,11 +105,11 @@ function ProfilePage({
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-center gap-2">
                     <MapPin className="w-4 h-4" />
-                    <span>{formData.location}</span>
+                    <span>{user.location}</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
                     <Phone className="w-4 h-4" />
-                    <span>{formData.phone}</span>
+                    <span>+91 {user.number}</span>
                   </div>
                 </div>
 
@@ -127,9 +132,27 @@ function ProfilePage({
                   <Button
                     variant="outline"
                     className="w-full cursor-pointer"
-                    onClick={() => onNavigate('register-provider')}
+                    onClick={() => {
+                      if (user?.isProvider && user?.providerStatus === "approved") {
+                        navigate("/provider-dashboard");
+                      } else if (
+                        user?.isProvider &&
+                        (user?.providerStatus === "pending" ||
+                          user?.providerStatus === "rejected")
+                      ) {
+                        setIsApplicationStatusOpen(true);
+                      } else {
+                        setIsRegisterProviderOpen(true);
+                      }
+                    }}
                   >
-                    {user?.isProvider ? 'Update Services' : 'Become Provider'}
+                    {user?.isProvider && user?.providerStatus === "approved"
+                      ? "Go to Provider Dashboard"
+                      : user?.isProvider &&
+                        (user?.providerStatus === "pending" ||
+                          user?.providerStatus === "rejected")
+                        ? "Check Application Status"
+                        : "Become Provider"}
                   </Button>
 
                   <Button
@@ -145,7 +168,7 @@ function ProfilePage({
             </div>
 
             {/* Main Content */}
-             <div className="lg:col-span-2">
+            <div className="lg:col-span-2">
               <Tabs defaultValue="personal" className="space-y-6">
                 <TabsList className="grid w-full h-full grid-cols-3">
                   <TabsTrigger value="personal">Personal Info</TabsTrigger>
@@ -158,8 +181,8 @@ function ProfilePage({
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-lg font-semibold">Personal Information</h3>
                       {!isEditing ? (
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => setIsEditing(true)}
                         >
@@ -168,15 +191,15 @@ function ProfilePage({
                         </Button>
                       ) : (
                         <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => setIsEditing(false)}
                           >
                             <X className="w-4 h-4 mr-2" />
                             Cancel
                           </Button>
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={handleSave}
                             className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
@@ -194,7 +217,7 @@ function ProfilePage({
                           <Label htmlFor="name">Full Name</Label>
                           <Input
                             id="name"
-                            value={formData.name}
+                            value={user.fullName}
                             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                             disabled={!isEditing}
                           />
@@ -204,39 +227,39 @@ function ProfilePage({
                           <Input
                             id="email"
                             type="email"
-                            value={formData.email}
+                            value={user.email}
                             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                             disabled={!isEditing}
                           />
                         </div>
                       </div>
-                      
+
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="phone">Phone</Label>
                           <Input
                             id="phone"
-                            value={formData.phone}
+                            value={user.number}
                             onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                             disabled={!isEditing}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="location">Location</Label>
+                          <Label htmlFor="location">Address</Label>
                           <Input
-                            id="location"
-                            value={formData.location}
+                            id="address"
+                            value={user.location}
                             onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                             disabled={!isEditing}
                           />
                         </div>
                       </div>
-                      
+
                       <div>
                         <Label htmlFor="bio">Bio</Label>
                         <Textarea
                           id="bio"
-                          value={formData.bio}
+                          value={user.bio}
                           onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                           disabled={!isEditing}
                           rows={3}
@@ -253,9 +276,8 @@ function ProfilePage({
                       {recentActivity.map((activity, index) => (
                         <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-(--surface) border border-border/40">
                           <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 rounded-full ${
-                              activity.type === 'completed' ? 'bg-success' : 'bg-(--primary-gradient-start)'
-                            }`} />
+                            <div className={`w-2 h-2 rounded-full ${activity.type === 'completed' ? 'bg-success' : 'bg-(--primary-gradient-start)'
+                              }`} />
                             <div>
                               <p className="font-medium">{activity.service}</p>
                               <p className="text-sm text-muted-foreground">
@@ -277,37 +299,7 @@ function ProfilePage({
                   <Card className="p-6">
                     <h3 className="text-lg font-semibold mb-6">Account Settings</h3>
                     <div className="space-y-6">
-                      {(
-                        <>
-                          <div className="space-y-4">
-                            <h4 className="font-medium">Mode Switcher</h4>
-                            <div className="p-4 rounded-lg bg-linear-to-br from-(--primary-gradient-start)/10 to-(--primary-linear-end)/10 border border-(--primary-gradient-start)/20">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-lg bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                                    <Briefcase className="w-5 h-5" />
-                                  </div>
-                                  <div>
-                                    <p className="font-medium">Switch to Provider Mode</p>
-                                    <p className="text-sm text-muted-foreground">Access your provider dashboard</p>
-                                  </div>
-                                </div>
-                              </div>
-                              <Button
-                                className="w-full mt-3 bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
-                                onClick={() => onNavigate('provider-dashboard')}
-                              >
-                                <Briefcase className="w-4 h-4 mr-2" />
-                                Go to Provider Dashboard
-                              </Button>
-                            </div>
-                          </div>
-                          <Separator />
-                        </>
-                      )}
-                      
-                      <Separator />
-                      
+
                       <div className="space-y-4">
                         <h4 className="font-medium">Notifications</h4>
                         <div className="space-y-3">
@@ -321,13 +313,13 @@ function ProfilePage({
                           </div>
                           <div className="flex items-center justify-between">
                             <span>Marketing emails</span>
-                            <Switch className="border border-border"/>
+                            <Switch className="border border-border" />
                           </div>
                         </div>
                       </div>
-                      
+
                       <Separator />
-                      
+
                       <div className="space-y-4">
                         <h4 className="font-medium">Privacy</h4>
                         <div className="space-y-3">
@@ -337,7 +329,7 @@ function ProfilePage({
                           </div>
                           <div className="flex items-center justify-between">
                             <span>Show location</span>
-                            <Switch defaultChecked className="border border-border"/>
+                            <Switch defaultChecked className="border border-border" />
                           </div>
                         </div>
                       </div>
@@ -349,6 +341,20 @@ function ProfilePage({
           </div>
         </div>
       </div>
+      <RegisterProviderPanel
+        isOpen={isRegisterProviderOpen}
+        onClose={() => setIsRegisterProviderOpen(false)}
+        onSuccess={() => {
+          setIsRegisterProviderOpen(false);
+        }}
+      />
+
+      <ApplicationStatusPanel
+        isOpen={isApplicationStatusOpen}
+        onClose={() => setIsApplicationStatusOpen(false)}
+        status={user?.providerStatus}
+        submittedAt={user?.providerSubmittedAt}
+      />
     </div>
   );
 }

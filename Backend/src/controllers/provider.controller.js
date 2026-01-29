@@ -2,54 +2,149 @@ import Provider from '../models/provider.model.js';
 import User from '../models/user.model.js';
 import Order from '../models/order.model.js';
 import Review from '../models/review.model.js';
+import mongoose from 'mongoose';
+import fs from 'fs';
 import { asyncHandler } from '../utils/async.handeller.js';
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import { uploadOnCloudinary } from '../config/cloudinary.config.js';
 import { logActivity } from '../utils/activity.handeller.js';
 
 export const becomeProvider = asyncHandler(async (req, res) => {
-    const userId = req.user.id;
-    const exitingProvider = await Provider.findOne({ user: userId })
-    if (exitingProvider) {
-        throw new ApiError('400', "Provider Profile Already exists");
-    }
-    let uploadedDocs = [];
+  const userId = req.user.id;
+  const existingProvider = await Provider.findOne({ user: userId });
+  if (existingProvider) {
     if (req.files && req.files.length > 0) {
-        uploadedDocs = await Promise.all(
-            req.files.map(async (file) => {
-                const result = await uploadOnCloudinary(file.path);
-                return {
-                    url: result.secure_url,
-                    filename: result.original_filename,
-                    mimetype: file.mimetype
-                }
-            })
-        )
+      await Promise.all(
+        req.files.map((file) => fs.promises.unlink(file.path).catch(() => {}))
+      );
     }
-    const provider = await Provider.create({
-        ...req.body,
-        user: userId,
-        documents: uploadedDocs,
-        applicationStatus: "pending"
-    })
+    throw new ApiError(400, "Provider profile already exists");
+  }
 
-    const user = await User.findByIdAndUpdate(userId, {
-        isProvider: true,
-        providerProfile: provider._id,
-        providerStatus: "pending"
-    })
+  const normalizeSkillEntry = (skill) => {
+    if (!skill) return null;
 
-    await logActivity({
-        action: "Provider Application received",
-        target: provider._id,
-        targetModel: "Provider",
-        description: `${user.fullName} submitted a provider application`
-    })
+    const isValidObjectId =
+      skill.skillId &&
+      mongoose.Types.ObjectId.isValid(skill.skillId);
 
-    res.status(200).json(
-        new ApiResponse(200, provider, "Provider application submitted successfully")
+    return {
+      skillId: isValidObjectId ? skill.skillId : null,
+      name: skill.name,
+      isCustom: !isValidObjectId
+    };
+  };
+
+  let uploadedDocs = [];
+  if (req.files && req.files.length > 0) {
+    uploadedDocs = await Promise.all(
+      req.files.map(async (file) => {
+        const result = await uploadOnCloudinary(file.path);
+
+        if (!result) {
+          // ensure local file is removed if upload failed
+          await fs.promises.unlink(file.path).catch(() => {});
+          return null;
+        }
+
+        return {
+          url: result.secure_url,
+          filename: result.original_filename,
+          mimetype: file.mimetype
+        };
+      })
+    );
+
+    uploadedDocs = uploadedDocs.filter(Boolean);
+  }
+
+  const {
+    businessName,
+    professionalDescription,
+    yearsExperience,
+    contactPhone,
+
+    serviceArea,
+    selectedSkills,
+    pricing,
+
+    agreedToTOS,
+    consentBackgroundCheck
+  } = req.body;
+
+  // If request came via multipart/form-data, fields may be JSON strings.
+  const parseIfString = (val) => {
+    if (typeof val === 'string') {
+      try {
+        return JSON.parse(val);
+      } catch (e) {
+        return val;
+      }
+    }
+    return val;
+  };
+
+  const serviceAreaParsed = parseIfString(serviceArea);
+
+  const selectedSkillsParsed = Array.isArray(selectedSkills)
+    ? selectedSkills.map(s => parseIfString(s))
+    : (selectedSkills ? parseIfString(selectedSkills) : []);
+
+  const pricingParsed = Array.isArray(pricing)
+    ? pricing.map(p => parseIfString(p))
+    : (pricing ? parseIfString(pricing) : []);
+
+  const providerPayload = {
+    user: userId,
+
+    businessName: parseIfString(businessName),
+    professionalDescription: parseIfString(professionalDescription),
+    yearsExperience: Number(parseIfString(yearsExperience)) || 0,
+    contactPhone: parseIfString(contactPhone),
+
+    serviceArea: serviceAreaParsed,
+    selectedSkills: selectedSkillsParsed.map(normalizeSkillEntry),
+
+    pricing: pricingParsed.map(p => ({
+      ...p,
+      skill: normalizeSkillEntry(p.skill)
+    })),
+
+    documents: uploadedDocs,
+
+    agreedToTOS: (parseIfString(agreedToTOS) === 'true' || parseIfString(agreedToTOS) === true),
+    consentBackgroundCheck: (parseIfString(consentBackgroundCheck) === 'true' || parseIfString(consentBackgroundCheck) === true),
+
+    applicationStatus: "pending"
+  };
+
+  const provider = await Provider.create(providerPayload);
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      isProvider: true,
+      providerProfile: provider._id,
+      providerStatus: "pending",
+    },
+    { new: true }
+  );
+
+  await logActivity({
+    action: "Provider Application Received",
+    target: provider._id,
+    targetModel: "Provider",
+    description: `${user.fullName} submitted a provider application`
+  });
+
+  res.status(201).json(
+    new ApiResponse(
+      201,
+      provider,
+      "Provider application submitted successfully"
     )
-})
+  );
+});
 
 export const getProviderProfile = asyncHandler(async (req, res) => {
   const providerId = req.user?.providerProfile;

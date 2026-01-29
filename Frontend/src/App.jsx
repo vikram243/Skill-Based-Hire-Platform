@@ -4,14 +4,10 @@ import { useDispatch } from "react-redux";
 import LandingPage from './components/LandingPage';
 import Navigation from './components/Navigation';
 import HomeFeed from './components/HomeFeed';
-import AuthPanel from './components/AuthPanel'
 import OrdersPage from './components/OrdersPage';
-import SkillCard from './components/SkillCard';
 import HireFlow from './components/HireFlow';
 import ProfilePage from './components/ProfilePage';
 import SearchPage from './components/SearchPage';
-import SkillDetailPage from './components/SkillDetailPage';
-import RegisterProviderPage from './components/RegisterProviderPage';
 import ProtectedRoute from './components/ProtectedWrapper';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { setUser, logoutUser, setLoading } from "./slices/userSlice";
@@ -33,7 +29,6 @@ const App = () => {
     }
   };
   const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
-
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
