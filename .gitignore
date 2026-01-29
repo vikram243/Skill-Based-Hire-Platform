@@ -27,3 +27,4 @@ forntend/.env
 *.njsproj
 *.sln
 *.sw?
+*.md

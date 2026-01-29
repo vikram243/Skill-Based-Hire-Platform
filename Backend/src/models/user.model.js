@@ -25,7 +25,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: false,
-    unique: true,
     minlength: 6,
     maxlength: 50,
     lowercase: true,
@@ -33,7 +32,6 @@ const userSchema = new mongoose.Schema({
   },
   number: {
     type: Number,
-    unique: true,
     trim: true,
     required:false,
     minlength: 9,
