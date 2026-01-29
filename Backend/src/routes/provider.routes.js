@@ -13,12 +13,15 @@ import {
 
 import { upload } from '../middlewares/upload.middleware.js';
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
+import { validate } from '../middlewares/validation.middleware.js';
+import { becomeProviderSchema, updateProviderSchema, updateOrderStatusSchema } from '../validators/provider.validator.js';
 
 const router = Router();
 
 router.route('/onboardProvider').post(
     isAuthenticated,
     upload.array('documents',3),
+    validate(becomeProviderSchema),
     becomeProvider
 )
 
@@ -34,6 +37,7 @@ router.route('/order').get(
 
 router.route('/orders/:orderId/status').patch(
     isAuthenticated,
+    validate(updateOrderStatusSchema),
     updateProviderOrderStatus
 )
 
@@ -59,6 +63,7 @@ router.route('/profile').get(
 
 router.route('/update-profile').patch(
     isAuthenticated,
+    validate(updateProviderSchema),
     updateProviderProfile
 )
 

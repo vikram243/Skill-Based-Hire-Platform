@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated,isAdmin } from '../middlewares/auth.middleware.js';
+import { validate } from '../middlewares/validation.middleware.js';
 import { 
     getAllUsers,
     getAllProviders,
@@ -13,12 +14,14 @@ import {
     flagReview,
     getAllActivities
 } from '../controllers/admin.controller.js';
+import { approveProviderSchema, rejectProviderSchema, getUsersSchema, getProvidersSchema } from '../validators/admin.validator.js';
 
 const router = Router();
 
 router.route("/users").get(
     isAuthenticated,
     isAdmin,
+    validate(getUsersSchema),
     getAllUsers
 )
 
@@ -43,12 +46,14 @@ router.route("/orders/delete").delete(
 router.route("/Providers").get(
     isAuthenticated,
     isAdmin,
+    validate(getProvidersSchema),
     getAllProviders
 )
 
 router.route("/provider/:id/status").patch(
     isAuthenticated,
     isAdmin,
+    validate(approveProviderSchema),
     updateProviderStatus
 )
 

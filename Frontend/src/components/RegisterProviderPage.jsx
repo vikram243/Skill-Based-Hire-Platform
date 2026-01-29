@@ -168,7 +168,6 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
 
         if (resp && resp.status >= 200 && resp.status < 300) {
           setCurrentStep("complete");
-          onSuccess && onSuccess();
         } else {
           setFormError('Application submission failed. Please try again.');
         }
@@ -592,7 +591,7 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                 </div>
 
                 {allSelectedSkills.length > 0 ? (
-                  <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                  <div className="space-y-3 overflow-y-auto pr-2">
                     {allSelectedSkills.map((skill) => {
                       const pricing = getPricingForSkill(skill.name);
                       return (
