@@ -11,6 +11,7 @@ const generateOtp = async (identifier, length = 6) => {
   const otp = crypto.randomInt(10 ** (length - 1), 10 ** length).toString();
   const hashedOtp = await bcrypt.hash(otp, 10);
   const redisKey = `loginOtp:${identifier}`;
+  console.log(otp)
   await redis.setEx(redisKey, 300, hashedOtp);
 
   return new ApiResponse(200, { otp, expiresIn: 180 }, "OTP generated successfully");

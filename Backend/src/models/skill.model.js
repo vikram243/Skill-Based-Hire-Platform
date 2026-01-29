@@ -5,17 +5,22 @@ const SkillSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
+    minlength: 3,
+    maxlength: 20,
   },
   category: {
     type: String,
     required: true,
-    trim: true
-    // Example: "Home Services", "Education", "Technology"
+    trim: true,
+    minlength: 3,
+    maxlength: 20,
   },
   description: {
     type: String,
-    trim: true
+    trim: true,
+    minlength: 3,
+    maxlength: 100,
   },
   icon: {
     type: String, 

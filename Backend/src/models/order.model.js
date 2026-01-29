@@ -19,30 +19,27 @@ const OrderSchema = new mongoose.Schema({
   // allow linking to a known Skill, but also keep a snapshot of the name
   skill: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', default: null },
 
-  description: { type: String, trim: true, default: '' },
+  description: { type: String, trim: true, default: '',min: 10, max: 300 },
 
-  address: { type: AddressSchema, required: true },
+  address: { type: AddressSchema, required: true, min: 10, max: 200 },
 
   urgency: {
     type: String,
-    enum: ['normal','urgent','emergency'],
+    enum: ['normal','emergency'],
     default: 'normal'
   },
 
   pricing: { type: PricingSchema, required: true },
 
-  // minimal order lifecycle
   status: {
     type: String,
     enum: ['pending','accepted','ongoing','completed','cancelled','rejected'],
     default: 'pending'
   },
 
-  // optional reference to a payment record
   payment: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment', default: null },
 
-  // contact phone captured at booking time
-  contactPhone: { type: String, trim: true, default: '' },
+  contactPhone: { type: String, trim: true, default: '', min: 9, max: 15 },
 
   meta: {
     providerRated: { type: Boolean, default: false },

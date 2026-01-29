@@ -4,7 +4,9 @@ export const getSafeUser = (user) => ({
   lastName: user.lastName,
   fullName: user.fullName,
   email: user.email,
+  number: user.number,
   isActive: user.isActive,
   isProvider: user.isProvider,
-  providerStatus: user.providerStatus
+  providerStatus: user.providerStatus,
+  avatar: user.avatar,
 });
