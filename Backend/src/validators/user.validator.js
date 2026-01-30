@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
-const phoneRegex = /^\d{10}$/;
+// Accept optional country code +91 or 91 before the 10 digit number
+const phoneRegex = /^(?:\+?91)?\d{10}$/;
 
 export const sendOtpSchema = z.object({
   body: z
     .object({
       email: z.string().email().optional(),
-      number: z.string().regex(phoneRegex).optional()
+      number: z.string().regex(phoneRegex, 'Phone number must be 10 digits').optional()
     })
     .refine((d) => !!(d.email || d.number), {
       message: 'Either email or number is required'
@@ -19,7 +20,7 @@ export const verifyOtpSchema = z.object({
   body: z
     .object({
       email: z.string().email().optional(),
-      number: z.string().regex(phoneRegex).optional(),
+      number: z.string().regex(phoneRegex, 'Phone number must be 10 digits (optional country code +91)').optional(),
       otp: z.union([z.string(), z.number()]).refine(v => String(v).trim().length >= 3 && String(v).trim().length <= 8, { message: 'Invalid otp' })
     })
     .refine((d) => !!(d.email || d.number), {
@@ -32,13 +33,10 @@ export const verifyOtpSchema = z.object({
 export const registerSchema = z.object({
   body: z
     .object({
-      firstName: z.string().min(1, 'First name required'),
-      lastName: z.string().min(1, 'Last name required'),
-      email: z.string().email().optional(),
-      number: z.string().regex(phoneRegex).optional()
-    })
-    .refine((d) => !!(d.email || d.number), {
-      message: 'Either email or number is required'
+      firstName: z.string().min(2, 'First name required').max(20),
+      lastName: z.string().min(2, 'Last name required').max(20),
+      email: z.string('Email must be a string').email('Please enter a valid email').min(6, 'Email is required').max(50, 'Email must be less then 50 letters'),
+      number: z.string('Phone is required').regex(phoneRegex, 'Phone number must be 10 digits')
     }),
   params: z.object({}).optional(),
   query: z.object({}).optional()
