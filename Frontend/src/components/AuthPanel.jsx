@@ -15,6 +15,7 @@ import api from "../lib/axiosSetup";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUser } from "../slices/userSlice";
+import { sendOtpSchema, otpSchema, registerSchema, firstZodError } from "../lib/schemas";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState("method");
@@ -72,13 +73,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
     }
   };
 
-  const validateEmail = (value) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  };
-
-  const validatePhone = (value) => {
-    return /^\d{10,15}$/.test(value.replace(/\s+/g, ''));
-  };
+  // client-side validation handled via zod schemas in ../lib/schemas
 
   const handleSendOtp = async () => {
     setPanelMessage({ type: "", text: "", icon: ""});
@@ -87,18 +82,9 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       setPanelMessage({ type: 'error', text: `Please wait ${formatTime(resendRemaining)} before resending` });
       return;
     }
-    if (!identifier.trim()) {
-      setPanelMessage({ type: "error", text: "Please enter a value" });
-      return;
-    }
-
-    if (method === 'email' && !validateEmail(identifier)) {
-      setPanelMessage({ type: "error", text: 'Please enter a valid email' });
-      return;
-    }
-
-    if (method === 'number' && !validatePhone(identifier)) {
-      setPanelMessage({ type: "error", text: 'Please enter a valid phone number' });
+    const parsed = sendOtpSchema.safeParse({ method, identifier: identifier.trim() });
+    if (!parsed.success) {
+      setPanelMessage({ type: 'error', text: firstZodError(parsed.error) });
       return;
     }
 
@@ -131,8 +117,9 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length !== 6) {
-      setPanelMessage({ type: "error", text: 'Enter a 6-digit OTP' });
+    const ok = otpSchema.safeParse(otp);
+    if (!ok.success) {
+      setPanelMessage({ type: 'error', text: firstZodError(ok.error) });
       return;
     }
 
@@ -173,23 +160,9 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleRegister = async () => {
-    if (!firstName.trim() || !lastName.trim()) {
-      setPanelMessage({ type: "error", text: 'Please enter your name' });
-      return;
-    }
-
-    if (!regEmail && !regPhone) {
-      setPanelMessage({ type: "error", text: 'Provide email or phone to register' });
-      return;
-    }
-
-    if (regEmail && !validateEmail(regEmail)) {
-      setPanelMessage({ type: "error", text: 'Please enter a valid email' });
-      return;
-    }
-
-    if (regPhone && !validatePhone(regPhone)) {
-      setPanelMessage({ type: "error", text: 'Please enter a valid phone' });
+    const parsed = registerSchema.safeParse({ firstName: firstName.trim(), lastName: lastName.trim(), email: regEmail || undefined, number: regPhone || undefined });
+    if (!parsed.success) {
+      setPanelMessage({ type: 'error', text: firstZodError(parsed.error) });
       return;
     }
 

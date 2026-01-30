@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -8,6 +8,15 @@ import { Checkbox } from './ui/checkbox';
 import { Progress } from './ui/progress';
 import Dropzone from './DropZone';
 import api from '../lib/axiosSetup';
+import {
+  providerBasicSchema,
+  providerLocationSchema,
+  providerSkillsSchema,
+  providerPricingSchema,
+  providerVerificationSchema,
+  providerFullSchema,
+  firstZodError
+} from '../lib/schemas';
 import {
   Upload,
   Plus,
@@ -21,8 +30,16 @@ import {
 } from 'lucide-react';
 import { Skills } from '../data/mockData';
 
-export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
+export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, number }) {
   const [currentStep, setCurrentStep] = useState('basic');
+  useEffect(() => {
+  if (number) {
+    setFormData(prev => ({
+      ...prev,
+      contactPhone: number
+    }));
+  }
+}, [number]);
   const [formData, setFormData] = useState({
     // Basic Info
     businessName: '',
@@ -140,7 +157,77 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
 
     setFormError('');
 
+    // Validate current step using zod schemas and show zod messages
+    if (currentStep === 'basic') {
+      // normalize yearsExperience to number
+      const y = typeof formData.yearsExperience === 'number' ? formData.yearsExperience : Number(formData.yearsExperience || 0);
+      const parsed = providerBasicSchema.safeParse({
+        businessName: formData.businessName,
+        professionalDescription: formData.professionalDescription,
+        yearsExperience: y,
+        contactPhone: formData.contactPhone
+      });
+      if (!parsed.success) {
+        setFormError(firstZodError(parsed.error));
+        return;
+      }
+    }
+
+    if (currentStep === 'location') {
+      const parsed = providerLocationSchema.safeParse({ serviceArea: formData.serviceArea });
+      if (!parsed.success) {
+        setFormError(firstZodError(parsed.error));
+        return;
+      }
+    }
+
+    if (currentStep === 'skills') {
+      const parsed = providerSkillsSchema.safeParse({ selectedSkills: formData.selectedSkills, customSkills: formData.customSkills });
+      if (!parsed.success) {
+        setFormError(firstZodError(parsed.error));
+        return;
+      }
+    }
+
+    if (currentStep === 'pricing') {
+      const parsed = providerPricingSchema.safeParse({ pricing: formData.pricing.map(p => ({
+        skill: p.skill,
+        rateType: p.rateType,
+        serviceRate: Number(p.serviceRate || 0),
+        minimumCharge: Number(p.minimumCharge || 0)
+      })) });
+      if (!parsed.success) {
+        setFormError(firstZodError(parsed.error));
+        return;
+      }
+    }
+
     if (currentStep === 'verification') {
+      // validate verification consents
+      const ver = providerVerificationSchema.safeParse({
+        agreedToTOS: formData.agreedToTOS,
+        consentBackgroundCheck: formData.consentBackgroundCheck
+      });
+      if (!ver.success) {
+        setFormError(firstZodError(ver.error));
+        return;
+      }
+      // validate full payload at high level
+      const full = providerFullSchema.safeParse({
+        businessName: formData.businessName,
+        professionalDescription: formData.professionalDescription,
+        yearsExperience: Number(formData.yearsExperience || 0),
+        contactPhone: formData.contactPhone,
+        serviceArea: formData.serviceArea,
+        selectedSkills: [...formData.selectedSkills, ...formData.customSkills],
+        pricing: formData.pricing,
+        agreedToTOS: formData.agreedToTOS,
+        consentBackgroundCheck: formData.consentBackgroundCheck
+      });
+      if (!full.success) {
+        setFormError(firstZodError(full.error));
+        return;
+      }
       try {
         const data = new FormData();
         data.append("businessName", formData.businessName);
@@ -194,7 +281,6 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handleSkillToggle = (skillName, skillId) => {
-    const totalSelected = formData.selectedSkills.length + formData.customSkills.length;
     const skillEntry = {
       skillId: skillId || null,
       name: skillName,
@@ -202,40 +288,39 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
     };
 
     const exists = formData.selectedSkills.some(s => s.name === skillName);
-    if (!exists && totalSelected >= 3) {
-      setFormError('You can select up to 3 skills');
+    const newSelected = exists ? formData.selectedSkills.filter(s => s.name !== skillName) : [...formData.selectedSkills, skillEntry];
+
+    const parsed = providerSkillsSchema.safeParse({ selectedSkills: newSelected, customSkills: formData.customSkills });
+    if (!parsed.success) {
+      setFormError(firstZodError(parsed.error));
       setTimeout(() => setFormError(''), 3000);
       return;
     }
 
     setFormData(prev => ({
       ...prev,
-      selectedSkills: exists
-        ? prev.selectedSkills.filter(s => s.name !== skillName)
-        : [...prev.selectedSkills, skillEntry]
+      selectedSkills: newSelected
     }));
   };
 
   const addCustomSkill = (skillName) => {
-    const totalSelected = formData.selectedSkills.length + formData.customSkills.length;
-    if (totalSelected >= 3) {
-      setFormError('You can select up to 3 skills');
+    const candidate = { skillId: null, name: skillName.trim(), isCustom: true };
+    const newCustom = [...formData.customSkills];
+    if (skillName.trim() && !newCustom.some(s => s.name === skillName.trim())) {
+      newCustom.push(candidate);
+    }
+
+    const parsed = providerSkillsSchema.safeParse({ selectedSkills: formData.selectedSkills, customSkills: newCustom });
+    if (!parsed.success) {
+      setFormError(firstZodError(parsed.error));
       setTimeout(() => setFormError(''), 3000);
       return;
     }
 
-    if (skillName.trim() && !formData.customSkills.some(s => s.name === skillName.trim())) {
-      const customSkillEntry = {
-        skillId: null,
-        name: skillName.trim(),
-        isCustom: true
-      };
-
-      setFormData(prev => ({
-        ...prev,
-        customSkills: [...prev.customSkills, customSkillEntry]
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      customSkills: newCustom
+    }));
   };
 
   const removeCustomSkill = (skillName) => {

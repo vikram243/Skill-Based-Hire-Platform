@@ -64,16 +64,12 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { firstName, lastName, email, number } = req.body || {};
 
-  if (!firstName || !lastName || (!email && !number)) {
-    throw new ApiError(400, "Required fields missing");
+  if (!firstName || !lastName || !email || !number) {
+    throw new ApiError(400, "Required fields missing: firstName, lastName, email and number are required");
   }
 
-  const orConditions = [];
-  if (email) orConditions.push({ email });
-  if (number) orConditions.push({ number });
-
   const existingUser = await User.findOne({
-    $or: orConditions
+    $or: [{email}, {number}]
   });
 
   if (existingUser) {
@@ -81,10 +77,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const fullName = `${firstName} ${lastName}`;
-  const payload = { firstName, lastName, fullName };
-
-  if (email) payload.email = email;
-  if (number) payload.number = number;
+  const payload = { firstName, lastName, fullName, email, number };
 
   const user = await User.create(payload);
 
@@ -103,7 +96,6 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, { accessToken, user }, "User registered and logged in"));
 });
-
 
 
 const logoutUser = async (req, res) => {

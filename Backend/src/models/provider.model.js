@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const ServiceAreaSchema = new mongoose.Schema({
-  city: { type: String, required: true, index: true, minlength: 3, maxlength: 20 },
-  state: { type: String, required: true, minlength: 3, maxlength: 20, },
-  pincode: { type: Number, minlength: 3, maxlength: 20, },
-  country: { type: String, default: 'India', minlength: 3, maxlength: 100, },
+  city: { type: String, required: true, index: true, minlength: 2, maxlength: 20 },
+  state: { type: String, required: true, minlength: 2, maxlength: 20, },
+  pincode: { type: Number, minlength: 2, maxlength: 20, },
+  country: { type: String, default: 'India', minlength: 2, maxlength: 100, },
 
   geo: {
     type: { type: String, enum: ['Point'], required: true },
@@ -87,7 +87,7 @@ const ProviderSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0,
-    max: 50
+    max: 100
   },
 
   contactPhone: {

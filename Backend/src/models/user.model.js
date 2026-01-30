@@ -19,12 +19,12 @@ const userSchema = new mongoose.Schema({
   fullName:{
     type:String,
     minlength: 3,
-    maxlength: 20,
+    maxlength: 40,
     trim:true
   },
   email: {
     type: String,
-    required: false,
+    required: true,
     minlength: 6,
     maxlength: 50,
     lowercase: true,
@@ -33,7 +33,6 @@ const userSchema = new mongoose.Schema({
   number: {
     type: String,
     trim: true,
-    required:false,
     minlength: 9,
     maxlength: 15,
   },
@@ -67,6 +66,9 @@ const userSchema = new mongoose.Schema({
   timestamps:true,
 }
 );
+
+userSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { email: { $type: 'string' } } });
+userSchema.index({ number: 1 }, { unique: true, partialFilterExpression: { number: { $type: 'string' } } });
 
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(

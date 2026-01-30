@@ -13,7 +13,6 @@ const tryParseJSONFields = (obj) => {
           res[key] = JSON.parse(val);
           continue;
         } catch (e) {
-          // fall through to keep original string
         }
       }
     }
@@ -24,7 +23,6 @@ const tryParseJSONFields = (obj) => {
 
 export const validate = (schema) => (req, res, next) => {
   try {
-    // make shallow copies and try to parse JSON-like string fields
     const body = tryParseJSONFields(req.body || {});
     const params = tryParseJSONFields(req.params || {});
     const query = tryParseJSONFields(req.query || {});
@@ -36,11 +34,15 @@ export const validate = (schema) => (req, res, next) => {
       const formatted = result.error.format();
       // Build concise error message
       const first = result.error.errors[0];
-      const message = first ? `${first.path.join('.')} - ${first.message}` : 'Invalid request';
-      throw new ApiError(400, message);
+      if (first) {
+        const rawPath = first.path.join('.');
+        const path = rawPath.startsWith('body.') ? rawPath.slice(5) : rawPath;
+        const message = `${path} - ${first.message}`;
+        throw new ApiError(400, message);
+      }
+      throw new ApiError(400, 'Invalid request');
     }
 
-    // attach validated body back to req (params and query are read-only)
     req.body = data.body;
 
     return next();
@@ -48,7 +50,12 @@ export const validate = (schema) => (req, res, next) => {
     if (err instanceof ApiError) return next(err);
     if (err instanceof ZodError) {
       const first = err.errors[0];
-      return next(new ApiError(400, `${first.path.join('.')} - ${first.message}`));
+      if (first) {
+        const rawPath = first.path.join('.');
+        const path = rawPath.startsWith('body.') ? rawPath.slice(5) : rawPath;
+        return next(new ApiError(400, `${path} - ${first.message}`));
+      }
+      return next(new ApiError(400, 'Invalid request'));
     }
     return next(err);
   }

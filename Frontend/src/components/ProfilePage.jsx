@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import RegisterProviderPanel from './RegisterProviderPage';
+import { profileSchema, firstZodError } from '../lib/schemas';
 import ApplicationStatusPanel from './ApplicationStatusPanel';
 import api from '../lib/axiosSetup';
 
@@ -33,6 +34,14 @@ function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
   const [isApplicationStatusOpen, setIsApplicationStatusOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: user?.fullName || '',
+    email: user?.email || '',
+    phone: user?.number || '',
+    location: user?.location || '',
+    bio: user?.bio || ''
+  });
+  const [profileError, setProfileError] = useState('');
   const navigate = useNavigate();
 
   const stats = [
@@ -58,6 +67,18 @@ function ProfilePage() {
   };
 
   const handleSave = () => {
+    setProfileError('');
+    const parsed = profileSchema.safeParse({
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      location: formData.location,
+      bio: formData.bio
+    });
+    if (!parsed.success) {
+      setProfileError(firstZodError(parsed.error));
+      return;
+    }
     setIsEditing(false);
   };
 
@@ -211,14 +232,18 @@ function ProfilePage() {
                       )}
                     </div>
 
+                    {profileError && (
+                      <div className="text-sm text-red-600 mb-3">{profileError}</div>
+                    )}
+
                     <div className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="name">Full Name</Label>
                           <Input
                             id="name"
-                            value={user.fullName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                            value={formData.fullName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                             disabled={!isEditing}
                           />
                         </div>
@@ -227,7 +252,7 @@ function ProfilePage() {
                           <Input
                             id="email"
                             type="email"
-                            value={user.email}
+                            value={formData.email}
                             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                             disabled={!isEditing}
                           />
@@ -239,7 +264,7 @@ function ProfilePage() {
                           <Label htmlFor="phone">Phone</Label>
                           <Input
                             id="phone"
-                            value={user.number}
+                            value={formData.phone}
                             onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                             disabled={!isEditing}
                           />
@@ -248,7 +273,7 @@ function ProfilePage() {
                           <Label htmlFor="location">Address</Label>
                           <Input
                             id="address"
-                            value={user.location}
+                            value={formData.location}
                             onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                             disabled={!isEditing}
                           />
@@ -259,7 +284,7 @@ function ProfilePage() {
                         <Label htmlFor="bio">Bio</Label>
                         <Textarea
                           id="bio"
-                          value={user.bio}
+                          value={formData.bio}
                           onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                           disabled={!isEditing}
                           rows={3}
@@ -347,6 +372,7 @@ function ProfilePage() {
         onSuccess={() => {
           setIsRegisterProviderOpen(false);
         }}
+        number={user?.number}
       />
 
       <ApplicationStatusPanel
