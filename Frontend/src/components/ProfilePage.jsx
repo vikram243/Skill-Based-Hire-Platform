@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Navigation from './Navigation';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -15,6 +15,8 @@ import RegisterProviderPanel from './RegisterProviderPage';
 import { profileSchema, firstZodError } from '../lib/schemas';
 import ApplicationStatusPanel from './ApplicationStatusPanel';
 import api from '../lib/axiosSetup';
+import { useDispatch } from "react-redux";
+import { updateAvatar } from "../slices/userSlice";
 
 import {
   MapPin,
@@ -34,6 +36,10 @@ function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
   const [isApplicationStatusOpen, setIsApplicationStatusOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const dispatch = useDispatch();
+  const [avatarLoading, setAvatarLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
@@ -82,6 +88,33 @@ function ProfilePage() {
     setIsEditing(false);
   };
 
+  const updateProfilePicture = async (file) => {
+    try {
+      setAvatarLoading(true);
+
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await api.put(
+        "/api/users/update-avatar",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (res.status === 200) {
+        dispatch(updateAvatar(res?.data?.data?.avatar));
+      }
+    } catch (error) {
+      console.error("Avatar upload failed", error);
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-16 bg-background">
       <div className="container mx-auto px-4 py-6">
@@ -102,7 +135,7 @@ function ProfilePage() {
                   <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
                     <AvatarImage src={user?.avatar} alt={user?.firstName} />
                     <AvatarFallback className="text-xl bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                      {user.fullName
+                      {user?.fullName
                         .split(' ')
                         .map(n => n[0])
                         .join('')}
@@ -110,14 +143,38 @@ function ProfilePage() {
                   </Avatar>
                   <Button
                     size="sm"
+                    disabled={avatarLoading}
                     className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-accent hover:bg-accent/90"
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    <Camera className="w-4 h-4" />
+                    {avatarLoading ? (
+                      <svg
+                        className="animate-spin w-4 h-4"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      </svg>
+                    ) : (
+                      <Camera className="w-4 h-4" />
+                    )}
                   </Button>
+
                 </div>
 
-                <h2 className="text-xl font-bold mb-1">{user.fullName}</h2>
-                <p className="text-muted-foreground mb-2">{user.email}</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) updateProfilePicture(file);
+                  }}
+                />
+
+
+                <h2 className="text-xl font-bold mb-1">{user?.fullName}</h2>
+                <p className="text-muted-foreground mb-2">{user?.email}</p>
 
                 <Badge variant="secondary" className="mb-4">
                   {user?.isProvider ? 'Service Provider' : 'Customer'}
@@ -126,11 +183,11 @@ function ProfilePage() {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-center gap-2">
                     <MapPin className="w-4 h-4" />
-                    <span>{user.location}</span>
+                    <span>{user?.location}</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
                     <Phone className="w-4 h-4" />
-                    <span>+91 {user.number}</span>
+                    <span>+91 {user?.number}</span>
                   </div>
                 </div>
 
@@ -152,7 +209,7 @@ function ProfilePage() {
                 <div className="mt-6 space-y-2">
                   <Button
                     variant="outline"
-                    className="w-full cursor-pointer"
+                    className="w-full mt-3 bg-linear-to-r cursor-pointer from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
                     onClick={() => {
                       if (user?.isProvider && user?.providerStatus === "approved") {
                         navigate("/provider-dashboard");
