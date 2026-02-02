@@ -8,6 +8,7 @@ import config from '../config/config.js';
 import { getSafeUser } from '../utils/userSafe.helper.js';
 import { setRefreshToken, getRefreshToken, deleteRefreshToken } from '../config/redis.config.js';
 import jwt from 'jsonwebtoken';
+import { uploadOnCloudinary } from '../config/cloudinary.config.js';
 
 
 const sendOtpToUser = asyncHandler(async (req, res) => {
@@ -30,7 +31,6 @@ const sendOtpToUser = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
 });
-
 
 const verifyOtpAndLogin = asyncHandler(async (req, res) => {
   const { email, number, otp } = req.body;
@@ -60,7 +60,6 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, { exists: false }, "User does not exist"));
 });
 
-
 const registerUser = asyncHandler(async (req, res) => {
   const { firstName, lastName, email, number } = req.body || {};
 
@@ -69,7 +68,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const existingUser = await User.findOne({
-    $or: [{email}, {number}]
+    $or: [{ email }, { number }]
   });
 
   if (existingUser) {
@@ -92,11 +91,12 @@ const registerUser = asyncHandler(async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
+  const userSafe = getSafeUser(user);
+
   return res
     .status(201)
-    .json(new ApiResponse(201, { accessToken, user }, "User registered and logged in"));
+    .json(new ApiResponse(201, { accessToken, user: userSafe }, "User registered and logged in"));
 });
-
 
 const logoutUser = async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
@@ -134,10 +134,43 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
 });
 
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const userExist = await User.findById(userId);
+  if (!userExist) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (!req.file) {
+    throw new ApiError(400, "Avatar file is required");
+  }
+
+  const uploadResult = await uploadOnCloudinary(req.file.path);
+
+  if (!uploadResult?.secure_url) {
+    throw new ApiError(500, "Avatar upload failed");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { avatar: uploadResult.secure_url },
+    { new: true }
+  );
+  const safeUser = getSafeUser(user);
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { avatar: safeUser.avatar },
+      "User avatar updated successfully"
+    )
+  );
+});
+
 export {
   sendOtpToUser,
   verifyOtpAndLogin,
   registerUser,
   logoutUser,
-  refreshAccessToken
+  refreshAccessToken,
+  updateUserAvatar
 }

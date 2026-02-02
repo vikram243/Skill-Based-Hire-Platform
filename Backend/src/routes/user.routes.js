@@ -4,12 +4,13 @@ import {
   verifyOtpAndLogin,
   registerUser,
   logoutUser,
-  refreshAccessToken
+  refreshAccessToken,
+  updateUserAvatar
 } from '../controllers/user.controller.js';
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { sendOtpSchema, verifyOtpSchema, registerSchema, refreshSchema } from '../validators/user.validator.js';
-
+import { upload } from '../middlewares/upload.middleware.js';
 const router = Router();
 
 router.route("/send-otp").post(
@@ -35,6 +36,12 @@ router.route("/logout").get(
 router.route("/refresh").post(
   validate(refreshSchema),
   refreshAccessToken
+);
+
+router.route("/update-avatar").put(
+  isAuthenticated,
+  upload.single("avatar"),
+  updateUserAvatar
 );
 
 export default router;

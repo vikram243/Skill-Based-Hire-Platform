@@ -8,6 +8,8 @@ import { Checkbox } from './ui/checkbox';
 import { Progress } from './ui/progress';
 import Dropzone from './DropZone';
 import api from '../lib/axiosSetup';
+import { updateIsProvider } from "../slices/userSlice";
+import { useDispatch } from "react-redux";
 import {
   providerBasicSchema,
   providerLocationSchema,
@@ -32,14 +34,17 @@ import { Skills } from '../data/mockData';
 
 export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, number }) {
   const [currentStep, setCurrentStep] = useState('basic');
+  const dispatch = useDispatch();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
-  if (number) {
-    setFormData(prev => ({
-      ...prev,
-      contactPhone: number
-    }));
-  }
-}, [number]);
+    if (number) {
+      setFormData(prev => ({
+        ...prev,
+        contactPhone: number
+      }));
+    }
+  }, [number]);
   const [formData, setFormData] = useState({
     // Basic Info
     businessName: '',
@@ -190,12 +195,14 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, numb
     }
 
     if (currentStep === 'pricing') {
-      const parsed = providerPricingSchema.safeParse({ pricing: formData.pricing.map(p => ({
-        skill: p.skill,
-        rateType: p.rateType,
-        serviceRate: Number(p.serviceRate || 0),
-        minimumCharge: Number(p.minimumCharge || 0)
-      })) });
+      const parsed = providerPricingSchema.safeParse({
+        pricing: formData.pricing.map(p => ({
+          skill: p.skill,
+          rateType: p.rateType,
+          serviceRate: Number(p.serviceRate || 0),
+          minimumCharge: Number(p.minimumCharge || 0)
+        }))
+      });
       if (!parsed.success) {
         setFormError(firstZodError(parsed.error));
         return;
@@ -212,6 +219,7 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, numb
         setFormError(firstZodError(ver.error));
         return;
       }
+      setIsSubmitting(true);
       // validate full payload at high level
       const full = providerFullSchema.safeParse({
         businessName: formData.businessName,
@@ -255,6 +263,7 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, numb
 
         if (resp && resp.status >= 200 && resp.status < 300) {
           setCurrentStep("complete");
+          dispatch(updateIsProvider());
         } else {
           setFormError('Application submission failed. Please try again.');
         }
@@ -262,6 +271,8 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, numb
         console.error(error);
         const message = error?.response?.data?.message || 'Upload failed';
         setFormError(message);
+      } finally {
+        setIsSubmitting(false); // 🔥 STOP loading (success ya error dono me)
       }
 
       return;
@@ -876,17 +887,45 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, numb
             </Button>
             <Button
               onClick={handleNext}
-              className="bg-linear-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-700 hover:via-indigo-700 hover:to-purple-800 text-white shadow-md"
               disabled={
+                isSubmitting || // 🔥 loading ke time disabled
                 (currentStep === 'basic' && !formData.businessName) ||
                 (currentStep === 'location' && (!formData.serviceArea.city || !formData.serviceArea.state)) ||
                 (currentStep === 'skills' && allSelectedSkills.length === 0) ||
                 (currentStep === 'pricing' && !allPricesSet) ||
                 (currentStep === 'verification' && (!formData.agreedToTOS || !formData.consentBackgroundCheck))
               }
+              className="bg-linear-to-r from-purple-600 via-indigo-600 to-purple-700 text-white shadow-md flex items-center gap-2"
             >
-              {currentStep === 'verification' ? 'Submit Application' : 'Next'}
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  Submitting...
+                </>
+              ) : (
+                currentStep === 'verification' ? 'Submit Application' : 'Next'
+              )}
             </Button>
+
           </div>
         )}
       </DialogContent>
