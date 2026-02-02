@@ -13,8 +13,6 @@ export const createOrder = asyncHandler(async (req, res) => {
     contactPhone,
   } = req.body;
 
-  const customer = req.user?._id;
-
   if (!address || !pricing || !provider || !customer || !skill || !urgency || !contactPhone || !description) {
     throw new ApiError(400, "Missing required fields (skillName, address, schedule, pricing)");
   }

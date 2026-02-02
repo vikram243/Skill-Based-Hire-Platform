@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 import config from './config.js';
-import { asyncHandler } from '../utils/async.handeller.js';
+import dns from 'dns';
+
+// Set custom DNS servers to avoid potential DNS resolution issues
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const connectDB = async () => {
     try {

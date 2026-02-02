@@ -4,17 +4,23 @@ const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 export const createOrderSchema = z.object({
   body: z.object({
+    customer: z.string().regex(objectIdRegex),
     skill: z.string().regex(objectIdRegex),
     provider: z.string().regex(objectIdRegex),
-    urgency: z.enum(['low', 'medium', 'high']).optional(),
-    description: z.string().optional(),
-    schedule: z.object({
-      preferredDate: z.string().datetime().optional(),
-      duration: z.number().positive().optional()
-    }).optional()
-  }),
-  params: z.object({}).optional(),
-  query: z.object({}).optional()
+    urgency: z.enum(['normal', 'emergency']),
+    description: z.string(),
+    pricing: z.object({
+      serviceRate: z.number().nonnegative().optional(),
+      taxes: z.number().nonnegative().optional(),
+      total: z.number().nonnegative()
+    }),
+    address: z.object({
+      full: z.string().min(10).max(300),
+      lat: z.number().optional().nullable(),
+      lng: z.number().optional().nullable()
+    }),
+    contactPhone: z.string().min(10).max(15)
+  })
 });
 
 export const getOrderSchema = z.object({

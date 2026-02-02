@@ -23,7 +23,7 @@ const SkillSchema = new mongoose.Schema({
     maxlength: 100,
   },
   icon: {
-    type: String, 
+    type: String,
     default: null
   },
   popularity: {
