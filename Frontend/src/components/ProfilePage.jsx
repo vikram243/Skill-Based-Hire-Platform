@@ -33,6 +33,7 @@ import { Switch } from './ui/switch';
 
 function ProfilePage() {
   const { user } = useSelector(state => state.user);
+  const { stats } = useSelector(state => state.orders);
   const [isEditing, setIsEditing] = useState(false);
   const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
   const [isApplicationStatusOpen, setIsApplicationStatusOpen] = useState(false);
@@ -50,9 +51,9 @@ function ProfilePage() {
   const [profileError, setProfileError] = useState('');
   const navigate = useNavigate();
 
-  const stats = [
-    { label: 'Total Bookings', value: '127' },
-    { label: 'Active Orders', value: '4' },
+  const displayStats = [
+    { label: 'Total Bookings', value: stats?.totalOrders?.toString() || '0' },
+    { label: 'Active orders', value: stats?.activeOrders?.toString() || '0' },
   ];
 
   const recentActivity = [
@@ -194,7 +195,7 @@ function ProfilePage() {
                 <Separator className="my-6" />
 
                 <div className="grid grid-cols-2 gap-4">
-                  {stats.slice(0, 2).map((stat, i) => (
+                  {displayStats.slice(0, 2).map((stat, i) => (
                     <div key={i}>
                       <div className="font-bold text-lg text-(--primary-gradient-start)">
                         {stat.value}

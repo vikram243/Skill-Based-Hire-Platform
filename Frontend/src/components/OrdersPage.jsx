@@ -4,6 +4,7 @@ import { Card, CardContent } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
+import api from "../lib/axiosSetup";
 import {
   Clock,
   MapPin,
@@ -21,11 +22,22 @@ import {useNavigate} from "react-router-dom";
 export default function OrdersPage({ onNavigate}) {
   const [selectedTab, setSelectedTab] = useState('pending');
   const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const getOrdersByStatus = (status) => {
-    if (status === 'all') return Orders;
-    return Orders.filter(order => order.status === status);
+  const fetchOrders = async (status) => {
+    try {
+      const res = await api.get(`/api/orders/status/${status}`);
+      setOrders(res.data?.data || []);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+    }
   };
+
+  React.useEffect(() => {
+    fetchOrders(selectedTab);
+  }, [selectedTab]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -52,22 +64,30 @@ export default function OrdersPage({ onNavigate}) {
   const OrderCard = ({ order }) => (
     <Card className="mb-4">
       <CardContent className="p-6">
-        <Avatar className="w-12 h-12 mb-2">
-          <AvatarImage src={order.providerAvatar} alt={order.providerName} />
-          <AvatarFallback>
-            {order.providerName
-              .split(' ')
-              .map(n => n[0])
-              .join('')}
-          </AvatarFallback>
-        </Avatar>
+        {(() => {
+          const providerName = order.provider?.businessName || order.provider?.user?.fullName || 'Unknown';
+          const providerAvatar = order.provider?.user?.avatar || '';
+          const initials = providerName
+            .split(' ')
+            .filter(Boolean)
+            .map(n => n[0])
+            .join('')
+            .toUpperCase();
+
+          return (
+            <Avatar className="w-12 h-12 mb-2">
+              <AvatarImage src={providerAvatar} alt={providerName} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+          );
+        })()}
 
         <div className="flex items-start gap-4">
           <div className="flex-1">
             <div className="flex items-start justify-between mb-2">
               <div>
-                <h3 className="font-semibold">{order.providerName}</h3>
-                <p className="text-sm text-muted-foreground">{order.skill}</p>
+                <h3 className="font-semibold">{order.provider?.businessName || order.provider?.user?.fullName || 'Unknown'}</h3>
+                <p className="text-sm text-muted-foreground">{order.skill?.name || order.skill || ''}</p>
               </div>
               <Badge className={getStatusColor(order.status)}>
                 {getStatusIcon(order.status)}
@@ -78,11 +98,11 @@ export default function OrdersPage({ onNavigate}) {
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
-                <span>{order.address}</span>
+                <span>{order.address?.full || ''}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
-                <span>{order.scheduledTime}</span>
+                <span>{order.scheduledTime || (order.createdAt ? new Date(order.createdAt).toLocaleString() : '')}</span>
               </div>
 
               {order.note && (
@@ -94,7 +114,7 @@ export default function OrdersPage({ onNavigate}) {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="text-lg font-bold">${order.price}</div>
+              <div className="text-lg font-bold">${order.price || order.pricing?.total || order.pricing?.serviceRate || ''}</div>
 
               <div className="flex gap-2">
                 {order.status === 'pending' && (
@@ -189,7 +209,9 @@ export default function OrdersPage({ onNavigate}) {
           {['pending', 'accepted', 'ongoing', 'completed', 'cancelled'].map((status) => (
             <TabsContent key={status} value={status}>
               <div className="space-y-4">
-                {getOrdersByStatus(status).length === 0 ? (
+                {loading ? (
+                  <Card className="p-8 text-center">Loading...</Card>
+                ) : orders.length === 0 ? (
                   <Card className="p-8 text-center">
                     <div className="text-muted-foreground mb-4">
                       {status === 'pending' && "No pending Orders"}
@@ -206,8 +228,8 @@ export default function OrdersPage({ onNavigate}) {
                     </Button>
                   </Card>
                 ) : (
-                  getOrdersByStatus(status).map((order) => (
-                    <OrderCard key={order.id} order={order} />
+                  orders.map((order) => (
+                    <OrderCard key={order._id || order.id} order={order} />
                   ))
                 )}
               </div>
