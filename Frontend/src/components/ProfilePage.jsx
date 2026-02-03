@@ -1,5 +1,4 @@
-import React, { useState, useRef } from 'react';
-import Navigation from './Navigation';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -17,7 +16,7 @@ import ApplicationStatusPanel from './ApplicationStatusPanel';
 import api from '../lib/axiosSetup';
 import { useDispatch } from "react-redux";
 import { updateAvatar } from "../slices/userSlice";
-
+import { updatePersonalInfo } from "../slices/userSlice";
 import {
   MapPin,
   Phone,
@@ -39,11 +38,10 @@ function ProfilePage() {
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
   const [avatarLoading, setAvatarLoading] = useState(false);
-
+  const [saveLoading, setSaveLoading] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || '',
-    email: user?.email || '',
-    phone: user?.number || '',
+    fistName: user?.firstName || '',
+    lastName: user?.lastName || '',
     location: user?.location || '',
     bio: user?.bio || ''
   });
@@ -61,6 +59,17 @@ function ProfilePage() {
     { type: 'completed', service: 'Garden Maintenance', date: '2 weeks ago', rating: 4 },
   ];
 
+  useEffect(() => {
+    if (!profileError) return;
+
+    const timer = setTimeout(() => {
+      setProfileError('');
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [profileError]);
+
+
   const onLogout = async () => {
     try {
       const res = await api.get('/api/users/logout');
@@ -72,20 +81,49 @@ function ProfilePage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setProfileError('');
+
     const parsed = profileSchema.safeParse({
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
+      firstName: formData.fistName,
+      lastName: formData.lastName,
       location: formData.location,
       bio: formData.bio
     });
+
     if (!parsed.success) {
       setProfileError(firstZodError(parsed.error));
       return;
     }
-    setIsEditing(false);
+
+    try {
+      setSaveLoading(true);
+
+      const res = await api.put("/api/users/update-profile", {
+        firstName: formData.fistName,
+        lastName: formData.lastName,
+        location: formData.location,
+        bio: formData.bio
+      });
+
+      if (res.status === 200) {
+        dispatch(updatePersonalInfo({
+          firstName: res?.data?.data?.firstName,
+          lastName: res?.data?.data?.lastName,
+          fullName: res?.data?.data?.fullName,
+          location: res?.data?.data?.location,
+          bio: res?.data?.data?.bio
+        }));
+
+        setIsEditing(false);
+      }
+    } catch (error) {
+      setProfileError(
+        error?.response?.data?.message || "Profile update failed"
+      );
+    } finally {
+      setSaveLoading(false);
+    }
   };
 
   const updateProfilePicture = async (file) => {
@@ -96,7 +134,7 @@ function ProfilePage() {
       formData.append("avatar", file);
 
       const res = await api.put(
-        "/api/users/update-avatar",
+        "/api/users/update-profile",
         formData,
         {
           headers: {
@@ -144,7 +182,7 @@ function ProfilePage() {
                   <Button
                     size="sm"
                     disabled={avatarLoading}
-                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-accent hover:bg-accent/90"
+                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-accent hover:bg-accent/90 cursor-pointer"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     {avatarLoading ? (
@@ -171,7 +209,6 @@ function ProfilePage() {
                     if (file) updateProfilePicture(file);
                   }}
                 />
-
 
                 <h2 className="text-xl font-bold mb-1">{user?.fullName}</h2>
                 <p className="text-muted-foreground mb-2">{user?.email}</p>
@@ -279,72 +316,101 @@ function ProfilePage() {
                           </Button>
                           <Button
                             size="sm"
+                            disabled={saveLoading}
                             onClick={handleSave}
                             className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
                           >
-                            <Save className="w-4 h-4 mr-2" />
-                            Save
+                            {saveLoading ? (
+                              <svg
+                                className="animate-spin w-4 h-4"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                  fill="none"
+                                />
+                              </svg>
+                            ) : (
+                              <>
+                                <Save className="w-4 h-4 mr-2" />
+                                Save
+                              </>
+                            )}
                           </Button>
                         </div>
                       )}
                     </div>
 
                     {profileError && (
-                      <div className="text-sm text-red-600 mb-3">{profileError}</div>
+                      <div className="text-sm text-red-600">{profileError}</div>
                     )}
 
                     <div className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="name">Full Name</Label>
+                        <div className='flex gap-1 flex-col'>
+                          <Label htmlFor="name">First Name</Label>
                           <Input
                             id="name"
-                            value={formData.fullName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                            value={formData.fistName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, fistName: e.target.value }))}
                             disabled={!isEditing}
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="email">Email</Label>
+                        <div className='flex gap-1 flex-col'>
+                          <Label htmlFor="email">Last Name</Label>
                           <Input
                             id="email"
                             type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                            value={formData.lastName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                             disabled={!isEditing}
                           />
                         </div>
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-4">
-                        <div>
+                        <div className='flex gap-1 flex-col'>
                           <Label htmlFor="phone">Phone</Label>
                           <Input
                             id="phone"
-                            value={formData.phone}
+                            value={user?.number}
                             onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                            disabled={!isEditing}
+                            disabled
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="location">Address</Label>
+                        <div className='flex gap-1 flex-col'>
+                          <Label htmlFor="location">Email</Label>
                           <Input
                             id="address"
-                            value={formData.location}
-                            onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                            disabled={!isEditing}
+                            value={user?.email}
+                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                            disabled
                           />
                         </div>
                       </div>
+                      <div className='flex gap-1 flex-col'>
+                        <Label htmlFor="bio">Address</Label>
+                        <Textarea
+                          id="bio"
+                          value={formData.address}
+                          onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                          disabled={!isEditing}
+                          rows={2}
+                        />
+                      </div>
 
-                      <div>
+                      <div className='flex gap-1 flex-col'>
                         <Label htmlFor="bio">Bio</Label>
                         <Textarea
                           id="bio"
                           value={formData.bio}
                           onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                           disabled={!isEditing}
-                          rows={3}
+                          rows={2}
                         />
                       </div>
                     </div>

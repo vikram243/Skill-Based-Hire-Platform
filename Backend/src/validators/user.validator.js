@@ -42,6 +42,19 @@ export const registerSchema = z.object({
   query: z.object({}).optional()
 });
 
+export const updateProfileSchema = z.object({
+  body: z
+    .object({ 
+      firstName: z.string().max(20).optional(),
+      lastName: z.string().max(20).optional(),
+      location: z.string().max(50, 'Location must be less than 100 letters').optional(),
+      bio: z.string().max(200, 'Bio must be less than 200 letters').optional(),
+      avatar: z.any().optional()
+    }),
+  params: z.object({}).optional(),
+  query: z.object({}).optional()
+});
+
 export const refreshSchema = z.object({
   body: z.object({}).optional(),
   params: z.object({}).optional(),

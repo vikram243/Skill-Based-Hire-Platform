@@ -53,6 +53,20 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
 
+  bio: {
+    type: String,
+    maxlength: 200,
+    trim: true,
+    default: ''
+  },
+
+  location: {
+    type: String,
+    maxlength: 100,
+    trim: true,
+    default: ''
+  },
+
   socketId: {
     type: String,
     default: null
