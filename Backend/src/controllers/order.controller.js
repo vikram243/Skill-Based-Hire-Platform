@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/async.handeller.js";
 
 export const createOrder = asyncHandler(async (req, res) => {
   const {
+    customer,
     provider,
     skill,
     description,
@@ -53,10 +54,18 @@ export const getOrders = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "users",
+        from: "providers",
         localField: "provider",
         foreignField: "_id",
         as: "provider"
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "provider.user",
+        foreignField: "_id",
+        as: "providerUser"
       }
     },
     {
@@ -68,8 +77,9 @@ export const getOrders = asyncHandler(async (req, res) => {
       }
     },
     { $unwind: "$customer" },
-    { $unwind: "$provider" },
-    { $unwind: "$skill" },
+    { $unwind: { path: "$provider", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$providerUser", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$skill", preserveNullAndEmptyArrays: true } },
     {
       $project: {
         _id: 1,
@@ -81,7 +91,17 @@ export const getOrders = asyncHandler(async (req, res) => {
         status: 1,
         createdAt: 1,
         customer: { name: "$customer.fullName", email: "$customer.email" },
-        provider: { name: "$provider.fullName", email: "$provider.email" },
+        provider: {
+          _id: "$provider._id",
+          businessName: "$provider.businessName",
+          professionalDescription: "$provider.professionalDescription",
+          yearsExperience: "$provider.yearsExperience",
+          user: {
+            fullName: "$providerUser.fullName",
+            avatar: "$providerUser.avatar",
+            email: "$providerUser.email"
+          }
+        },
         skill: { name: "$skill.name", category: "$skill.category" }
       }
     },
@@ -96,6 +116,7 @@ export const getOrders = asyncHandler(async (req, res) => {
 export const getOrdersByStatus = asyncHandler(async (req, res) => {
   const { status } = req.params;
   const userId = req.user?._id;
+  console.log("Fetching orders with status:", status,userId);
 
   if (!status) {
     throw new ApiError(400, "Order status is required");
@@ -110,12 +131,20 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "users",
+        from: "providers",
         localField: "provider",
         foreignField: "_id",
         as: "provider"
       }
     },
+    {
+    $lookup: {
+      from: "users",
+      localField: "provider.user",
+      foreignField: "_id",
+      as: "providerUser"
+    }
+  },
     {
       $lookup: {
         from: "skills",
@@ -124,8 +153,9 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
         as: "skill"
       }
     },
-    { $unwind: "$provider" },
-    { $unwind: "$skill" },
+    { $unwind: { path: "$provider", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$skill", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$providerUser", preserveNullAndEmptyArrays: true } },
     {
       $project: {
         _id: 1,
@@ -137,8 +167,15 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
         status: 1,
         createdAt: 1,
         provider: {
-          name: "$provider.fullName",
-          email: "$provider.email"
+          _id: "$provider._id",
+          businessName: "$provider.businessName",
+          professionalDescription: "$provider.professionalDescription",
+          yearsExperience: "$provider.yearsExperience",
+          user: {
+            fullName: "$providerUser.fullName",
+            avatar: "$providerUser.avatar",
+            email: "$providerUser.email"
+          }
         },
         skill: {
           name: "$skill.name",
@@ -149,13 +186,13 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
     { $sort: { createdAt: -1 } }
   ]);
 
-  if (!orders || orders.length === 0) {
-    throw new ApiError(404, `No ${status} orders found`);
-  }
+  const message = (orders && orders.length > 0)
+    ? `${status} orders fetched successfully`
+    : `No ${status} orders found`;
 
   return res
     .status(200)
-    .json(new ApiResponse(200, orders, `${status} orders fetched successfully`));
+    .json(new ApiResponse(200, orders || [], message));
 });
 
 export const updateOrderStatus = asyncHandler(async (req, res) => {
@@ -184,6 +221,54 @@ export const getOrderStats = asyncHandler(async (req, res) => {
 
   const completed = await Order.countDocuments({ customer: userId, status: "completed" });
   const pending = await Order.countDocuments({ customer: userId, status: "pending" });
+  const cancelled = await Order.countDocuments({ customer: userId, status: "cancelled" });
+  const totalOrders = await Order.countDocuments({ customer: userId });
+  const activeOrders = totalOrders - (completed + cancelled);
+
+   const recentOrders = await Order.aggregate([
+  // 1️⃣ Match user orders
+  {
+    $match: {
+      customer: userId
+    }
+  },
+
+  // 2️⃣ Sort by latest
+  {
+    $sort: { createdAt: -1 }
+  },
+
+  // 3️⃣ Limit to recent 5
+  {
+    $limit: 5
+  },
+
+  // 4️⃣ Lookup skill
+  {
+    $lookup: {
+      from: "skills",
+      localField: "skill",
+      foreignField: "_id",
+      as: "skill"
+    }
+  },
+  {
+    $unwind: { path: "$skill", preserveNullAndEmptyArrays: true }
+  },
+
+  // 6️⃣ Final shape (clean response)
+  {
+    $project: {
+      _id: 1,
+      orderStatus: "$status",
+      createdAt: 1,
+      pricing: "$pricing.total",
+      skill: {
+        category: "$skill.category"
+      }
+    }
+  }
+]);
 
   const spentAgg = await Order.aggregate([
     { $match: { customer: userId, status: { $in: ["completed", "ongoing", "pending"] } } },
@@ -193,7 +278,10 @@ export const getOrderStats = asyncHandler(async (req, res) => {
   const stats = {
     completed,
     pending,
+    activeOrders,
     totalSpent: spentAgg[0]?.total || 0,
+    totalOrders,
+    recentOrders
     // ratings could be handled separately if you store them in reviews collection
   };
 
