@@ -15,7 +15,6 @@ export default function SearchPage({ onNavigate, initialSearchQuery = '' }) {
   const [ratingFilter, setRatingFilter] = useState(0);
   const [sortBy, setSortBy] = useState('relevance');
 
-  // Filter and sort providers
   useEffect(() => {
     let filtered = [...Provider];
 

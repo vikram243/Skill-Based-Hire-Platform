@@ -16,7 +16,6 @@ import {
   Calendar,
   Star
 } from 'lucide-react';
-import { Orders } from '../data/mockData.js';
 import {useNavigate} from "react-router-dom";
 
 export default function OrdersPage({ onNavigate}) {
@@ -114,7 +113,7 @@ export default function OrdersPage({ onNavigate}) {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="text-lg font-bold">${order.price || order.pricing?.total || order.pricing?.serviceRate || ''}</div>
+              <div className="text-lg font-bold">₹{order.price || order.pricing?.total || order.pricing?.serviceRate || ''}</div>
 
               <div className="flex gap-2">
                 {order.status === 'pending' && (
@@ -211,7 +210,7 @@ export default function OrdersPage({ onNavigate}) {
               <div className="space-y-4">
                 {loading ? (
                   <Card className="p-8 text-center">Loading...</Card>
-                ) : orders.length === 0 ? (
+                ) : orders.orders.length === 0 ? (
                   <Card className="p-8 text-center">
                     <div className="text-muted-foreground mb-4">
                       {status === 'pending' && "No pending Orders"}
@@ -228,7 +227,7 @@ export default function OrdersPage({ onNavigate}) {
                     </Button>
                   </Card>
                 ) : (
-                  orders.map((order) => (
+                  orders.orders.map((order) => (
                     <OrderCard key={order._id || order.id} order={order} />
                   ))
                 )}
@@ -241,21 +240,21 @@ export default function OrdersPage({ onNavigate}) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold ">
-              {Orders.filter(o => o.status === 'completed').length}
+              {orders.completed}
             </div>
             <div className="text-sm text-muted-foreground">Completed</div>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              {Orders.filter(o => o.status === 'pending').length}
+              {orders.pending}
             </div>
             <div className="text-sm text-muted-foreground">Pending</div>
           </Card>
 
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold">
-              ${Orders.reduce((sum, o) => sum + o.price, 0)}
+              ₹{orders.totalSpent || 0}
             </div>
             <div className="text-sm text-muted-foreground">Total Spent</div>
           </Card>

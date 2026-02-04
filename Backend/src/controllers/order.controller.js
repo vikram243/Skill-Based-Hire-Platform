@@ -116,11 +116,18 @@ export const getOrders = asyncHandler(async (req, res) => {
 export const getOrdersByStatus = asyncHandler(async (req, res) => {
   const { status } = req.params;
   const userId = req.user?._id;
-  console.log("Fetching orders with status:", status,userId);
+
+  const completed = await Order.countDocuments({ customer: userId, status: "completed" });
+  const pending = await Order.countDocuments({ customer: userId, status: "pending" });
 
   if (!status) {
     throw new ApiError(400, "Order status is required");
   }
+
+  const spentAgg = await Order.aggregate([
+    { $match: { customer: userId, status: { $in: ["completed", "ongoing", "pending"] } } },
+    { $group: { _id: null, total: { $sum: "$pricing.total" } } },
+  ]);
 
   const orders = await Order.aggregate([
     {
@@ -190,9 +197,16 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
     ? `${status} orders fetched successfully`
     : `No ${status} orders found`;
 
+    const data = {
+    orders : orders || [],
+    completed,
+    pending,
+    totalSpent: spentAgg[0]?.total || 0
+    }
+
   return res
     .status(200)
-    .json(new ApiResponse(200, orders || [], message));
+    .json(new ApiResponse(200, data, message));
 });
 
 export const updateOrderStatus = asyncHandler(async (req, res) => {
@@ -220,7 +234,6 @@ export const getOrderStats = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
 
   const completed = await Order.countDocuments({ customer: userId, status: "completed" });
-  const pending = await Order.countDocuments({ customer: userId, status: "pending" });
   const cancelled = await Order.countDocuments({ customer: userId, status: "cancelled" });
   const totalOrders = await Order.countDocuments({ customer: userId });
   const activeOrders = totalOrders - (completed + cancelled);
@@ -262,24 +275,14 @@ export const getOrderStats = asyncHandler(async (req, res) => {
       _id: 1,
       orderStatus: "$status",
       createdAt: 1,
-      pricing: "$pricing.total",
       skill: {
         category: "$skill.category"
       }
     }
   }
 ]);
-
-  const spentAgg = await Order.aggregate([
-    { $match: { customer: userId, status: { $in: ["completed", "ongoing", "pending"] } } },
-    { $group: { _id: null, total: { $sum: "$pricing.total" } } },
-  ]);
-
   const stats = {
-    completed,
-    pending,
     activeOrders,
-    totalSpent: spentAgg[0]?.total || 0,
     totalOrders,
     recentOrders
     // ratings could be handled separately if you store them in reviews collection
