@@ -134,34 +134,67 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
 });
 
-const updateUserAvatar = asyncHandler(async (req, res) => {
+const updateProfile = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const userExist = await User.findById(userId);
-  if (!userExist) {
-    throw new ApiError(404, "User not found");
-  }
 
-  if (!req.file) {
-    throw new ApiError(400, "Avatar file is required");
-  }
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
 
-  const uploadResult = await uploadOnCloudinary(req.file.path);
-
-  if (!uploadResult?.secure_url) {
-    throw new ApiError(500, "Avatar upload failed");
-  }
-
-  const user = await User.findByIdAndUpdate(
-    userId,
-    { avatar: uploadResult.secure_url },
-    { new: true }
-  );
   const safeUser = getSafeUser(user);
+  const updates = {};
+  const responseData = {};
+
+  const { firstName, lastName, location, bio } = req.body;
+
+  if (firstName) {
+    updates.firstName = firstName;
+    responseData.firstName = firstName;
+  }
+
+  if (lastName) {
+    updates.lastName = lastName;
+    responseData.lastName = lastName;
+  }
+
+  if (location) {
+    updates.location = location;
+    responseData.location = location;
+  }
+
+  if (bio) {
+    updates.bio = bio;
+    responseData.bio = bio;
+  }
+
+  if (firstName || lastName) {
+    const finalFirstName = firstName ?? safeUser.firstName;
+    const finalLastName = lastName ?? safeUser.lastName;
+
+    updates.fullName = `${finalFirstName} ${finalLastName}`;
+    responseData.fullName = updates.fullName;
+  }
+
+  if (req.file) {
+    const uploadResult = await uploadOnCloudinary(req.file.path);
+    if (!uploadResult?.secure_url) {
+      throw new ApiError(500, "Avatar upload failed");
+    }
+
+    updates.avatar = uploadResult.secure_url;
+    responseData.avatar = uploadResult.secure_url;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    throw new ApiError(400, "No valid fields provided");
+  }
+
+  await User.findByIdAndUpdate(userId, updates);
+
   return res.status(200).json(
     new ApiResponse(
       200,
-      { avatar: safeUser.avatar },
-      "User avatar updated successfully"
+      responseData,
+      "Profile updated successfully"
     )
   );
 });
@@ -172,5 +205,5 @@ export {
   registerUser,
   logoutUser,
   refreshAccessToken,
-  updateUserAvatar
+  updateProfile
 }

@@ -172,7 +172,7 @@ export default function ApplicationStatusPanel({ isOpen, onClose, status, submit
 
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full cursor-pointer"
               onClick={onClose}
             >
               Close

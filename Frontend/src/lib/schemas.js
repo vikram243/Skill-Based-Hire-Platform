@@ -24,11 +24,10 @@ export const registerSchema = z.object({
 });
 
 export const profileSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required').max(20, 'First Name must be less than 20 letters'),
-  email: z.string().email('Please enter a valid email').max(20, 'Last Name must be less than 20 letters'),
-  phone: z.string().regex(/^\+?\d{10,15}$/, 'Please enter a valid phone'),
-  location: z.string().optional(),
-  bio: z.string().optional()
+  firstName: z.string().min(1, 'First name is required').max(20, 'First Name must be less than 20 letters'),
+  lastName: z.string().min(1, 'Last name is required').max(20, 'Last Name must be less than 20 letters'),
+  location: z.string().max(50, 'Location must be less than 100 letters').optional(),
+  bio: z.string().max(200, 'Bio must be less than 200 letters').optional()
 });
 
 export const providerBasicSchema = z.object({

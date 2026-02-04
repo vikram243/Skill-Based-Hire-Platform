@@ -22,7 +22,7 @@ router.route("/getAllOrders").get(
   validate(getOrderSchema),
   getOrders
 );
-router.route("/status/:status").get(  
+router.route("/status/:status").get(
   isAuthenticated,
   getOrdersByStatus
 );

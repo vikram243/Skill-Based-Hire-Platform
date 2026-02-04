@@ -28,6 +28,16 @@ const userSlice = createSlice({
       }
     },
 
+    updatePersonalInfo: (state, action) => {
+      if (state.user) {
+        state.user.firstName = action.payload.firstName;
+        state.user.lastName = action.payload.lastName;
+        state.user.fullName = action.payload.fullName;
+        state.user.location = action.payload.location;
+        state.user.bio = action.payload.bio;
+      }
+    },
+
     logoutUser(state) {
       state.isAuthenticated = false;
       state.user = null;
@@ -41,5 +51,5 @@ const userSlice = createSlice({
 });
 
 
-export const { setUser, logoutUser, setLoading, updateIsProvider, updateAvatar } = userSlice.actions;
+export const { setUser, logoutUser, setLoading, updateIsProvider, updateAvatar, updatePersonalInfo } = userSlice.actions;
 export default userSlice.reducer;

@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 
 const AddressSchema = new mongoose.Schema({
-  full: { type: String, required: true },
+  full: { type: String, required: true,minlength: 10,maxlength: 300 },
   lat: { type: Number, default: null },
-  lng: { type: Number, default: null }
+  lng: { type: Number, default: null },
+  
 }, { _id: false });
 
 const PricingSchema = new mongoose.Schema({
@@ -19,9 +20,9 @@ const OrderSchema = new mongoose.Schema({
   // allow linking to a known Skill, but also keep a snapshot of the name
   skill: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', default: null },
 
-  description: { type: String, trim: true, default: '',min: 10, max: 300 },
+  description: { type: String, trim: true, default: '', minlength: 10, maxlength: 500 },
 
-  address: { type: AddressSchema, required: true, min: 10, max: 200 },
+  address: { type: AddressSchema, required: true},
 
   urgency: {
     type: String,
@@ -39,7 +40,7 @@ const OrderSchema = new mongoose.Schema({
 
   payment: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment', default: null },
 
-  contactPhone: { type: String, trim: true, default: '', min: 9, max: 15 },
+  contactPhone: { type: String, trim: true, default: '', minlength: 10, maxlength: 15 },
 
   meta: {
     providerRated: { type: Boolean, default: false },

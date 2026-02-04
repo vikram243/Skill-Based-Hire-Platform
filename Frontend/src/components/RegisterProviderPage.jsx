@@ -31,11 +31,15 @@ import {
   Calendar
 } from 'lucide-react';
 import { Skills } from '../data/mockData';
+import { useSelector } from 'react-redux';
 
-export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, number }) {
+export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
   const [currentStep, setCurrentStep] = useState('basic');
   const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useSelector(state => state.user);
+  const number = user?.contactPhone || '';
+  const fullName = user?.fullName || '';
 
   useEffect(() => {
     if (number) {
@@ -45,6 +49,16 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess, numb
       }));
     }
   }, [number]);
+
+  useEffect(() => {
+    if (fullName) {
+      setFormData(prev => ({
+        ...prev,
+        businessName: fullName
+      }));
+    }
+  }, [fullName]);
+
   const [formData, setFormData] = useState({
     // Basic Info
     businessName: '',
