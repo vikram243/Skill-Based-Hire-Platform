@@ -154,7 +154,7 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                           placeholder="Describe what you need done..."
                           value={bookingData.description}
                           onChange={(e) => setBookingData({ ...bookingData, description: e.target.value })}
-                          className="min-h-[100px] mt-2 bg-input-background border-border/40 focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
+                          className="min-h-25 mt-2 bg-input-background border-border/40 focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
                         />
                       </div>
 

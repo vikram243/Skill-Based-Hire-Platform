@@ -39,11 +39,12 @@ export default function Navigation({
   onSearchChange,
   onSearch,
   isDarkMode,
-  onToggleDarkMode
+  onToggleDarkMode,
+  isAuthPanelOpen,
+  setIsAuthPanelOpen
 }) {
   const { isAuthenticated, user } = useSelector(state => state.user);
   const navigate = useNavigate();
-  const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
   const currentPage = window.location.pathname.split('/')[1] || 'home';
 
   const handleNavigate = (id) => {
@@ -103,16 +104,16 @@ export default function Navigation({
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="h-11 px-4 border-2 border-border cursor-pointer hover:border-(--primary-gradient-start) transition-all duration-200 min-w-[60px] justify-between"
+                      className="h-11 px-4 border-2 border-border cursor-pointer hover:border-(--primary-gradient-start) transition-all duration-200 min-w-15 justify-between"
                     >
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-accent" />
-                        <span className="text-sm truncate max-w-[120px]">{selectedLocation}</span>
+                        <span className="text-sm truncate max-w-30">{selectedLocation}</span>
                       </div>
                       <ChevronDown className="w-4 h-4 ml-2" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-[200px]">
+                  <DropdownMenuContent align="start" className="w-50">
                     {locations.map((location) => (
                       <DropdownMenuItem
                         key={location}
