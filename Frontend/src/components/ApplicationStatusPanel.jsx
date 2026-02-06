@@ -110,18 +110,18 @@ export default function ApplicationStatusPanel({ isOpen, onClose, status, submit
                 {config.steps.map((step, index) => (
                   <div key={index} className="flex gap-3 relative">
                     {index !== config.steps.length - 1 && (
-                      <div className={`absolute left-[11px] top-6 w-0.5 h-6 ${step.completed ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'}`} />
+                      <div className={`absolute left-2.75 top-6 w-0.5 h-6 ${step.completed ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'}`} />
                     )}
 
                     <div className="mt-1">
                       {step.completed ? (
-                        <CheckCircle2 className={`w-[22px] h-[22px] ${step.error ? 'text-red-500' : 'text-green-500'}`} />
+                        <CheckCircle2 className={`w-5.5 h-5.5 ${step.error ? 'text-red-500' : 'text-green-500'}`} />
                       ) : step.current ? (
-                        <div className="w-[22px] h-[22px] rounded-full border-2 border-blue-500 flex items-center justify-center">
+                        <div className="w-5.5 h-5.5 rounded-full border-2 border-blue-500 flex items-center justify-center">
                           <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                         </div>
                       ) : (
-                        <div className="w-[22px] h-[22px] rounded-full border-2 border-gray-200 dark:border-gray-700" />
+                        <div className="w-5.5 h-5.5 rounded-full border-2 border-gray-200 dark:border-gray-700" />
                       )}
                     </div>
 

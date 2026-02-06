@@ -31,8 +31,23 @@ import {
 import { Switch } from './ui/switch';
 
 function ProfilePage() {
+  const stringify = (val) => {
+    if (val === null || val === undefined) return '';
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object') {
+      if (val.address) return val.address;
+      if (val.label) return val.label;
+      if (val.source) return val.source;
+      try {
+        return JSON.stringify(val);
+      // eslint-disable-next-line no-unused-vars
+      } catch (e) {
+        return String(val);
+      }
+    }
+    return String(val);
+  };
   const { user } = useSelector(state => state.user);
-  const { stats } = useSelector(state => state.orders);
   const [isEditing, setIsEditing] = useState(false);
   const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
   const [isApplicationStatusOpen, setIsApplicationStatusOpen] = useState(false);
@@ -43,33 +58,39 @@ function ProfilePage() {
   const [formData, setFormData] = useState({
     fistName: user?.firstName || '',
     lastName: user?.lastName || '',
-    location: user?.location || '',
+    location: stringify(user?.location) || '',
     bio: user?.bio || ''
   });
+  const [orderStats, setOrderStats] = useState(null);
   const [profileError, setProfileError] = useState('');
   const navigate = useNavigate();
 
   const displayStats = [
-    { label: 'Total Bookings', value: stats?.totalOrders?.toString() || '0' },
-    { label: 'Active orders', value: stats?.activeOrders?.toString() || '0' },
+    { label: 'Total Bookings', value: orderStats?.totalOrders?.toString() || '0' },
+    { label: 'Active orders', value: orderStats?.activeOrders?.toString() || '0' },
   ];
 
-  const recentActivity = [
-    { type: 'completed', service: 'Home Cleaning', date: '2 days ago', rating: 5 },
-    { type: 'hired', service: 'Plumbing Repair', date: '1 week ago', rating: 5 },
-    { type: 'completed', service: 'Garden Maintenance', date: '2 weeks ago', rating: 4 },
-  ];
+  const fetchOrdersStats = async () => {
+    try {
+      const response = await api.get('/api/orders/stats/me');
+      setOrderStats(response.data?.data)
+    } catch (error) {
+      console.error('Error fetching order stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrdersStats();
+  }, []);
 
   useEffect(() => {
     if (!profileError) return;
-
     const timer = setTimeout(() => {
       setProfileError('');
     }, 3000);
 
     return () => clearTimeout(timer);
   }, [profileError]);
-
 
   const onLogout = async () => {
     try {
@@ -88,7 +109,6 @@ function ProfilePage() {
     const parsed = profileSchema.safeParse({
       firstName: formData.fistName,
       lastName: formData.lastName,
-      location: formData.location,
       bio: formData.bio
     });
 
@@ -103,7 +123,6 @@ function ProfilePage() {
       const res = await api.put("/api/users/update-profile", {
         firstName: formData.fistName,
         lastName: formData.lastName,
-        location: formData.location,
         bio: formData.bio
       });
 
@@ -112,7 +131,6 @@ function ProfilePage() {
           firstName: res?.data?.data?.firstName,
           lastName: res?.data?.data?.lastName,
           fullName: res?.data?.data?.fullName,
-          location: res?.data?.data?.location,
           bio: res?.data?.data?.bio
         }));
 
@@ -154,6 +172,25 @@ function ProfilePage() {
     }
   };
 
+  const timeAgo = (createdAt) => {
+    const now = new Date();
+    const past = new Date(createdAt);
+    const diffMs = now - past;
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(months / 12);
+
+    if (years > 0) return `${years} year${years > 1 ? "s" : ""} ago`;
+    if (months > 0) return `${months} month${months > 1 ? "s" : ""} ago`;
+    if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+  };
   return (
     <div className="min-h-screen pb-16 bg-background">
       <div className="container mx-auto px-4 py-6">
@@ -174,10 +211,7 @@ function ProfilePage() {
                   <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
                     <AvatarImage src={user?.avatar} alt={user?.firstName} />
                     <AvatarFallback className="text-xl bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                      {user?.fullName
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('')}
+                      {user?.fullName?.split?.(' ')?.map(n => n[0]).join('') || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <Button
@@ -211,8 +245,8 @@ function ProfilePage() {
                   }}
                 />
 
-                <h2 className="text-xl font-bold mb-1">{user?.fullName}</h2>
-                <p className="text-muted-foreground mb-2">{user?.email}</p>
+                <h2 className="text-xl font-bold mb-1 truncate max-w-70">{user?.fullName}</h2>
+                <p className="text-muted-foreground mb-2 truncate max-w-70">{user?.email}</p>
 
                 <Badge variant="secondary" className="mb-4">
                   {user?.isProvider ? 'Service Provider' : 'Customer'}
@@ -221,11 +255,11 @@ function ProfilePage() {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-center gap-2">
                     <MapPin className="w-4 h-4" />
-                    <span>{user?.location}</span>
+                    <span className="text-sm truncate max-w-30">{stringify(user?.location)}</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
                     <Phone className="w-4 h-4" />
-                    <span>+91 {user?.number}</span>
+                    <span className="text-sm truncate max-w-30">+91 {user?.number}</span>
                   </div>
                 </div>
 
@@ -362,10 +396,9 @@ function ProfilePage() {
                           />
                         </div>
                         <div className='flex gap-1 flex-col'>
-                          <Label htmlFor="email">Last Name</Label>
+                          <Label htmlFor="name">Last Name</Label>
                           <Input
-                            id="email"
-                            type="email"
+                            id="name"
                             value={formData.lastName}
                             onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                             disabled={!isEditing}
@@ -384,9 +417,9 @@ function ProfilePage() {
                           />
                         </div>
                         <div className='flex gap-1 flex-col'>
-                          <Label htmlFor="location">Email</Label>
+                          <Label htmlFor="email">Email</Label>
                           <Input
-                            id="address"
+                            id="email"
                             value={user?.email}
                             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                             disabled
@@ -394,12 +427,12 @@ function ProfilePage() {
                         </div>
                       </div>
                       <div className='flex gap-1 flex-col'>
-                        <Label htmlFor="bio">Address</Label>
+                        <Label htmlFor="location">Address</Label>
                         <Textarea
-                          id="bio"
-                          value={formData.address}
-                          onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                          disabled={!isEditing}
+                          id="location"
+                          value={formData?.location}
+                          onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                          disabled
                           rows={2}
                         />
                       </div>
@@ -422,21 +455,36 @@ function ProfilePage() {
                   <Card className="p-6">
                     <h3 className="text-lg font-semibold mb-6">Recent Activity</h3>
                     <div className="space-y-4">
-                      {recentActivity.map((activity, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-(--surface) border border-border/40">
+                      {(!orderStats?.recentOrders || orderStats.recentOrders.length === 0) && (
+                        <div className="text-sm text-muted-foreground text-center pb-10">
+                          No recent activity
+                        </div>
+                      )}
+
+                      {orderStats?.recentOrders?.map((activity, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 rounded-lg bg-(--surface) border border-border/40"
+                        >
                           <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 rounded-full ${activity.type === 'completed' ? 'bg-success' : 'bg-(--primary-gradient-start)'
-                              }`} />
+                            <div
+                              className={`w-2 h-2 rounded-full ${activity?.orderStatus === "completed"
+                                  ? "bg-success"
+                                  : "bg-(--primary-gradient-start)"
+                                }`}
+                            />
                             <div>
-                              <p className="font-medium">{activity.service}</p>
+                              <p className="font-medium">{activity?.skill?.category}</p>
                               <p className="text-sm text-muted-foreground">
-                                {activity.type === 'completed' ? 'Service completed' : 'Service hired'} • {activity.date}
+                                {activity?.orderStatus === "completed"
+                                  ? "Service completed"
+                                  : "Service hired"} • {timeAgo(activity?.createdAt)}
                               </p>
                             </div>
                           </div>
+
                           <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{activity.rating}</span>
                           </div>
                         </div>
                       ))}

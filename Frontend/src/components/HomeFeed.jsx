@@ -2,10 +2,8 @@ import React from 'react'
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card } from './ui/card';
-import  api  from '../lib/axiosSetup.js';
-import { useDispatch } from 'react-redux';
-import { setLoading, setStats, setError } from '../slices/OrdersSlice.js';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import Footer from './Footer';
 import {
   Search,
   ArrowRight,
@@ -26,7 +24,6 @@ import {
 } from 'lucide-react';
 
 const HomeFeed = () => {
-  const dispatch = useDispatch();
 
   const stats = [
     { icon: <Users className="w-8 h-8" />, value: '10,000+', label: 'Skilled Professionals' },
@@ -96,21 +93,6 @@ const HomeFeed = () => {
       text: 'The quality of professionals on this platform is exceptional. I use it for all my property maintenance needs.'
     }
   ];
-
-  const fetchOrdersStats = async () => {
-    try {
-      dispatch(setLoading(true));
-      const response = await api.get('/api/orders/stats/me');
-      dispatch(setStats(response.data?.data));
-    } catch (error) {
-      console.error('Error fetching order stats:', error);
-      dispatch(setError(error.message));
-    } 
-  };
-
-  React.useEffect(() => {
-    fetchOrdersStats();
-  }, []);
 
   return (
     <div className='min-h-screen bg-linear-to-br pb-8 from-background via-surface/30 to-background authenticated-page'>
@@ -285,7 +267,7 @@ const HomeFeed = () => {
           </Card>
         </div>
       </div>
-
+      <Footer/>
     </div>
   )
 }

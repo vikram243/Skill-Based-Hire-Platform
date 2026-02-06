@@ -8,7 +8,7 @@ import {
     updateProviderOrderStatus, 
     getProviderHistory, 
     getProviderAnalytics, 
-    getProviderReviews 
+    getProviderReviews,
 } from '../controllers/provider.controller.js';
 
 import { upload } from '../middlewares/upload.middleware.js';

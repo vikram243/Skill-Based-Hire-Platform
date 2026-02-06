@@ -5,7 +5,8 @@ import { uploadOnCloudinary } from "../config/cloudinary.config.js";
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import { getSafeUser } from '../utils/userSafe.helper.js';
 import { logActivity } from '../utils/activity.handeller.js';
-import { setRefreshToken } from '../config/redis.config.js';
+import { setRefreshToken, setSessionId, setSessionMeta } from '../config/redis.config.js';
+import crypto from 'crypto';
 import config from '../config/config.js';
 
 const googleLogin = asyncHandler(async (req, res) => {
@@ -52,12 +53,17 @@ const googleLogin = asyncHandler(async (req, res) => {
     description: `${user.fullName} has registered`
   })
 
-  // generate tokens
-  const accessToken = user.generateAccessToken();
+  // generate tokens + session id
+  const sessionId = crypto.randomUUID();
+  const accessToken = user.generateAccessToken(sessionId);
   const refreshToken = user.generateRefreshToken();
 
-  // store refresh token in Redis keyed by user id
+  // compute fingerprint and store refresh token, session id and meta
+  const fingerprintRaw = `${req.ip || ''}|${req.headers['user-agent'] || ''}`;
+  const fingerprint = crypto.createHash('sha256').update(fingerprintRaw).digest('hex');
   await setRefreshToken(user._id.toString(), refreshToken);
+  await setSessionId(user._id.toString(), sessionId);
+  await setSessionMeta(user._id.toString(), { fingerprint });
 
   // send refresh token as HttpOnly cookie
   res.cookie("refreshToken", refreshToken, {
