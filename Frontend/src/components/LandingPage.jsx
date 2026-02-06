@@ -209,9 +209,6 @@ export default function LandingPage({ onNavigate }) {
           </div>
         </div>
       </section>
-      
-      <Footer/>
-
     </div>
   );
 }

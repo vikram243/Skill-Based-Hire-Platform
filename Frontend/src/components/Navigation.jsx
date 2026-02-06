@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import AuthPanel from './AuthPanel';
 import { useSelector } from 'react-redux';
 import {
   Search,
@@ -12,7 +11,6 @@ import {
   User,
   Map,
   MapPin,
-  Menu,
   ChevronDown,
   Moon,
   Sun
@@ -40,7 +38,6 @@ export default function Navigation({
   onSearch,
   isDarkMode,
   onToggleDarkMode,
-  isAuthPanelOpen,
   setIsAuthPanelOpen
 }) {
   const { isAuthenticated, user } = useSelector(state => state.user);
@@ -207,11 +204,6 @@ export default function Navigation({
                 <Button variant="outline" size="sm" onClick={() => navigate('/admin-login')} className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">Admin</Button>
               </div>
             )}
-            {/* Auth Panel */}
-            <AuthPanel
-              isOpen={isAuthPanelOpen}
-              onClose={() => setIsAuthPanelOpen(false)}
-            />
           </div>
 
           {/* Mobile Menu Button */}

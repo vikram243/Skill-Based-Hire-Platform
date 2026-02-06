@@ -10,8 +10,12 @@ import ProfilePage from './components/ProfilePage';
 import SearchPage from './components/SearchPage';
 import ProtectedRoute from './components/ProtectedWrapper';
 import HowItWorksPage from './components/HowItWorks';
+import SafetyPage from './components/SafetyPage';
+import InsurancePage from './components/InsurancePage';
 import { setUser, logoutUser, setLoading } from "./slices/userSlice";
 import api from './lib/axiosSetup';
+import AuthPanel from './components/AuthPanel';
+import Footer from './components/Footer';
 
 const App = () => {
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
@@ -71,10 +75,12 @@ const App = () => {
 
   return (
     <>
-      <Navigation setIsAuthPanelOpen = {setIsAuthPanelOpen} isAuthPanelOpen ={isAuthPanelOpen} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+      <Navigation setIsAuthPanelOpen = {setIsAuthPanelOpen} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
       <Routes>
         <Route path='/' element={<LandingPage />} />
-        <Route path='/how-it-works' element={<HowItWorksPage setIsAuthPanelOpen={setIsAuthPanelOpen} isAuthPanelOpen ={isAuthPanelOpen} />} />
+        <Route path='/how-it-works' element={<HowItWorksPage setIsAuthPanelOpen={setIsAuthPanelOpen} />} />
+        <Route path='/safety' element={<SafetyPage setIsAuthPanelOpen={setIsAuthPanelOpen} />} />
+        <Route path ='/insurance' element ={<InsurancePage />} />
         <Route element={<ProtectedRoute />}>
           <Route path='/home' element={<HomeFeed />} />
           <Route path='/orders' element={<OrdersPage />} />
@@ -84,6 +90,11 @@ const App = () => {
           <Route path='*' element={<Navigate to='/home' />} />
         </Route>
       </Routes>
+      <Footer setIsAuthPanelOpen = {setIsAuthPanelOpen} />
+      <AuthPanel
+        isOpen={isAuthPanelOpen}
+        onClose={() => setIsAuthPanelOpen(false)}
+      />
     </>
   )
 }
