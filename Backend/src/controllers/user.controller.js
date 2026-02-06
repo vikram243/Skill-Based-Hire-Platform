@@ -144,7 +144,9 @@ const updateProfile = asyncHandler(async (req, res) => {
   const updates = {};
   const responseData = {};
 
-  const { firstName, lastName, location, bio } = req.body;
+  const { firstName, lastName, bio } = req.body;
+
+  const { location } = req.body;
 
   if (firstName) {
     updates.firstName = firstName;
@@ -154,11 +156,6 @@ const updateProfile = asyncHandler(async (req, res) => {
   if (lastName) {
     updates.lastName = lastName;
     responseData.lastName = lastName;
-  }
-
-  if (location) {
-    updates.location = location;
-    responseData.location = location;
   }
 
   if (bio) {
@@ -182,6 +179,26 @@ const updateProfile = asyncHandler(async (req, res) => {
 
     updates.avatar = uploadResult.secure_url;
     responseData.avatar = uploadResult.secure_url;
+  }
+
+  // handle location updates (either string or structured object)
+  if (location) {
+    if (typeof location === 'string') {
+      updates['location.address'] = location;
+      responseData.location = { address: location };
+    } else if (typeof location === 'object') {
+      const locObj = {};
+      if (location.source) locObj.source = location.source === 'ip-api' ? 'ip' : location.source;
+      if (location.pin) locObj.pin = location.pin;
+      if (location.address) locObj.address = location.address;
+      if (location.city) locObj.city = location.city;
+      if (location.state) locObj.state = location.state;
+      if (location.lat !== undefined) locObj.lat = Number(location.lat);
+      if (location.lon !== undefined) locObj.lon = Number(location.lon);
+
+      updates.location = locObj;
+      responseData.location = locObj;
+    }
   }
 
   if (Object.keys(updates).length === 0) {

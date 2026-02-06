@@ -4,23 +4,23 @@ import jwt from 'jsonwebtoken';
 import config from "../config/config.js";
 
 const userSchema = new mongoose.Schema({
-  firstName: { 
+  firstName: {
     type: String,
     minlength: 3,
     maxlength: 20,
-    trim: true 
+    trim: true
   },
   lastName: {
     type: String,
     minlength: 3,
     maxlength: 20,
-    trim: true 
+    trim: true
   },
-  fullName:{
-    type:String,
+  fullName: {
+    type: String,
     minlength: 3,
     maxlength: 40,
-    trim:true
+    trim: true
   },
   email: {
     type: String,
@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema({
     sparse: true,
   },
 
-  isUser: {type: Boolean, default: false},
+  isUser: { type: Boolean, default: false },
   isProvider: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },
   providerProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Provider', default: null },
@@ -61,10 +61,17 @@ const userSchema = new mongoose.Schema({
   },
 
   location: {
-    type: String,
-    maxlength: 100,
-    trim: true,
-    default: ''
+    source: {
+      type: String,
+      enum: ["gps", "search", "ip"],
+      default: "ip"
+    },
+    pin: String,
+    address: String,
+    city: String,
+    state: String,
+    lat: Number,
+    lon: Number
   },
 
   socketId: {
@@ -72,12 +79,12 @@ const userSchema = new mongoose.Schema({
     default: null
   },
 
-  isActive:{
-    type:Boolean,
-    default:false
+  isActive: {
+    type: Boolean,
+    default: false
   }
-},{
-  timestamps:true,
+}, {
+  timestamps: true,
 }
 );
 

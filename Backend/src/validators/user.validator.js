@@ -47,7 +47,19 @@ export const updateProfileSchema = z.object({
     .object({ 
       firstName: z.string().max(20).optional(),
       lastName: z.string().max(20).optional(),
-      location: z.string().max(50, 'Location must be less than 100 letters').optional(),
+      // allow location as either a short string or a structured object
+      location: z.union([
+        z.string().max(100, 'Location must be less than 100 characters'),
+        z.object({
+          source: z.enum(['gps', 'search', 'ip']).optional(),
+          pin: z.string().max(20).optional(),
+          address: z.string().max(200).optional(),
+          city: z.string().max(100).optional(),
+          state: z.string().max(100).optional(),
+          lat: z.number().optional(),
+          lon: z.number().optional(),
+        }).optional()
+      ]).optional(),
       bio: z.string().max(200, 'Bio must be less than 200 letters').optional(),
       avatar: z.any().optional()
     }),

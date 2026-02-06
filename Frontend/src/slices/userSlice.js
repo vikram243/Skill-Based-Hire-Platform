@@ -33,8 +33,13 @@ const userSlice = createSlice({
         state.user.firstName = action.payload.firstName;
         state.user.lastName = action.payload.lastName;
         state.user.fullName = action.payload.fullName;
-        state.user.location = action.payload.location;
         state.user.bio = action.payload.bio;
+      }
+    },
+
+    updateLocation: (state, action) => {
+      if (state.user) {
+        state.user.location = action.payload;
       }
     },
 
@@ -51,5 +56,5 @@ const userSlice = createSlice({
 });
 
 
-export const { setUser, logoutUser, setLoading, updateIsProvider, updateAvatar, updatePersonalInfo } = userSlice.actions;
+export const { setUser, logoutUser, setLoading, updateIsProvider, updateAvatar, updatePersonalInfo, updateLocation } = userSlice.actions;
 export default userSlice.reducer;

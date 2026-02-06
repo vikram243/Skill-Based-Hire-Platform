@@ -6,6 +6,7 @@ import adminRoutes from './admin.routes.js'
 import orderRoutes from './order.routes.js';
 import skillRoutes from './skill.routes.js';
 import reviewRoutes from './review.route.js'
+import mapRoutes from './maps.routes.js';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/admin', adminRoutes);
 router.use('/orders', orderRoutes);
 router.use('/skills', skillRoutes);
 router.use('/review', reviewRoutes);
+router.use('/maps', mapRoutes);
 
 export default router;
