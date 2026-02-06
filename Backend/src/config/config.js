@@ -18,6 +18,7 @@ const config = {
     jwtRefreshTokenExpiry : process.env.JWT_REFRESH_TOKEN_EXPIRY,
     googleClientId : process.env.GOOGLE_CLIENT_ID,
     googleClientSecret : process.env.GOOGLE_CLIENT_SECRET,
+    googleMapsApiKey : process.env.GOOGLE_MAPS_API_KEY,
     redis: {
         username: process.env.REDIS_USERNAME,
         host: process.env.REDIS_HOST,

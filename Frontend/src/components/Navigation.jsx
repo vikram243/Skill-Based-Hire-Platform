@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { useSelector } from 'react-redux';
+import { LocationPickerPanel } from './LocationPickerPanel';
+import { useSelector, useDispatch } from 'react-redux';
+import api from '../lib/axiosSetup';
+import { updateLocation } from '../slices/userSlice';
 import {
   Search,
   Home,
@@ -15,12 +19,6 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -41,6 +39,9 @@ export default function Navigation({
   setIsAuthPanelOpen
 }) {
   const { isAuthenticated, user } = useSelector(state => state.user);
+  const dispatch = useDispatch();
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
+  const userLocationFromDb = user?.location?.address || 'Bhopal';
   const navigate = useNavigate();
   const currentPage = window.location.pathname.split('/')[1] || 'home';
 
@@ -54,20 +55,6 @@ export default function Navigation({
       default: return navigate('home');
     }
   };
-  const [selectedLocation, setSelectedLocation] = useState('Location');
-
-  const locations = [
-    'Current Location',
-    'New York, NY',
-    'Los Angeles, CA',
-    'Chicago, IL',
-    'Houston, TX',
-    'Phoenix, AZ',
-    'Philadelphia, PA',
-    'San Antonio, TX',
-    'San Diego, CA',
-    'Dallas, TX'
-  ];
 
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
@@ -76,6 +63,47 @@ export default function Navigation({
     { id: 'chat', label: 'Chat', icon: MessageCircle },
     { id: 'profile', label: 'Profile', icon: null }
   ];
+
+  // If user has no saved location, fetch via IP and persist
+  const fetchIpLocationAndSave = async () => {
+    try {
+      const res = await api.get('/api/maps/ip-lookup');
+      const data = res?.data?.data || {};
+
+      const loc = {
+        source: 'ip',
+        pin: data.zip || data.pin || '',
+        address: data.city ? `${data.city}, ${data.regionName || ''}`.replace(/, $/, '') : data.query || 'Unknown',
+        city: data.city || '',
+        state: data.regionName || data.state || '',
+        lat: data.lat ?? data.lon ?? null,
+        lon: data.lon ?? data.lat ?? null,
+      };
+
+      try { dispatch(updateLocation(loc)); } catch (e) { /* ignore */ }
+
+      // backend already persisted when authenticated, but ensure fallback
+      try {
+        await api.put('/api/users/update-profile', { location: loc });
+      } catch (e) {
+        // ignore
+      }
+    } catch (err) {
+      console.error('IP location failed', err);
+    }
+  };
+
+  const ipFetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const hasLocation = Boolean(user?.location && user.location.address);
+    if (!hasLocation && !ipFetchedRef.current) {
+      ipFetchedRef.current = true;
+      fetchIpLocationAndSave();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.location?.address]);
 
   return (
     <>
@@ -97,32 +125,17 @@ export default function Navigation({
             <div className="hidden md:flex flex-1 max-w-2xl mx-8">
               <div className="flex w-full gap-3">
                 {/* Location Selector */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-11 px-4 border-2 border-border cursor-pointer hover:border-(--primary-gradient-start) transition-all duration-200 min-w-15 justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-accent" />
-                        <span className="text-sm truncate max-w-30">{selectedLocation}</span>
-                      </div>
-                      <ChevronDown className="w-4 h-4 ml-2" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-50">
-                    {locations.map((location) => (
-                      <DropdownMenuItem
-                        key={location}
-                        onClick={() => setSelectedLocation(location)}
-                        className={selectedLocation === location ? 'bg-secondary' : ''}
-                      >
-                        <MapPin className="w-4 h-4 mr-2 text-accent" />
-                        {location}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                variant="outline"
+                onClick={() => setIsLocationPickerOpen(true)}
+                className="h-11 px-4 border-2 border-border/60 hover:border-(--primary-gradient-start) transition-all duration-200 min-w-45 justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-(--primary-gradient-start)" />
+                  <span className="text-sm truncate max-w-20">{userLocationFromDb}</span>
+                </div>
+                <ChevronDown className="w-4 h-4 ml-2" />
+              </Button>
 
                 {/* Search Input */}
                 <div className="flex-1 relative group">
@@ -133,7 +146,6 @@ export default function Navigation({
                     onChange={(e) => onSearchChange?.(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') onSearch?.();
-                      // Let the global Cmd+K handler take care of opening command palette
                     }}
                     className="pl-12 pr-16 h-11 bg-input-background border-2 border-border/60 shadow-sm focus:shadow-md focus:border-(--primary-gradient-start) transition-all duration-200"
                   />
@@ -191,7 +203,7 @@ export default function Navigation({
                     <MenubarContent className='min-w-36 mr-1 mt-4 font-semibold'>
                       <MenubarItem onClick={() => handleNavigate('chat')}><MessageCircle />Chat</MenubarItem>
                       <MenubarSeparator />
-                      <MenubarItem onClick={() => handleNavigate('orders')}><FileText className='focus:text-accent-foreground'/>Orders</MenubarItem>
+                      <MenubarItem onClick={() => handleNavigate('orders')}><FileText className='focus:text-accent-foreground' />Orders</MenubarItem>
                       <MenubarSeparator />
                       <MenubarItem onClick={() => handleNavigate('profile')}><User className='focus:text-accent-foreground' />View Profile</MenubarItem>
                     </MenubarContent>
@@ -204,6 +216,13 @@ export default function Navigation({
                 <Button variant="outline" size="sm" onClick={() => navigate('/admin-login')} className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">Admin</Button>
               </div>
             )}
+
+            <LocationPickerPanel
+              isOpen={isLocationPickerOpen}
+              onClose={() => setIsLocationPickerOpen(false)}
+              currentLocation={userLocationFromDb}
+              onLocationSelect={() => {}}
+            />
           </div>
 
           {/* Mobile Menu Button */}

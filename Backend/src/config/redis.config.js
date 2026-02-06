@@ -55,4 +55,42 @@ export async function deleteRefreshToken(key) {
   return await redis.del(key);
 }
 
+export async function setSessionId(key, sessionId, expirySeconds = 7 * 24 * 60 * 60) {
+  await connect();
+  // store session id under session:<key>
+  await redis.set(`session:${key}`, sessionId, { EX: expirySeconds });
+}
+
+export async function getSessionId(key) {
+  await connect();
+  return await redis.get(`session:${key}`);
+}
+
+export async function deleteSessionId(key) {
+  await connect();
+  return await redis.del(`session:${key}`);
+}
+
+export async function setSessionMeta(key, meta, expirySeconds = 7 * 24 * 60 * 60) {
+  await connect();
+  const v = typeof meta === 'string' ? meta : JSON.stringify(meta || {});
+  await redis.set(`sessionmeta:${key}`, v, { EX: expirySeconds });
+}
+
+export async function getSessionMeta(key) {
+  await connect();
+  const v = await redis.get(`sessionmeta:${key}`);
+  if (!v) return null;
+  try {
+    return JSON.parse(v);
+  } catch (e) {
+    return { raw: v };
+  }
+}
+
+export async function deleteSessionMeta(key) {
+  await connect();
+  return await redis.del(`sessionmeta:${key}`);
+}
+
 export default redis;
