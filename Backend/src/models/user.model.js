@@ -92,20 +92,18 @@ userSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { email:
 userSchema.index({ number: 1 }, { unique: true, partialFilterExpression: { number: { $type: 'string' } } });
 
 userSchema.methods.generateAccessToken = function () {
-  return jwt.sign(
-    {
-      id: this._id,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      fullName: this.fullName,
-      email: this.email,
-      number: this.number
-    },
-    config.jwtSecret,
-    {
-      expiresIn: config.jwtTokenExpiry || '1d'
-    }
-  )
+  // DEPRECATED: call with sessionId param. Keep backward compat by allowing no args.
+  const sessionId = arguments[0] || null;
+  const payload = {
+    id: this._id,
+    firstName: this.firstName,
+    lastName: this.lastName,
+    fullName: this.fullName,
+    email: this.email,
+    number: this.number
+  };
+  if (sessionId) payload.sessionId = sessionId;
+  return jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtTokenExpiry || '1d' });
 }
 
 userSchema.methods.generateRefreshToken = function () {

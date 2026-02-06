@@ -4,7 +4,7 @@ import { cn } from "../../lib/utils";
 export function Menubar({ className, children, ...props }) {
   return <MenubarPrimitive.Root data-slot="menubar"
     className={cn(
-      "bg-background",
+      "",
       className,
     )}{...props}>{children}</MenubarPrimitive.Root>;
 }
@@ -21,7 +21,7 @@ export function MenubarTrigger({ className, children, ...props }) {
     )} {...props}>{children}</MenubarPrimitive.Trigger>;
 }
 
-export function MenubarContent({ className, align = 'end', alignOffset = -10, sideOffset = 24, children, ...props }) {
+export function MenubarContent({ className, align = 'end', alignOffset = -8, sideOffset = 10, children, ...props }) {
   return <MenubarPrimitive.Content data-slot="menubar-content"
     align={align}
     alignOffset={alignOffset}

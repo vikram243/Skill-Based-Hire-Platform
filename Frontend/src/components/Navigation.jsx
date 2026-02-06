@@ -135,7 +135,7 @@ export default function Navigation({
               >
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-(--primary-gradient-start)" />
-                  <span className="text-sm truncate max-w-30">{userLocationFromDb}</span>
+                  <span className="text-sm truncate max-w-20">{userLocationFromDb}</span>
                 </div>
                 <ChevronDown className="w-4 h-4 ml-2" />
               </Button>

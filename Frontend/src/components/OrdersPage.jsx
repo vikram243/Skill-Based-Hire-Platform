@@ -16,9 +16,9 @@ import {
   Calendar,
   Star
 } from 'lucide-react';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-export default function OrdersPage({ onNavigate}) {
+export default function OrdersPage({ onNavigate }) {
   const [selectedTab, setSelectedTab] = useState('pending');
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -206,13 +206,13 @@ export default function OrdersPage({ onNavigate}) {
           </TabsList>
 
           {['pending', 'accepted', 'ongoing', 'completed', 'cancelled'].map((status) => (
-            <TabsContent key={status} value={status}>
-              <div className="space-y-4">
+            <TabsContent key={status} value={status}className='flex justify-between flex-col md:flex-row gap-6 md:items-center'>
+              <div className="space-y-4 w-full">
                 {loading ? (
                   <Card className="p-8 text-center">Loading...</Card>
                 ) : orders.orders.length === 0 ? (
-                  <Card className="p-8 text-center">
-                    <div className="text-muted-foreground mb-4">
+                  <Card className="p-8">
+                    <div className="text-muted-foreground mb-4 min-h-65 md:min-h-95 flex items-center justify-center">
                       {status === 'pending' && "No pending Orders"}
                       {status === 'accepted' && "No accepted Orders"}
                       {status === 'ongoing' && "No ongoing Orders"}
@@ -220,7 +220,8 @@ export default function OrdersPage({ onNavigate}) {
                       {status === 'cancelled' && "No cancelled Orders"}
                     </div>
                     <Button
-                      variant="outline"
+                      variant="ghost"
+                      className='border-2 border-dashed border-muted'
                       onClick={() => onNavigate('home')}
                     >
                       Browse Services
@@ -232,38 +233,37 @@ export default function OrdersPage({ onNavigate}) {
                   ))
                 )}
               </div>
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 gap-2 md:w-[60vw]">
+                <Card className="py-10 text-center gap-2 shadow-xl">
+                  <div className="text-2xl font-bold text-green-500">
+                    {orders.completed}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Completed</div>
+                </Card>
+
+                <Card className="py-10 text-center gap-2 shadow-xl">
+                  <div className="text-2xl font-bold text-orange-500">
+                    {orders.pending}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Pending</div>
+                </Card>
+
+                <Card className="py-10 text-center gap-2 shadow-xl">
+                  <div className="text-2xl font-bold text-cyan-500">
+                    ₹{orders.totalSpent || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Total Spent</div>
+                </Card>
+
+                <Card className="py-10 text-center gap-2 shadow-xl">
+                  <div className="text-2xl font-bold text-yellow-400">4.8</div>
+                  <div className="text-sm text-muted-foreground">Avg Rating</div>
+                </Card>
+              </div>
             </TabsContent>
           ))}
         </Tabs>
-
-        {/* Summary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold ">
-              {orders.completed}
-            </div>
-            <div className="text-sm text-muted-foreground">Completed</div>
-          </Card>
-
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold">
-              {orders.pending}
-            </div>
-            <div className="text-sm text-muted-foreground">Pending</div>
-          </Card>
-
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold">
-              ₹{orders.totalSpent || 0}
-            </div>
-            <div className="text-sm text-muted-foreground">Total Spent</div>
-          </Card>
-
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold">4.8</div>
-            <div className="text-sm text-muted-foreground">Avg Rating</div>
-          </Card>
-        </div>
       </div>
     </div>
   );

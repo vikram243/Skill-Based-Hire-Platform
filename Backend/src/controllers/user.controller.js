@@ -6,7 +6,8 @@ import { sendEmail } from '../services/email.service.js';
 import { sendSms } from '../services/twilio.service.js';
 import config from '../config/config.js';
 import { getSafeUser } from '../utils/userSafe.helper.js';
-import { setRefreshToken, getRefreshToken, deleteRefreshToken } from '../config/redis.config.js';
+import { setRefreshToken, getRefreshToken, deleteRefreshToken, setSessionId, getSessionId, deleteSessionId, setSessionMeta, getSessionMeta, deleteSessionMeta } from '../config/redis.config.js';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { uploadOnCloudinary } from '../config/cloudinary.config.js';
 
@@ -41,10 +42,18 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
   const user = await User.findOne(email ? { email } : { number });
 
   if (user) {
-    const accessToken = user.generateAccessToken();
+    const sessionId = crypto.randomUUID();
+    const accessToken = user.generateAccessToken(sessionId);
     const refreshToken = user.generateRefreshToken();
 
+    // compute fingerprint from request
+    const fingerprintRaw = `${req.ip || ''}|${req.headers['user-agent'] || ''}`;
+    const fingerprint = crypto.createHash('sha256').update(fingerprintRaw).digest('hex');
+
+    // store refresh token, session id and session meta keyed by user id
     await setRefreshToken(user._id.toString(), refreshToken);
+    await setSessionId(user._id.toString(), sessionId);
+    await setSessionMeta(user._id.toString(), { fingerprint });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -80,9 +89,14 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const user = await User.create(payload);
 
-  const accessToken = user.generateAccessToken();
+  const sessionId = crypto.randomUUID();
+  const accessToken = user.generateAccessToken(sessionId);
   const refreshToken = user.generateRefreshToken();
+  const fingerprintRaw = `${req.ip || ''}|${req.headers['user-agent'] || ''}`;
+  const fingerprint = crypto.createHash('sha256').update(fingerprintRaw).digest('hex');
   await setRefreshToken(user._id.toString(), refreshToken);
+  await setSessionId(user._id.toString(), sessionId);
+  await setSessionMeta(user._id.toString(), { fingerprint });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -105,6 +119,8 @@ const logoutUser = async (req, res) => {
       const payload = jwt.verify(refreshToken, config.jwtRefreshSecret || (config.jwtSecret + '_refresh'));
       if (payload?.id) {
         await deleteRefreshToken(payload.id.toString());
+        try { await deleteSessionId(payload.id.toString()); } catch (e) { /* ignore */ }
+        try { await deleteSessionMeta(payload.id.toString()); } catch (e) { /* ignore */ }
       }
     } catch (e) {
     }
@@ -130,7 +146,24 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const user = await User.findById(payload.id);
   if (!user) throw new ApiError(404, "User not found");
 
-  const accessToken = user.generateAccessToken();
+  // use the stored sessionId so the refreshed access token matches current session
+  const sessionId = await getSessionId(user._id.toString());
+  // validate fingerprint on refresh
+  try {
+    const meta = await getSessionMeta(user._id.toString());
+    if (meta?.fingerprint) {
+      const fingerprintRaw = `${req.ip || ''}|${req.headers['user-agent'] || ''}`;
+      const fingerprint = crypto.createHash('sha256').update(fingerprintRaw).digest('hex');
+      if (fingerprint !== meta.fingerprint) {
+        throw new ApiError(401, 'Session fingerprint mismatch');
+      }
+    }
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    // on redis/meta read error, continue (fail-open)
+  }
+
+  const accessToken = user.generateAccessToken(sessionId);
   return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
 });
 
