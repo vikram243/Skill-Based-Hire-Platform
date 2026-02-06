@@ -9,11 +9,12 @@ import HireFlow from './components/HireFlow';
 import ProfilePage from './components/ProfilePage';
 import SearchPage from './components/SearchPage';
 import ProtectedRoute from './components/ProtectedWrapper';
-import { GoogleOAuthProvider } from '@react-oauth/google';
+import HowItWorksPage from './components/HowItWorks';
 import { setUser, logoutUser, setLoading } from "./slices/userSlice";
 import api from './lib/axiosSetup';
 
 const App = () => {
+  const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
   const dispatch = useDispatch();
 
   const getInitialTheme = () => {
@@ -70,9 +71,10 @@ const App = () => {
 
   return (
     <>
-      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}> <Navigation isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} /> </GoogleOAuthProvider>
+      <Navigation setIsAuthPanelOpen = {setIsAuthPanelOpen} isAuthPanelOpen ={isAuthPanelOpen} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
       <Routes>
         <Route path='/' element={<LandingPage />} />
+        <Route path='/how-it-works' element={<HowItWorksPage setIsAuthPanelOpen={setIsAuthPanelOpen} isAuthPanelOpen ={isAuthPanelOpen} />} />
         <Route element={<ProtectedRoute />}>
           <Route path='/home' element={<HomeFeed />} />
           <Route path='/orders' element={<OrdersPage />} />

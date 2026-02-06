@@ -37,14 +37,15 @@ export default function Navigation({
   onSearchChange,
   onSearch,
   isDarkMode,
-  onToggleDarkMode
+  onToggleDarkMode,
+  isAuthPanelOpen,
+  setIsAuthPanelOpen
 }) {
   const { isAuthenticated, user } = useSelector(state => state.user);
   const dispatch = useDispatch();
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const userLocationFromDb = user?.location?.address || 'Bhopal';
   const navigate = useNavigate();
-  const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
   const currentPage = window.location.pathname.split('/')[1] || 'home';
 
   const handleNavigate = (id) => {
