@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card } from './ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { Badge } from './ui/badge';
-import { Button } from './ui/button';
+import { Card } from '../ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
 import { Star, MapPin, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 
 export default function SkillCard({ provider, onClick, variant = 'default' }) {

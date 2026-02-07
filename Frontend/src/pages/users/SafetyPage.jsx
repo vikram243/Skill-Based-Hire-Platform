@@ -5,8 +5,8 @@ import {
     Clock, Zap, MessageSquare, Handshake
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Card } from './ui/card';
-import { Button } from './ui/button';
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
