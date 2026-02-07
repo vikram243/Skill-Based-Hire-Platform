@@ -11,6 +11,13 @@ import ProtectedRoute from './components/users/ProtectedWrapper';
 import HowItWorksPage from './pages/users/HowItWorks';
 import SafetyPage from './pages/users/SafetyPage';
 import InsurancePage from './pages/users/InsurancePage';
+import HelpCenterPage from './pages/users/HelpCenterPage';
+import TermsPage from './pages/users/TermPage';
+import AccessibilityPage from './pages/users/AccessibilityPage';
+import CookiePage from './pages/users/CookiePage';
+import GuaranteePage from './pages/users/GuaranteePage';
+import CommunityGuidelinesPage from './pages/users/CommunityGuidelinesPage';
+import PrivacyPage from './pages/users/PrivacyPage';
 import { setUser, logoutUser, setLoading } from "./slices/userSlice";
 import api from './lib/axiosSetup';
 import AuthPanel from './components/users/AuthPanel';
@@ -80,6 +87,13 @@ const App = () => {
         <Route path='/how-it-works' element={<HowItWorksPage setIsAuthPanelOpen={setIsAuthPanelOpen} />} />
         <Route path='/safety' element={<SafetyPage setIsAuthPanelOpen={setIsAuthPanelOpen} />} />
         <Route path ='/insurance' element ={<InsurancePage />} />
+        <Route path ='/help' element ={<HelpCenterPage/>} />
+        <Route path ='/terms' element ={<TermsPage/>} />
+        <Route path ='/accessibility' element ={<AccessibilityPage/>} />
+        <Route path ='/cookie' element ={<CookiePage />} />
+        <Route path ='/guarantee' element ={<GuaranteePage />} />
+        <Route path ='/guidelines' element ={<CommunityGuidelinesPage />} />
+        <Route path ='/privacy' element ={<PrivacyPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path='/orders' element={<OrdersPage />} />
           <Route path='/hire/:skillId' element={<HireFlow />} />
