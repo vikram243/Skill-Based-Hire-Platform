@@ -3,7 +3,6 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card } from './ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import Footer from './Footer';
 import {
   Search,
   ArrowRight,
@@ -267,7 +266,6 @@ const HomeFeed = () => {
           </Card>
         </div>
       </div>
-      <Footer/>
     </div>
   )
 }
