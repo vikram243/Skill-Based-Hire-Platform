@@ -1,23 +1,28 @@
 import React from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { 
-  Search, 
-  MapPin, 
-  CheckCircle, 
-  MessageCircle, 
-  Shield, 
-  ArrowRight, 
-  Clock, 
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import {
+  Search,
+  CheckCircle,
+  MessageCircle,
+  Shield,
+  ArrowRight,
+  Clock,
   Zap,
   Users,
   Star,
   Award
 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'motion/react';
-import Footer from './Footer';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
-export default function HowItWorksPage() {
+export default function HowItWorksPage({
+  setIsAuthPanelOpen
+}) {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useSelector(state => state.user);
   const steps = [
     {
       id: 1,
@@ -32,7 +37,7 @@ export default function HowItWorksPage() {
       title: "Choose Your Provider",
       description: "Compare providers based on their ratings, reviews, portfolios, and hourly rates to find your perfect match.",
       icon: <Users className="w-8 h-8" />,
-      color: "indigo",
+      color: "green",
       details: ["Verified reviews", "Detailed portfolios", "Transparent pricing"]
     },
     {
@@ -74,16 +79,17 @@ export default function HowItWorksPage() {
                 Discover how SkillHub connects you with the best professional talent in your neighborhood in just a few clicks.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="bg-white text-indigo-700 hover:bg-blue-50 h-14 px-10 text-lg font-bold rounded-2xl shadow-xl transition-all hover:scale-105"
+                  onClick={() => isAuthenticated ? navigate("/search") : setIsAuthPanelOpen(true)}
                 >
                   Start Browsing
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="border-2 border-white/30 text-white hover:bg-white/10 h-14 px-10 text-lg font-bold rounded-2xl backdrop-blur-sm"
+                <Button
+                  size="lg"
+                  className="border-2 hover:text-indigo-700 hover:bg-white h-14 px-10 text-lg font-bold rounded-2xl shadow-xl transition-all hover:scale-105"
+                  onClick={() => isAuthenticated ? navigate("/profile") : setIsAuthPanelOpen(true)}
                 >
                   Join as Provider
                 </Button>
@@ -107,9 +113,9 @@ export default function HowItWorksPage() {
               </p>
             </div>
 
-            <div className="grid gap-16">
+            <div className="grid gap-20">
               {steps.map((step, index) => (
-                <motion.div 
+                <motion.div
                   key={step.id}
                   initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -142,9 +148,9 @@ export default function HowItWorksPage() {
                   <div className="flex-1 w-full">
                     <div className={`relative aspect-square md:aspect-video lg:aspect-square rounded-3xl bg-linear-to-br from-${step.color}-100 to-${step.color}-50 dark:from-${step.color}-950/20 dark:to-transparent border-border border border-${step.color}-200/30 overflow-hidden shadow-2xl`}>
                       <div className="absolute inset-0 flex items-center justify-center">
-                         <div className={`p-8 rounded-full bg-white dark:bg-slate-900 shadow-2xl scale-125 text-${step.color}-600`}>
-                            {step.icon}
-                         </div>
+                        <div className={`p-8 rounded-full bg-white dark:bg-slate-900 shadow-2xl scale-125 text-${step.color}-600`}>
+                          {step.icon}
+                        </div>
                       </div>
                       {/* Decorative elements inside the image box */}
                       <div className={`absolute top-10 left-10 w-20 h-20 bg-${step.color}-500/10 rounded-full blur-xl`} />
@@ -223,17 +229,18 @@ export default function HowItWorksPage() {
                   Join thousands of satisfied customers and skilled professionals on India's most trusted skill-sharing platform.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                  <Button 
-                    size="lg" 
-                    className="bg-white text-blue-600 hover:bg-blue-50 h-16 px-12 text-xl font-bold rounded-2xl shadow-xl transition-all hover:scale-105"
+                  <Button
+                    size="lg"
+                    className="bg-white text-indigo-700 hover:bg-blue-50 h-14 px-10 text-lg font-bold rounded-2xl shadow-xl transition-all hover:scale-105"
+                    onClick={() => isAuthenticated ? navigate("/search") : setIsAuthPanelOpen(true)}
                   >
                     I want to hire
                     <ArrowRight className="w-6 h-6 ml-3" />
                   </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="border-2 border-white/30 text-white hover:bg-white/10 h-16 px-12 text-xl font-bold rounded-2xl"
+                  <Button
+                    size="lg"
+                    className="border-2 hover:text-indigo-700 hover:bg-white h-14 px-10 text-lg font-bold rounded-2xl shadow-xl transition-all hover:scale-105"
+                    onClick={() => isAuthenticated ? navigate("/profile") : setIsAuthPanelOpen(true)}
                   >
                     I want to provide
                   </Button>
@@ -243,7 +250,6 @@ export default function HowItWorksPage() {
           </div>
         </section>
       </main>
-      <Footer/>
     </div>
   );
 }

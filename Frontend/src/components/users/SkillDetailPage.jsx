@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Separator } from './ui/separator';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Separator } from '../ui/separator';
 import { 
   ArrowLeft, 
   Star, 
@@ -20,7 +20,7 @@ import {
   Heart,
   Share2
 } from 'lucide-react';
-import { getProviderById } from '../data/mockData';
+import { getProviderById } from '../../data/mockData';
 
 export default function SkillDetailPage({ providerId, onNavigate, onBack, user }) {
   const [isFavorited, setIsFavorited] = useState(false);

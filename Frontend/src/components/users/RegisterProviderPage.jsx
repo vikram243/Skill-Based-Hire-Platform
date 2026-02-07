@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Checkbox } from './ui/checkbox';
-import { Progress } from './ui/progress';
-import Dropzone from './DropZone';
-import api from '../lib/axiosSetup';
-import { updateIsProvider } from "../slices/userSlice";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { Badge } from '../ui/badge';
+import { Checkbox } from '../ui/checkbox';
+import { Progress } from '../ui/progress';
+import Dropzone from './DropZone.jsx';
+import api from '../../lib/axiosSetup';
+import { updateIsProvider } from "../../slices/userSlice";
 import { useDispatch } from "react-redux";
 import {
   providerBasicSchema,
@@ -18,7 +18,7 @@ import {
   providerVerificationSchema,
   providerFullSchema,
   firstZodError
-} from '../lib/schemas';
+} from '../../lib/schemas';
 import {
   Upload,
   Plus,
@@ -30,7 +30,7 @@ import {
   Clock,
   Calendar
 } from 'lucide-react';
-import { Skills } from '../data/mockData';
+import { Skills } from '../../data/mockData';
 import { useSelector } from 'react-redux';
 
 export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {

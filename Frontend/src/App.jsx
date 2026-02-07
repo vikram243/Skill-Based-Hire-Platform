@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import LandingPage from './components/LandingPage';
-import Navigation from './components/Navigation';
-import HomeFeed from './components/HomeFeed';
-import OrdersPage from './components/OrdersPage';
-import HireFlow from './components/HireFlow';
-import ProfilePage from './components/ProfilePage';
-import SearchPage from './components/SearchPage';
-import ProtectedRoute from './components/ProtectedWrapper';
-import HowItWorksPage from './components/HowItWorks';
+import LandingPage from './pages/users/LandingPage';
+import Navigation from './components/users/Navigation';
+import OrdersPage from './pages/users/OrdersPage';
+import HireFlow from './pages/users/HireFlow';
+import ProfilePage from './pages/users/ProfilePage';
+import SearchPage from './pages/users/SearchPage';
+import ProtectedRoute from './components/users/ProtectedWrapper';
+import HowItWorksPage from './pages/users/HowItWorks';
+import SafetyPage from './pages/users/SafetyPage';
+import InsurancePage from './pages/users/InsurancePage';
 import { setUser, logoutUser, setLoading } from "./slices/userSlice";
 import api from './lib/axiosSetup';
+import AuthPanel from './components/users/AuthPanel';
+import Footer from './components/users/Footer';
 
 const App = () => {
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
@@ -71,19 +74,25 @@ const App = () => {
 
   return (
     <>
-      <Navigation setIsAuthPanelOpen = {setIsAuthPanelOpen} isAuthPanelOpen ={isAuthPanelOpen} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+      <Navigation setIsAuthPanelOpen = {setIsAuthPanelOpen} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
       <Routes>
-        <Route path='/' element={<LandingPage />} />
-        <Route path='/how-it-works' element={<HowItWorksPage setIsAuthPanelOpen={setIsAuthPanelOpen} isAuthPanelOpen ={isAuthPanelOpen} />} />
+        <Route path='/' element={<LandingPage setIsAuthPanelOpen={setIsAuthPanelOpen} />} />
+        <Route path='/how-it-works' element={<HowItWorksPage setIsAuthPanelOpen={setIsAuthPanelOpen} />} />
+        <Route path='/safety' element={<SafetyPage setIsAuthPanelOpen={setIsAuthPanelOpen} />} />
+        <Route path ='/insurance' element ={<InsurancePage />} />
         <Route element={<ProtectedRoute />}>
-          <Route path='/home' element={<HomeFeed />} />
           <Route path='/orders' element={<OrdersPage />} />
           <Route path='/hire/:skillId' element={<HireFlow />} />
           <Route path='/profile' element={<ProfilePage isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />} />
           <Route path='/search' element={<SearchPage />} />
-          <Route path='*' element={<Navigate to='/home' />} />
+          <Route path='*' element={<Navigate to='/' />} />
         </Route>
       </Routes>
+      <Footer setIsAuthPanelOpen = {setIsAuthPanelOpen} />
+      <AuthPanel
+        isOpen={isAuthPanelOpen}
+        onClose={() => setIsAuthPanelOpen(false)}
+      />
     </>
   )
 }

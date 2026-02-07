@@ -5,17 +5,16 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { Mail, Phone, ArrowLeft, CheckIcon } from "lucide-react";
 import GoogleLoginbutton from "./GoogleAuthButton";
-import api from "../lib/axiosSetup";
-import { useNavigate } from "react-router-dom";
+import api from "../../lib/axiosSetup";
 import { useDispatch } from "react-redux";
-import { setUser } from "../slices/userSlice";
-import { sendOtpSchema, otpSchema, registerSchema, firstZodError } from "../lib/schemas";
+import { setUser } from "../../slices/userSlice";
+import { sendOtpSchema, otpSchema, registerSchema, firstZodError } from "../../lib/schemas";
 
 export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState("method");
@@ -31,7 +30,6 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   const [regEmail, setRegEmail] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [panelMessage, setPanelMessage] = useState({ type: "", text: "" });
-  const navigate = useNavigate();
 
   // Resend OTP cooldown (in seconds)
   const RESEND_COOLDOWN = 60;
@@ -137,7 +135,6 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
         handleClose();
         localStorage.setItem('accessToken', payload?.accessToken);
         dispatch(setUser(payload.user));
-        navigate('home');
         return;
       }
 
@@ -182,7 +179,6 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       handleClose();
       localStorage.setItem('accessToken', res?.data?.data?.accessToken);
       dispatch(setUser(user));
-      navigate('home');
     } catch (err) {
       const msg = err?.response?.data?.message || 'Registration failed';
       setPanelMessage({ type: "error", text: msg });

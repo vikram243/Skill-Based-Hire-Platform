@@ -10,7 +10,7 @@ export function Tabs({ className, children, ...props }) {
 export function TabsList({ className, children, ...props }) {
   return <TabsPrimitive.List data-slot="tabs-list"
       className={cn(
-        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-xl p-[3px]",
+        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-xl p-0.75",
         className
       )}
       {...props}>{children}</TabsPrimitive.List>;
