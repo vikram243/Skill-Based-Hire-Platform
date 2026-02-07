@@ -4,7 +4,8 @@ import {
     UserCheck, PhoneCall, ShieldCheck, HardHat, FileBadge,
     Clock, Zap, MessageSquare, Handshake
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+// eslint-disable-next-line no-unused-vars
+import { motion } from 'motion/react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { useSelector } from 'react-redux';
@@ -40,12 +41,12 @@ export default function SafetyPage(
                     <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                         <motion.div
                             animate={{
-                                scale: [1, 1.2, 1],
+                                scale: [1, 1.5, 1],
                                 rotate: [0, 90, 0],
                                 opacity: [0.1, 0.2, 0.1]
                             }}
                             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                            className="absolute -top-1/2 -left-1/4 w-full h-full bg-blue-400/20 rounded-full blur-3xl"
+                            className="absolute -top-1/2 -left-1/4 w-full h-full dark:bg-blue-400/50 bg-blue-400/50 rounded-full blur-3xl z-10"
                         />
                     </div>
 
@@ -54,7 +55,7 @@ export default function SafetyPage(
                             initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
                             animate={{ opacity: 1, scale: 1, rotate: 0 }}
                             transition={{ type: "spring", stiffness: 100 }}
-                            className="inline-flex items-center justify-center w-24 h-24 bg-blue-600 rounded-2xl shadow-2xl mb-10 rotate-3"
+                            className="inline-flex items-center justify-center w-24 h-24 bg-red-600 rounded-2xl shadow-2xl mb-10 rotate-3"
                         >
                             <ShieldCheck className="w-12 h-12 text-white" />
                         </motion.div>
@@ -87,7 +88,7 @@ export default function SafetyPage(
                             >
                                 Register as Provider
                             </Button>
-                            <Button size="lg" className="border-2 hover:text-indigo-700 hover:bg-white h-14 px-10 text-lg font-bold rounded-2xl shadow-xl transition-all hover:scale-105"
+                            <Button size="lg" className="border-2 hover:bg-indigo-500 dark:text-white text-black h-14 px-10 text-lg font-bold rounded-2xl shadow-xl transition-all hover:scale-105"
                             onClick={() => isAuthenticated ? navigate('/insurance') : setIsAuthPanelOpen(true)}
                             >
                                 Learn About Insurance
@@ -304,7 +305,7 @@ export default function SafetyPage(
                             <Button size="lg" className="bg-red-700 text-white hover:shadow-red-500/20 h-14 px-10 text-lg font-bold rounded-2xl shadow-xl transition-all hover:scale-105">
                                 Call Incident Team
                             </Button>
-                            <Button size="lg" className="border-2 hover:text-white hover:bg-red-700 h-14 px-10 text-lg font-bold border-border rounded-2xl shadow-xl transition-all hover:scale-105">
+                            <Button size="lg" className="border-2 hover:bg-red-700 dark:text-white text-black h-14 px-10 text-lg font-bold border-border rounded-2xl shadow-xl transition-all hover:scale-105">
                                 Report a Concern
                             </Button>
                         </div>

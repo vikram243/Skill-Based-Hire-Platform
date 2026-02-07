@@ -9,16 +9,16 @@ import { useSelector } from 'react-redux';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'motion/react';
 
-export default function LandingPage(setIsAuthPanelOpen) {
+export default function LandingPage({setIsAuthPanelOpen}) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const { user, isAuthenticated } = useSelector(state => state.user);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      navigate('search', { initialSearchQuery: searchQuery });
+      isAuthenticated ? navigate('/search', { initialSearchQuery: searchQuery }) : setIsAuthPanelOpen(true);
     } else {
-      navigate('search');
+      isAuthenticated ? navigate('/search') : setIsAuthPanelOpen(true);
     }
   };
 
@@ -69,7 +69,7 @@ export default function LandingPage(setIsAuthPanelOpen) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative pt-24 pb-20 px-6 overflow-hidden">
+      <section className="relative pt-12 pb-20 px-6 overflow-hidden">
         {/* Animated Background blobs */}
         <motion.div
           animate={{
@@ -195,7 +195,7 @@ export default function LandingPage(setIsAuthPanelOpen) {
               <motion.div key={skill.id} variants={itemVariants}>
                 <Card
                   className="group h-full p-8 cursor-pointer hover:shadow-2xl transition-all duration-500 bg-card border border-border/40 hover:border-blue-500/50 relative overflow-hidden rounded-3xl"
-                  onClick={() => navigate('search', { initialSearchQuery: skill.name })}
+                  onClick={() => isAuthenticated ? navigate('/search', { initialSearchQuery: skill.name }) : setIsAuthPanelOpen(true)}
                 >
                   <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative z-10">
@@ -218,7 +218,7 @@ export default function LandingPage(setIsAuthPanelOpen) {
           >
             <Button
               variant="outline"
-              onClick={() => isAuthenticated ? navigate('search') : setIsAuthPanelOpen(true)}
+              onClick={() => isAuthenticated ? navigate('/search') : setIsAuthPanelOpen(true)}
               className="px-12 h-14 text-lg border-2 border-blue-500/20 hover:border-blue-500 hover:bg-blue-500/5 transition-all duration-300 rounded-2xl font-bold"
             >
               View All Skills
@@ -311,14 +311,14 @@ export default function LandingPage(setIsAuthPanelOpen) {
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button
-                    onClick={() => navigate('register-provider')}
+                    onClick={() => isAuthenticated ? navigate('/register-provider') : setIsAuthPanelOpen(true)}
                     size="lg"
                     className="h-16 px-10 bg-white text-indigo-900 hover:bg-indigo-50 font-black rounded-2xl text-lg shadow-xl"
                   >
                     Become a Provider
                   </Button>
                   <Button
-                    onClick={() => navigate('stories')}
+                    onClick={() => navigate('/stories')}
                     variant="ghost"
                     size="lg"
                     className="h-16 px-10 text-white hover:bg-white/10 font-bold rounded-2xl text-lg"
