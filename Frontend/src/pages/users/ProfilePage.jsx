@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Card } from './ui/card';
-import { Button } from './ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { Badge } from './ui/badge';
-import { Separator } from './ui/separator';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
+import { Badge } from '../../components/ui/badge';
+import { Separator } from '../../components/ui/separator';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import RegisterProviderPanel from './RegisterProviderPage';
-import { profileSchema, firstZodError } from '../lib/schemas';
-import ApplicationStatusPanel from './ApplicationStatusPanel';
-import api from '../lib/axiosSetup';
+import RegisterProviderPanel from '../../components/users/RegisterProviderPage';
+import { profileSchema, firstZodError } from '../../lib/schemas';
+import ApplicationStatusPanel from '../../components/users/ApplicationStatusPanel';
+import api from '../../lib/axiosSetup';
 import { useDispatch } from "react-redux";
-import { updateAvatar } from "../slices/userSlice";
-import { updatePersonalInfo } from "../slices/userSlice";
+import { updateAvatar } from "../../slices/userSlice";
+import { updatePersonalInfo } from "../../slices/userSlice";
 import {
   MapPin,
   Phone,
@@ -28,7 +28,7 @@ import {
   X,
   Briefcase
 } from 'lucide-react';
-import { Switch } from './ui/switch';
+import { Switch } from '../../components/ui/switch';
 
 function ProfilePage() {
   const stringify = (val) => {

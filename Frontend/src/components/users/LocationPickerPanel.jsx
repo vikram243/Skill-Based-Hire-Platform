@@ -6,9 +6,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle
-} from './ui/dialog';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+} from '../ui/dialog';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import {
   MapPin,
   Search,
@@ -19,9 +19,9 @@ import {
   Globe,
   Compass
 } from 'lucide-react';
-import api from '../lib/axiosSetup';
+import api from '../../lib/axiosSetup';
 import { useDispatch } from 'react-redux';
-import { updateLocation } from '../slices/userSlice';
+import { updateLocation } from '../../slices/userSlice';
 
 export function LocationPickerPanel({
   isOpen,

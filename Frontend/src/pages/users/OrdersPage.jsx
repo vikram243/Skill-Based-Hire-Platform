@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent } from './ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { Badge } from './ui/badge';
-import api from "../lib/axiosSetup";
+import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
+import { Badge } from '../../components/ui/badge';
+import api from "../../lib/axiosSetup";
 import {
   Clock,
   MapPin,

@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { LocationPickerPanel } from './LocationPickerPanel';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { LocationPickerPanel } from './LocationPickerPanel.jsx';
 import { useSelector, useDispatch } from 'react-redux';
-import api from '../lib/axiosSetup';
-import { updateLocation } from '../slices/userSlice';
+import api from '../../lib/axiosSetup';
+import { updateLocation } from '../../slices/userSlice';
 import {
   Search,
   Home,
@@ -28,7 +28,7 @@ import {
   MenubarContent,
   MenubarItem,
   MenubarSeparator
-} from './ui/menubar.jsx';
+} from '../ui/menubar.jsx';
 
 export default function Navigation({
   searchQuery = '',
@@ -41,18 +41,17 @@ export default function Navigation({
   const { isAuthenticated, user } = useSelector(state => state.user);
   const dispatch = useDispatch();
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
-  const userLocationFromDb = user?.location?.address || 'Bhopal';
+  const userLocationFromDb = user?.location?.address || 'Select location';
   const navigate = useNavigate();
-  const currentPage = window.location.pathname.split('/')[1] || 'home';
+  const currentPage = window.location.pathname.split('/')[1];
 
   const handleNavigate = (id) => {
     switch (id) {
-      case 'home': return navigate('home');
-      case 'map': return navigate('home');
+      case 'map': return navigate('/');
       case 'orders': return navigate('orders');
-      case 'chat': return navigate('home');
+      case 'chat': return navigate('/');
       case 'profile': return navigate('profile');
-      default: return navigate('home');
+      default: return navigate('/');
     }
   };
 
@@ -82,12 +81,9 @@ export default function Navigation({
 
       try { dispatch(updateLocation(loc)); } catch (e) { /* ignore */ }
 
-      // backend already persisted when authenticated, but ensure fallback
       try {
         await api.put('/api/users/update-profile', { location: loc });
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {/* ignore */ }
     } catch (err) {
       console.error('IP location failed', err);
     }
@@ -102,7 +98,7 @@ export default function Navigation({
       ipFetchedRef.current = true;
       fetchIpLocationAndSave();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.location?.address]);
 
   return (
@@ -126,20 +122,19 @@ export default function Navigation({
               <div className="flex w-full gap-3">
                 {/* Location Selector */}
                 <Button
-                variant="outline"
-                onClick={() => setIsLocationPickerOpen(true)}
-                className="h-11 px-4 border-2 border-border/60 hover:border-(--primary-gradient-start) transition-all duration-200 min-w-45 justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-(--primary-gradient-start)" />
-                  <span className="text-sm truncate max-w-20">{userLocationFromDb}</span>
-                </div>
-                <ChevronDown className="w-4 h-4 ml-2" />
-              </Button>
+                  variant="outline"
+                  onClick={() => setIsLocationPickerOpen(true)}
+                  className="h-11 px-4 border-2 border-border/60 hover:border-(--primary-gradient-start) transition-all duration-200 min-w-40 justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-(--primary-gradient-start)" />
+                    <span className="text-sm truncate max-w-22">{userLocationFromDb}</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
 
                 {/* Search Input */}
                 <div className="flex-1 relative group">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     placeholder="Search skills or services..."
                     value={searchQuery}
@@ -147,7 +142,7 @@ export default function Navigation({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') onSearch?.();
                     }}
-                    className="pl-12 pr-16 h-11 bg-input-background border-2 border-border/60 shadow-sm focus:shadow-md focus:border-(--primary-gradient-start) transition-all duration-200"
+                    className="pr-16 h-11 bg-input-background border-2 border-border/60 shadow-sm focus:shadow-md focus:border-(--primary-gradient-start) transition-all duration-200"
                   />
                   {/* Keyboard Shortcut Hint */}
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 hidden lg:flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
@@ -221,7 +216,7 @@ export default function Navigation({
               isOpen={isLocationPickerOpen}
               onClose={() => setIsLocationPickerOpen(false)}
               currentLocation={userLocationFromDb}
-              onLocationSelect={() => {}}
+              onLocationSelect={() => { }}
             />
           </div>
 

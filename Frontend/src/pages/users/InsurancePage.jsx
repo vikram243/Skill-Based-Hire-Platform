@@ -11,9 +11,10 @@ import {
   FileText,
   BadgeCheck
 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'motion/react';
-import { Card } from './ui/card';
-import { Button } from './ui/button';
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 
 
 export default function InsurancePage() {
@@ -44,7 +45,7 @@ export default function InsurancePage() {
       <main className="py-24">
         <div className="container max-w-7xl mx-auto px-6">
           {/* Hero Section */}
-          <div className="mt-12 mb-20 relative overflow-hidden rounded-[40px] bg-gradient-to-br from-blue-600 to-indigo-900 p-12 md:p-20 text-white">
+          <div className="mt-12 mb-20 relative overflow-hidden rounded-[40px] bg-linear-to-br from-blue-600 to-indigo-900 p-12 md:p-20 text-white">
             <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
                <Umbrella className="w-full h-full transform translate-x-1/4 -translate-y-1/4" />
             </div>

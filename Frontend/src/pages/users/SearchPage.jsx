@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import SkillCard from './SkillCard';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
+import SkillCard from '../../components/users/SkillCard';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
 import { Filter, X, SlidersHorizontal, Star } from 'lucide-react';
-import { Skills, Provider, getProvidersBySkill, Categories, getProvidersByCategory } from '../data/mockData';
+import { Skills, Provider, getProvidersBySkill, Categories, getProvidersByCategory } from '../../data/mockData';
 
 export default function SearchPage({ onNavigate, initialSearchQuery = '' }) {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);

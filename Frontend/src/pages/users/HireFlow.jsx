@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import Navigation from './Navigation';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { Separator } from './ui/separator';
+import Navigation from '../../components/users/Navigation';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
+import { Badge } from '../../components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
+import { Separator } from '../../components/ui/separator';
 import {
   ArrowLeft,
   Calendar,
@@ -18,7 +18,7 @@ import {
   CheckCircle,
   Star
 } from 'lucide-react';
-import { getProviderById } from '../data/mockData';
+import { getProviderById } from '../../data/mockData';
 
 export default function HireFlow({ providerId, onComplete, onBack, user }) {
   const [currentStep, setCurrentStep] = useState(1);

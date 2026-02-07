@@ -1,11 +1,11 @@
 import React from 'react'
 import { useGoogleLogin } from '@react-oauth/google';
-import api from "../lib/axiosSetup";
-import { Button } from "./ui/button";
+import api from "../..//lib/axiosSetup";
+import { Button } from "../ui/button";
 import { Chrome } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import { setUser } from "../slices/userSlice";
+import { setUser } from "../../slices/userSlice";
 
 
 const GoogleLoginbutton = ({onSuccess}) => {
