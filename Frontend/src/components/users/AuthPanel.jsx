@@ -59,23 +59,30 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
     setResendRemaining(0);
   };
 
+  useEffect(() => {
+    const handleFocus = () => {
+      setIsLoading(false);
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, []);
+
   const handleClose = () => {
     resetPanel();
+    setIsLoading(false);
     onClose();
   };
 
   const handleMethodSelect = (selectedMethod) => {
-    if (selectedMethod !== "google"){
+    if (selectedMethod !== "google") {
       setMethod(selectedMethod);
       setStep("identifier");
     }
   };
 
-  // client-side validation handled via zod schemas in ../lib/schemas
-
   const handleSendOtp = async () => {
-    setPanelMessage({ type: "", text: "", icon: ""});
-    // Prevent resend while cooldown active (only when already in OTP step)
+    setPanelMessage({ type: "", text: "", icon: "" });
     if (step === 'otp' && resendRemaining > 0) {
       setPanelMessage({ type: 'error', text: `Please wait ${formatTime(resendRemaining)} before resending` });
       return;
@@ -192,7 +199,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
     else if (step === "otp") setStep("identifier");
     else if (step === "register") setStep("otp");
   };
-  // clear interval on unmount
+
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -201,6 +208,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       }
     };
   }, []);
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -230,144 +238,144 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
 
         {step === "method" && (
           <div className="space-y-3">
-            <Button onClick={() => handleMethodSelect("email")} className="w-full h-14 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg">
+            <Button onClick={() => handleMethodSelect("email")} disabled={isLoading} className="w-full h-14 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg">
               <Mail className="mr-2" /> Continue With Email
             </Button>
-            <Button onClick={() => handleMethodSelect("number")} className="w-full h-14 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg">
+            <Button onClick={() => handleMethodSelect("number")} disabled={isLoading} className="w-full h-14 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg">
               <Phone className="mr-2" /> Continue With Phone
             </Button>
-            <GoogleLoginbutton onSuccess = {(user) => {
+            <GoogleLoginbutton isLoading={isLoading} setIsLoading={setIsLoading} onSuccess={(user) => {
               onSuccess && onSuccess(user);
               handleClose();
-            }}/> 
+            }} />
           </div>
         )}
 
         {step === "identifier" && (
           <div className="space-y-4">
             <div className="space-y-2">
-            {panelMessage?.text && (
+              {panelMessage?.text && (
                 <div className={`w-full flex gap-2 items-end rounded text-sm ${panelMessage.type === 'error' ? 'text-red-700' : ' text-green-600'}`} role={panelMessage.type === 'error' ? 'alert' : 'status'}>
                   {panelMessage.text} {panelMessage.icon}
                 </div>
-            )}  
-            <Label> {method === 'email' ? 'Email Address' : 'Phone Number'}</Label>
-            <Input
-              className="mt-2"
-              value={identifier}
-              required
-              type={method === 'email' ? 'email' : 'tel'}
-              placeholder={method === 'email' ? 'you@example.com' : '1234567890'}
-              autoFocus
-              inputMode={method === 'email' ? 'email' : 'numeric'}
-              onChange={(e) => setIdentifier(e.target.value)}
-              disabled={isLoading}
-            />
-            <Button onClick={handleSendOtp} className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white" disabled={isLoading}>
-              {isLoading ? 'Sending...' : 'Send OTP'}
-            </Button>
+              )}
+              <Label> {method === 'email' ? 'Email Address' : 'Phone Number'}</Label>
+              <Input
+                className="mt-2"
+                value={identifier}
+                required
+                type={method === 'email' ? 'email' : 'tel'}
+                placeholder={method === 'email' ? 'you@example.com' : '1234567890'}
+                autoFocus
+                inputMode={method === 'email' ? 'email' : 'numeric'}
+                onChange={(e) => setIdentifier(e.target.value)}
+                disabled={isLoading}
+              />
+              <Button onClick={handleSendOtp} className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white" disabled={isLoading}>
+                {isLoading ? 'Sending...' : 'Send OTP'}
+              </Button>
             </div>
           </div>
         )}
 
         {step === "otp" && (
           <div className="space-y-4">
-              <div className="space-y-2">
-                {panelMessage?.text && (
+            <div className="space-y-2">
+              {panelMessage?.text && (
                 <div className={`w-full flex gap-2 items-end rounded text-sm ${panelMessage.type === 'error' ? 'text-red-700' : ' text-green-600'}`} role={panelMessage.type === 'error' ? 'alert' : 'status'}>
                   {panelMessage.text} {panelMessage.icon}
                 </div>
-                )}
-                <Label htmlFor="otp">Enter 6-digit OTP</Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  placeholder="******"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
-                  className="text-center mt-2 text-2xl tracking-widest"
-                  autoFocus
-                />
-              </div>
-              <div className="text-sm text-muted-foreground text-center">
-                Didn't receive the code?{' '}
-                <button
-                  onClick={handleSendOtp}
-                  className="text-primary hover:underline inline-flex items-center"
-                  disabled={isLoading || resendRemaining > 0}
-                >
-                  Resend OTP
-                  {resendRemaining > 0 && (
-                    <span className="ml-2 text-xs text-muted-foreground">({formatTime(resendRemaining)})</span>
-                  )}
-                </button>
-              </div>
-              <Button
-                onClick={handleVerifyOtp}
-                className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
-                disabled={isLoading || otp.length !== 6}
-              >
-                {isLoading ? 'Verifying...' : 'Verify & Continue'}
-              </Button>
+              )}
+              <Label htmlFor="otp">Enter 6-digit OTP</Label>
+              <Input
+                id="otp"
+                type="text"
+                placeholder="******"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
+                className="text-center mt-2 text-2xl tracking-widest"
+                autoFocus
+              />
             </div>
+            <div className="text-sm text-muted-foreground text-center">
+              Didn't receive the code?{' '}
+              <button
+                onClick={handleSendOtp}
+                className="text-primary hover:underline inline-flex items-center"
+                disabled={isLoading || resendRemaining > 0}
+              >
+                Resend OTP
+                {resendRemaining > 0 && (
+                  <span className="ml-2 text-xs text-muted-foreground">({formatTime(resendRemaining)})</span>
+                )}
+              </button>
+            </div>
+            <Button
+              onClick={handleVerifyOtp}
+              className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
+              disabled={isLoading || otp.length !== 6}
+            >
+              {isLoading ? 'Verifying...' : 'Verify & Continue'}
+            </Button>
+          </div>
         )}
 
         {step === 'register' && (
-  <div className="space-y-4">
-    {panelMessage?.text && (
-      <div className={`w-full flex gap-2 items-end rounded text-sm ${ panelMessage.type === 'error' ? 'text-red-700' : 'text-green-600'}`} role={panelMessage.type === 'error' ? 'alert' : 'status'}>
-        {panelMessage.text} {panelMessage.icon}
-      </div>
-    )}
+          <div className="space-y-4">
+            {panelMessage?.text && (
+              <div className={`w-full flex gap-2 items-end rounded text-sm ${panelMessage.type === 'error' ? 'text-red-700' : 'text-green-600'}`} role={panelMessage.type === 'error' ? 'alert' : 'status'}>
+                {panelMessage.text} {panelMessage.icon}
+              </div>
+            )}
 
-    <div className="grid grid-cols-2 gap-2">
-      <Input
-        placeholder="First name"
-        value={firstName}
-        onChange={(e) => setFirstName(e.target.value)}
-      />
-      <Input
-        placeholder="Last name"
-        value={lastName}
-        onChange={(e) => setLastName(e.target.value)}
-      />
-    </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="First name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+              <Input
+                placeholder="Last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
 
-    <div className="space-y-2">
-      <Label>Email</Label>
-      <Input
-        className="mt-2"
-        value={regEmail}
-        required
-        onChange={(e) => setRegEmail(e.target.value)}
-        placeholder="you@example.com"
-        disabled={method === 'email'}
-      />
-    </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                className="mt-2"
+                value={regEmail}
+                required
+                onChange={(e) => setRegEmail(e.target.value)}
+                placeholder="you@example.com"
+                disabled={method === 'email'}
+              />
+            </div>
 
-    <div className="space-y-2">
-      <Label>Phone</Label>
-      <Input
-        className="mt-2"
-        value={regPhone}
-        required
-        onChange={(e) => setRegPhone(e.target.value)}
-        placeholder="1234567890"
-        disabled={method === 'number'}
-      />
-    </div>
+            <div className="space-y-2">
+              <Label>Phone</Label>
+              <Input
+                className="mt-2"
+                value={regPhone}
+                required
+                onChange={(e) => setRegPhone(e.target.value)}
+                placeholder="1234567890"
+                disabled={method === 'number'}
+              />
+            </div>
 
-    <Button
-      onClick={handleRegister}
-      className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
-      disabled={isLoading}
-    >
-      {isLoading ? 'Registering...' : 'Create account'}
-    </Button>
-  </div>
-)}
+            <Button
+              onClick={handleRegister}
+              className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Registering...' : 'Create account'}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

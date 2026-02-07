@@ -8,38 +8,46 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../../slices/userSlice";
 
 
-const GoogleLoginbutton = ({onSuccess}) => {
+const GoogleLoginbutton = ({ onSuccess, isLoading, setIsLoading }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const googleAuth = (code) => api.get(`/api/auth/google?code=${code}`);
-  const responseGoogleResult = async(authResult) => {
-        try {
-            if(authResult['code']){
-              const response = await googleAuth(authResult['code']);
-              const { user, accessToken } = response.data.data;
-              onSuccess?.({ user, accessToken });
-              localStorage.setItem('accessToken', accessToken);
-              dispatch(setUser(user));
-              navigate('../home');
-            }
-        } catch (error) {
-            console.error("Error during Google login:", error);
-        }
+  const responseGoogleResult = async (authResult) => {
+    try {
+      if (authResult['code']) {
+        const response = await googleAuth(authResult['code']);
+        const { user, accessToken } = response.data.data;
+        onSuccess?.({ user, accessToken });
+        localStorage.setItem('accessToken', accessToken);
+        dispatch(setUser(user));
+        navigate('/');
+      }
+    } catch (error) {
+      console.error("Error during Google login:", error);
+    } finally {
+      setIsLoading(false);
     }
-    const googleLogin = useGoogleLogin({
+  };
+
+  const responseGoogleError = () => {
+    setIsLoading(false);
+  };
+
+  const googleLogin = useGoogleLogin({
     onSuccess: responseGoogleResult,
-    onError: responseGoogleResult,
+    onError: responseGoogleError,
     flow: 'auth-code'
-    });
+  });
 
   return (
     <Button
-      onClick={() => googleLogin()}
+      disabled={isLoading}
+      onClick={() => { setIsLoading(true), googleLogin() }}
       className="w-full h-14 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 shadow-lg
                  dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:border-gray-600"
     >
-      <Chrome className="mr-2" /> Continue With Google
+      <Chrome className="mr-2" /> {isLoading ? "Signing..." : "Continue With Google"}
     </Button>
   )
 }

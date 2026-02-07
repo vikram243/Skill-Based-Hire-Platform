@@ -88,7 +88,7 @@ export default function Footer(
             <ul className="space-y-4">
               <li>
                 <button 
-                  onClick={() => navigate('register-provider')}
+                  onClick={() => isAuthenticated ? navigate('profile') : setIsAuthPanelOpen(true)}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
                 >
                   Become a provider
@@ -110,14 +110,6 @@ export default function Footer(
                   Community guidelines
                 </button>
               </li>
-              <li>
-                <button 
-                  onClick={() => navigate('business-tools')}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
-                >
-                  Business tools
-                </button>
-              </li>
             </ul>
           </div>
           
@@ -135,7 +127,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('help')}
+                  onClick={() => navigate('/help')}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
                 >
                   Help Center
