@@ -6,9 +6,11 @@ import App from './App.jsx'
 import { Provider } from 'react-redux';
 import { store } from './redux/store.js';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import ScrollToTop from './components/ui/ScrollToTop.jsx';
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
+    <ScrollToTop />
     <Provider store={store}>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
         <App />

@@ -96,7 +96,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('stories')}
+                  onClick={() => navigate('success-stories')}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Provider success stories
@@ -127,7 +127,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('/help')}
+                  onClick={() => navigate('help')}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Help Center

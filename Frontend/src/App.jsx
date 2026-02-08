@@ -18,6 +18,7 @@ import CookiePage from './pages/users/CookiePage';
 import GuaranteePage from './pages/users/GuaranteePage';
 import CommunityGuidelinesPage from './pages/users/CommunityGuidelinesPage';
 import PrivacyPage from './pages/users/PrivacyPage';
+import SuccessStoriesPage from './pages/users/SuccessStoriesPage';
 import { setUser, logoutUser, setLoading } from "./slices/userSlice";
 import api from './lib/axiosSetup';
 import AuthPanel from './components/users/AuthPanel';
@@ -94,6 +95,7 @@ const App = () => {
         <Route path ='/guarantee' element ={<GuaranteePage />} />
         <Route path ='/guidelines' element ={<CommunityGuidelinesPage />} />
         <Route path ='/privacy' element ={<PrivacyPage />} />
+        <Route path ='/success-stories' element ={<SuccessStoriesPage setIsAuthPanelOpen={setIsAuthPanelOpen} />} />
         <Route element={<ProtectedRoute />}>
           <Route path='/orders' element={<OrdersPage />} />
           <Route path='/hire/:skillId' element={<HireFlow />} />
