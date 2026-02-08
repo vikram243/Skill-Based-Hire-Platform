@@ -50,7 +50,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => navigate('how-it-works')}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   How it works
                 </button>
@@ -58,7 +58,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => isAuthenticated ? navigate('search') : setIsAuthPanelOpen(true)}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Browse services
                 </button>
@@ -66,7 +66,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => navigate('safety')}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Safety & Trust
                 </button>
@@ -74,7 +74,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => navigate('guarantee')}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   SkillHub Guarantee
                 </button>
@@ -89,7 +89,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => isAuthenticated ? navigate('profile') : setIsAuthPanelOpen(true)}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Become a provider
                 </button>
@@ -97,7 +97,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => navigate('stories')}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Provider success stories
                 </button>
@@ -105,7 +105,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => navigate('guidelines')}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Community guidelines
                 </button>
@@ -128,7 +128,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => navigate('/help')}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Help Center
                 </button>
@@ -136,7 +136,7 @@ export default function Footer(
               <li>
                 <button 
                   onClick={() => navigate('privacy')}
-                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base"
+                  className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Privacy Policy
                 </button>

@@ -58,6 +58,39 @@ export default function HowItWorksPage({
     }
   ];
 
+  const features = [
+    {
+      title: "Background Checked",
+      description: "Every provider goes through a rigorous identity and background verification process.",
+      icon: <Shield className="w-10 h-10 text-blue-500" />
+    },
+    {
+      title: "Smart Matching",
+      description: "Our algorithm suggests the best providers based on proximity, rating, and expertise.",
+      icon: <Zap className="w-10 h-10 text-yellow-500" />
+    },
+    {
+      title: "Direct Communication",
+      description: "End-to-end encrypted chat system to discuss requirements and get real-time updates.",
+      icon: <MessageCircle className="w-10 h-10 text-purple-500" />
+    },
+    {
+      title: "SkillHub Guarantee",
+      description: "If you're not satisfied with the service, we'll make it right with our money-back guarantee.",
+      icon: <Award className="w-10 h-10 text-green-500" />
+    },
+    {
+      title: "24/7 Support",
+      description: "Our dedicated support team is always available to help you with any queries or disputes.",
+      icon: <Clock className="w-10 h-10 text-red-500" />
+    },
+    {
+      title: "Skill Portfolio",
+      description: "View real work samples and case studies before hiring any professional.",
+      icon: <Star className="w-10 h-10 text-indigo-500" />
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
 
@@ -172,39 +205,8 @@ export default function HowItWorksPage({
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  title: "Background Checked",
-                  description: "Every provider goes through a rigorous identity and background verification process.",
-                  icon: <Shield className="w-10 h-10 text-blue-500" />
-                },
-                {
-                  title: "Smart Matching",
-                  description: "Our algorithm suggests the best providers based on proximity, rating, and expertise.",
-                  icon: <Zap className="w-10 h-10 text-yellow-500" />
-                },
-                {
-                  title: "Direct Communication",
-                  description: "End-to-end encrypted chat system to discuss requirements and get real-time updates.",
-                  icon: <MessageCircle className="w-10 h-10 text-purple-500" />
-                },
-                {
-                  title: "SkillHub Guarantee",
-                  description: "If you're not satisfied with the service, we'll make it right with our money-back guarantee.",
-                  icon: <Award className="w-10 h-10 text-green-500" />
-                },
-                {
-                  title: "24/7 Support",
-                  description: "Our dedicated support team is always available to help you with any queries or disputes.",
-                  icon: <Clock className="w-10 h-10 text-red-500" />
-                },
-                {
-                  title: "Skill Portfolio",
-                  description: "View real work samples and case studies before hiring any professional.",
-                  icon: <Star className="w-10 h-10 text-indigo-500" />
-                }
-              ].map((feature, i) => (
-                <Card key={i} className="p-8 border-2 border-transparent hover:border-blue-500/20 transition-all duration-300 hover:shadow-xl group">
+              {features.map((feature, i) => (
+                <Card key={i} className="p-8 border-2 border-border/40 hover:border-blue-500/20 transition-all duration-300 hover:shadow-xl group">
                   <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
