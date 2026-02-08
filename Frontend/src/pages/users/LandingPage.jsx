@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'motion/react';
 
-export default function LandingPage({setIsAuthPanelOpen}) {
+export default function LandingPage({ setIsAuthPanelOpen }) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const { user, isAuthenticated } = useSelector(state => state.user);
@@ -127,7 +127,7 @@ export default function LandingPage({setIsAuthPanelOpen}) {
             className="flex flex-col sm:flex-row gap-4 max-w-3xl mx-auto mb-12"
           >
             <div className="flex-1 relative group">
-              <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-muted-foreground group-focus-within:text-blue-600 transition-colors" />
+              <Search className="absolute z-1 left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-muted-foreground group-focus-within:text-blue-600 transition-colors" />
               <Input
                 placeholder="What skill are you looking for?"
                 value={searchQuery}
@@ -194,7 +194,7 @@ export default function LandingPage({setIsAuthPanelOpen}) {
             {Skills.slice(0, 8).map((skill) => (
               <motion.div key={skill.id} variants={itemVariants}>
                 <Card
-                  className="group h-full p-8 cursor-pointer hover:shadow-2xl transition-all duration-500 bg-card border border-border/40 hover:border-blue-500/50 relative overflow-hidden rounded-3xl"
+                  className="group h-full p-8 cursor-pointer hover:shadow-2xl transition-all duration-500 bg-card border border-border/80 hover:border-blue-500/50 relative overflow-hidden rounded-3xl"
                   onClick={() => isAuthenticated ? navigate('/search', { initialSearchQuery: skill.name }) : setIsAuthPanelOpen(true)}
                 >
                   <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

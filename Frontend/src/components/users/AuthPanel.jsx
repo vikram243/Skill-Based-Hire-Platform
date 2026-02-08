@@ -60,12 +60,31 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
   };
 
   useEffect(() => {
-    const handleFocus = () => {
-      setIsLoading(false);
+    let timer = null;
+    let wasBlurred = false;
+
+    const handleBlur = () => {
+      wasBlurred = true;
     };
 
+    const handleFocus = () => {
+      if (!wasBlurred) return;
+
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        setIsLoading(false);
+        wasBlurred = false;
+      }, 6000);
+    };
+
+    window.addEventListener("blur", handleBlur);
     window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   const handleClose = () => {

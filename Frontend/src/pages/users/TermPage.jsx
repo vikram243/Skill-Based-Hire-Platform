@@ -1,12 +1,13 @@
 import React from 'react';
 import { Scale, FileText, ShieldAlert, CheckCircle2, AlertCircle } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'motion/react';
 import { Card } from '../../components/ui/card';
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background">
-      <main className="py-24">
+      <main className="pb-24">
         <div className="container max-w-4xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
