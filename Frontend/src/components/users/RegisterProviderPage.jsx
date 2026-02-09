@@ -38,7 +38,7 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
   const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useSelector(state => state.user);
-  const number = user?.contactPhone || '';
+  const number = user?.number || '';
   const fullName = user?.fullName || '';
 
   useEffect(() => {
@@ -66,14 +66,11 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
     yearsExperience: '',
     contactPhone: '',
     serviceArea: {
-      city: '',
-      state: '',
-      pincode: '',
-      country: 'India',
-      geo: {
-        type: 'Point',
-        coordinates: [0, 0]
-      },
+      city: user?.location?.city || '',
+      state: user?.location?.state || '',
+      pincode: user?.location?.pin || '',
+      country: user?.location?.country || 'India',
+      fullAddress: user?.location?.address || ''
     },
     selectedSkills: [],
     customSkills: [],
@@ -84,42 +81,6 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
     consentBackgroundCheck: false
   });
   const [formError, setFormError] = useState('');
-
-  const countries = ['India', 'United States', 'United Kingdom', 'All Countries'];
-  const cityOptions = {
-    India: ['Mumbai', 'Delhi', 'Bengaluru', 'Chennai', 'Kolkata'],
-    'United States': ['New York', 'Los Angeles', 'Chicago'],
-    'United Kingdom': ['London', 'Manchester', 'Birmingham']
-  };
-
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      setFormError('Geolocation is not supported by your browser');
-      setTimeout(() => setFormError(''), 4000);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setFormData(prev => ({
-          ...prev,
-          serviceArea: {
-            ...prev.serviceArea,
-            geo: { type: 'Point', coordinates: [longitude, latitude] }
-          }
-        }));
-        setFormError('Location detected');
-        setTimeout(() => setFormError(''), 3000);
-      },
-      (err) => {
-        setFormError('Unable to retrieve your location');
-        setTimeout(() => setFormError(''), 4000);
-        console.error(err);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
 
   const getStepProgress = () => {
     switch (currentStep) {
@@ -155,10 +116,6 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
         state: '',
         pincode: '',
         country: 'India',
-        geo: {
-          type: 'Point',
-          coordinates: [0, 0]
-        },
       },
       selectedSkills: [],
       customSkills: [],
@@ -256,7 +213,6 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
         data.append("professionalDescription", formData.professionalDescription);
         data.append("yearsExperience", formData.yearsExperience);
         data.append("contactPhone", formData.contactPhone);
-        data.append("serviceArea", JSON.stringify(formData.serviceArea));
         formData.pricing.forEach((p) =>
           data.append("pricing[]", JSON.stringify(p))
         );
@@ -286,7 +242,7 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
         const message = error?.response?.data?.message || 'Upload failed';
         setFormError(message);
       } finally {
-        setIsSubmitting(false); // 🔥 STOP loading (success ya error dono me)
+        setIsSubmitting(false);
       }
 
       return;
@@ -510,30 +466,11 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                     <label className="block text-sm font-medium mb-2">
                       City *
                     </label>
-                    {cityOptions[formData.serviceArea.country] ? (
-                      <select
-                        value={formData.serviceArea.city}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          serviceArea: { ...prev.serviceArea, city: e.target.value }
-                        }))}
-                        className="w-full p-2 border border-purple-300 dark:border-purple-700 rounded-md bg-background text-sm"
-                      >
-                        <option value="">Select city</option>
-                        {cityOptions[formData.serviceArea.country].map(c => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <Input
-                        placeholder="e.g., Mumbai"
-                        value={formData.serviceArea.city}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          serviceArea: { ...prev.serviceArea, city: e.target.value }
-                        }))}
-                      />
-                    )}
+                    <Input
+                      placeholder="e.g., Mumbai"
+                      value={formData.serviceArea.city}
+                      disabled
+                    />
                   </div>
 
                   <div>
@@ -543,10 +480,7 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                     <Input
                       placeholder="e.g., Maharashtra"
                       value={formData.serviceArea.state}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        serviceArea: { ...prev.serviceArea, state: e.target.value }
-                      }))}
+                      disabled
                     />
                   </div>
                 </div>
@@ -560,10 +494,7 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                       placeholder="e.g., 400001"
                       maxLength={20}
                       value={formData.serviceArea.pincode}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        serviceArea: { ...prev.serviceArea, pincode: e.target.value.slice(0, 20) }
-                      }))}
+                      disabled
                     />
                   </div>
 
@@ -571,19 +502,23 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                     <label className="block text-sm font-medium mb-2">
                       Country
                     </label>
-                    <select
+                    <Input
+                      placeholder='India'
                       value={formData.serviceArea.country}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        serviceArea: { ...prev.serviceArea, country: e.target.value, city: (cityOptions[e.target.value]?.[0] || '') }
-                      }))}
-                      className="w-full p-2 border border-purple-300 dark:border-purple-700 rounded-md bg-background text-sm"
+                      disabled
                     >
-                      {countries.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
+                    </Input>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Full Address
+                  </label>
+                  <Input
+                    placeholder='Bhopal, Madhya Pradesh, India'
+                    value={formData.serviceArea.fullAddress}
+                    disabled                    >
+                  </Input>
                 </div>
 
                 <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -591,14 +526,8 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                     💡 Location Tip
                   </h5>
                   <p className="text-sm text-muted-foreground">
-                    We'll use this information to show you to customers in your service area. You can adjust your radius anytime.
+                    We'll use this information to show you to customers in your service area. You can adjust your location anytime from location picker option.
                   </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={detectLocation} className="border-purple-300 dark:border-purple-700">
-                    <MapPin className="w-4 h-4 mr-2" /> Use my location
-                  </Button>
-                  <div className="text-sm text-muted-foreground">Detected coordinates: {formData.serviceArea.geo.coordinates[1]}, {formData.serviceArea.geo.coordinates[0]}</div>
                 </div>
               </div>
             )}

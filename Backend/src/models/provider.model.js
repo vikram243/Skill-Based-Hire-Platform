@@ -1,22 +1,5 @@
 import mongoose from 'mongoose';
 
-const ServiceAreaSchema = new mongoose.Schema({
-  city: { type: String, required: true, index: true, minlength: 2, maxlength: 20 },
-  state: { type: String, required: true, minlength: 2, maxlength: 20, },
-  pincode: { type: Number, minlength: 2, maxlength: 20, },
-  country: { type: String, default: 'India', minlength: 2, maxlength: 100, },
-
-  geo: {
-    type: { type: String, enum: ['Point'], required: true },
-    coordinates: {
-      type: [Number],
-      required: true
-    }
-  },
-
-  radiusKm: { type: Number, default: 10 }
-}, { _id: false });
-
 const SkillEntrySchema = new mongoose.Schema({
   skillId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -97,11 +80,6 @@ const ProviderSchema = new mongoose.Schema({
     maxlength: 15,
   },
 
-  serviceArea: {
-    type: ServiceAreaSchema,
-    required: true
-  },
-
   selectedSkills: {
     type: [SkillEntrySchema],
     default: []
@@ -136,6 +114,8 @@ const ProviderSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
+
+  isAttampted: { type: Boolean, default: false },
 
   submittedAt: {
     type: Date,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mail, Phone, Instagram, Twitter, Facebook, Youtube } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 export default function Footer(
@@ -9,6 +9,7 @@ export default function Footer(
   }
 ) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useSelector(state => state.user);
   return (
     <footer className="py-8 px-6 border-t border-border bg-card/30 backdrop-blur-sm">
@@ -16,7 +17,7 @@ export default function Footer(
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Column */}
           <div className="space-y-6">
-            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => navigate('home')}>
+            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => { if (location.pathname !== '/') navigate('/'); }}>
               <div className="w-12 h-12 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                 <span className="font-bold text-xl">S</span>
               </div>
@@ -49,7 +50,7 @@ export default function Footer(
             <ul className="space-y-4">
               <li>
                 <button 
-                  onClick={() => navigate('how-it-works')}
+                  onClick={() => { if (location.pathname !== '/how-it-works') navigate('/how-it-works'); }}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   How it works
@@ -57,7 +58,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => isAuthenticated ? navigate('search') : setIsAuthPanelOpen(true)}
+                  onClick={() => isAuthenticated ? (location.pathname !== '/search' && navigate('/search')) : setIsAuthPanelOpen(true)}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Browse services
@@ -65,7 +66,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('safety')}
+                  onClick={() => { if (location.pathname !== '/safety') navigate('/safety'); }}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Safety & Trust
@@ -73,7 +74,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('guarantee')}
+                  onClick={() => { if (location.pathname !== '/guarantee') navigate('/guarantee'); }}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   SkillHub Guarantee
@@ -88,7 +89,7 @@ export default function Footer(
             <ul className="space-y-4">
               <li>
                 <button 
-                  onClick={() => isAuthenticated ? navigate('profile') : setIsAuthPanelOpen(true)}
+                  onClick={() => isAuthenticated ? (location.pathname !== '/profile' && navigate('/profile')) : setIsAuthPanelOpen(true)}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Become a provider
@@ -96,7 +97,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('success-stories')}
+                  onClick={() => { if (location.pathname !== '/success-stories') navigate('/success-stories'); }}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Provider success stories
@@ -104,7 +105,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('guidelines')}
+                  onClick={() => { if (location.pathname !== '/guidelines') navigate('/guidelines'); }}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Community guidelines
@@ -127,7 +128,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('help')}
+                  onClick={() => { if (location.pathname !== '/help') navigate('/help'); }}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Help Center
@@ -135,7 +136,7 @@ export default function Footer(
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('privacy')}
+                  onClick={() => { if (location.pathname !== '/privacy') navigate('/privacy'); }}
                   className="text-muted-foreground hover:text-(--primary-gradient-start) transition-colors text-base cursor-pointer"
                 >
                   Privacy Policy
@@ -149,10 +150,10 @@ export default function Footer(
           <p className="text-sm font-medium">
             &copy; 2026 SkillHub Technologies Inc. All rights reserved.
           </p>
-          <div className="flex gap-8 text-sm">
-            <button onClick={() => navigate('terms')} className="hover:text-foreground transition-colors">Terms of Service</button>
-            <button onClick={() => navigate('cookie')} className="hover:text-foreground transition-colors">Cookie Policy</button>
-            <button onClick={() => navigate('accessibility')} className="hover:text-foreground transition-colors">Accessibility</button>
+            <div className="flex gap-8 text-sm">
+            <button onClick={() => { if (location.pathname !== '/terms') navigate('/terms'); }} className="hover:text-foreground transition-colors">Terms of Service</button>
+            <button onClick={() => { if (location.pathname !== '/cookie') navigate('/cookie'); }} className="hover:text-foreground transition-colors">Cookie Policy</button>
+            <button onClick={() => { if (location.pathname !== '/accessibility') navigate('/accessibility'); }} className="hover:text-foreground transition-colors">Accessibility</button>
           </div>
         </div>
       </div>

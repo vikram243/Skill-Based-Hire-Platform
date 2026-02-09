@@ -27,7 +27,10 @@ const googleLogin = asyncHandler(async (req, res) => {
 
   if (!email) throw new ApiError(400, "Google did not return an email");
 
-  let user = await User.findOne({ email });
+  let user = await User.findOne({ email }).populate({
+    path: "providerProfile",
+    select: "applicationStatus submittedAt isAttampted"
+  });
   let avatarUrl = user?.avatar;
 
   if (!user || (user && user.avatar !== picture)) {
@@ -79,7 +82,15 @@ const googleLogin = asyncHandler(async (req, res) => {
 });
 
 const verifyAuth = asyncHandler(async (req, res) => {
-  const userSafe = getSafeUser(req.user);
+  // fetch fresh user from DB (with providerProfile) instead of using token payload
+  const user = await User.findById(req.user.id).populate({
+    path: "providerProfile",
+    select: "applicationStatus submittedAt isAttampted"
+  });
+
+  if (!user) throw new ApiError(404, "User not found");
+
+  const userSafe = getSafeUser(user);
   res.set('Cache-Control', 'no-store');
   return res.status(200).json(new ApiResponse(200, { user: userSafe }, "verified"));
 });
