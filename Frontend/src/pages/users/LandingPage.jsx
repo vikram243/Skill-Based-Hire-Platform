@@ -318,7 +318,7 @@ export default function LandingPage({ setIsAuthPanelOpen }) {
                     Become a Provider
                   </Button>
                   <Button
-                    onClick={() => navigate('/stories')}
+                    onClick={() => navigate('/success-stories')}
                     variant="ghost"
                     size="lg"
                     className="h-16 px-10 text-white hover:bg-white/10 font-bold rounded-2xl text-lg"

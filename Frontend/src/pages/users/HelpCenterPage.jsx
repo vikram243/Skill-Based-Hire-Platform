@@ -64,6 +64,7 @@ export default function HelpCenterPage() {
   const handleLinkClick = (path) => {
     navigate(path);
   };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A]">
       <main>

@@ -39,7 +39,10 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
 
   await verifyOtp(identifier, otp);
 
-  const user = await User.findOne(email ? { email } : { number });
+  const user = await User.findOne(email ? { email } : { number }).populate({
+    path: "providerProfile",
+    select: "applicationStatus submittedAt isAttampted"
+  });
 
   if (user) {
     const sessionId = crypto.randomUUID();
@@ -87,7 +90,10 @@ const registerUser = asyncHandler(async (req, res) => {
   const fullName = `${firstName} ${lastName}`;
   const payload = { firstName, lastName, fullName, email, number };
 
-  const user = await User.create(payload);
+  const user = await User.create(payload).populate({
+    path: "providerProfile",
+    select: "applicationStatus submittedAt isAttampted"
+  });
 
   const sessionId = crypto.randomUUID();
   const accessToken = user.generateAccessToken(sessionId);

@@ -42,7 +42,8 @@ export const providerLocationSchema = z.object({
     city: z.string().min(1, 'City is required').max(30, 'City name must be less then 30 letters'),
     state: z.string().min(1, 'State is required').max(30, 'State name must be less then 30 letters'),
     pincode: z.string().optional(),
-    country: z.string().min(2, 'Country is required').max(30, 'Country name must be less then 30 letters')
+    country: z.string().min(2, 'Country is required').max(30, 'Country name must be less then 30 letters'),
+    fullAddress: z.string().min(1, 'Full address is required').max(100, 'Full address must be less than 100 letters')
   })
 });
 

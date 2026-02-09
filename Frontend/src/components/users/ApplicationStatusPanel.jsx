@@ -14,8 +14,12 @@ import {
   Calendar,
   ChevronRight
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
-export default function ApplicationStatusPanel({ isOpen, onClose, status, submittedAt }) {
+export default function ApplicationStatusPanel({ isOpen, onClose }) {
+  const { user } = useSelector((state) => state.user);
+  const status = user?.providerStatus || 'Unknown';
+  const submittedAt = user?.submittedAt ? new Date(user.submittedAt).toISOString().split("T")[0] : "Unknown";
 
   const getStatusConfig = () => {
     switch (status) {

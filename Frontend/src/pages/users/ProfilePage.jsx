@@ -40,7 +40,7 @@ function ProfilePage() {
       if (val.source) return val.source;
       try {
         return JSON.stringify(val);
-      // eslint-disable-next-line no-unused-vars
+        // eslint-disable-next-line no-unused-vars
       } catch (e) {
         return String(val);
       }
@@ -283,12 +283,10 @@ function ProfilePage() {
                     variant="outline"
                     className="w-full mt-3 bg-linear-to-r cursor-pointer from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
                     onClick={() => {
-                      if (user?.isProvider && user?.providerStatus === "approved") {
+                      if (user?.isProvider) {
                         navigate("/provider-dashboard");
                       } else if (
-                        user?.isProvider &&
-                        (user?.providerStatus === "pending" ||
-                          user?.providerStatus === "rejected")
+                        user?.isApplicationAttampted
                       ) {
                         setIsApplicationStatusOpen(true);
                       } else {
@@ -296,11 +294,9 @@ function ProfilePage() {
                       }
                     }}
                   >
-                    {user?.isProvider && user?.providerStatus === "approved"
+                    {user?.isProvider
                       ? "Go to Provider Dashboard"
-                      : user?.isProvider &&
-                        (user?.providerStatus === "pending" ||
-                          user?.providerStatus === "rejected")
+                      : user?.isApplicationAttampted
                         ? "Check Application Status"
                         : "Become Provider"}
                   </Button>
@@ -469,8 +465,8 @@ function ProfilePage() {
                           <div className="flex items-center gap-3">
                             <div
                               className={`w-2 h-2 rounded-full ${activity?.orderStatus === "completed"
-                                  ? "bg-success"
-                                  : "bg-(--primary-gradient-start)"
+                                ? "bg-success"
+                                : "bg-(--primary-gradient-start)"
                                 }`}
                             />
                             <div>
@@ -550,8 +546,6 @@ function ProfilePage() {
       <ApplicationStatusPanel
         isOpen={isApplicationStatusOpen}
         onClose={() => setIsApplicationStatusOpen(false)}
-        status={user?.providerStatus}
-        submittedAt={user?.providerSubmittedAt}
       />
     </div>
   );
