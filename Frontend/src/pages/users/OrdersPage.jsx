@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/ta
 import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
 import { Badge } from '../../components/ui/badge';
 import api from "../../lib/axiosSetup";
+import { useNavigate } from 'react-router-dom';
 import {
   Clock,
   MapPin,
@@ -16,9 +17,8 @@ import {
   Calendar,
   Star
 } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
 
-export default function OrdersPage({ onNavigate }) {
+export default function OrdersPage() {
   const [selectedTab, setSelectedTab] = useState('pending');
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -222,7 +222,7 @@ export default function OrdersPage({ onNavigate }) {
                     <Button
                       variant="ghost"
                       className='border-2 border-dashed border-muted'
-                      onClick={() => onNavigate('home')}
+                      onClick={() => navigate('/search')}
                     >
                       Browse Services
                     </Button>

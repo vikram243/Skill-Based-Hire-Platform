@@ -6,6 +6,7 @@ import {
   Award, MapPin, CheckCircle2, Users, Briefcase, 
   Trophy, Heart, Calendar, Zap
 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -281,7 +282,7 @@ export default function SuccessStoriesPage({
                 <div className="flex flex-col sm:flex-row gap-6 justify-center">
                   <Button 
                     size="lg" 
-                    onClick={() => isAuthenticated?navigate('profile'):setIsAuthPanelOpen(true)}
+                    onClick={() => isAuthenticated?navigate('/profile'):setIsAuthPanelOpen(true)}
                     className="bg-blue-600 hover:bg-blue-700 h-18 px-12 text-2xl font-black rounded-2xl shadow-2xl shadow-blue-500/20"
                   >
                     Get Started Now

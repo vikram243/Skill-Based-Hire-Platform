@@ -131,7 +131,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             <p className={`font-bold text-(--primary-gradient-start) ${
               isCompact ? 'text-sm' : 'text-base'
             }`}>
-              ${provider.hourlyRate}/hr
+              ₹{provider.hourlyRate}/hr
             </p>
             {!isCompact && (
               <p className="text-xs text-muted-foreground">

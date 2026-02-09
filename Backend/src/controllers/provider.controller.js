@@ -63,11 +63,8 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     professionalDescription,
     yearsExperience,
     contactPhone,
-
-    serviceArea,
     selectedSkills,
     pricing,
-
     agreedToTOS,
     consentBackgroundCheck
   } = req.body;
@@ -83,8 +80,6 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     }
     return val;
   };
-
-  const serviceAreaParsed = parseIfString(serviceArea);
 
   const selectedSkillsParsed = Array.isArray(selectedSkills)
     ? selectedSkills.map(s => parseIfString(s))
@@ -102,7 +97,6 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     yearsExperience: Number(parseIfString(yearsExperience)) || 0,
     contactPhone: parseIfString(contactPhone),
 
-    serviceArea: serviceAreaParsed,
     selectedSkills: selectedSkillsParsed.map(normalizeSkillEntry),
 
     pricing: pricingParsed.map(p => ({
@@ -115,7 +109,9 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     agreedToTOS: (parseIfString(agreedToTOS) === 'true' || parseIfString(agreedToTOS) === true),
     consentBackgroundCheck: (parseIfString(consentBackgroundCheck) === 'true' || parseIfString(consentBackgroundCheck) === true),
 
-    applicationStatus: "pending"
+    applicationStatus: "pending",
+
+    isAttampted: true
   };
 
   const provider = await Provider.create(providerPayload);
@@ -123,9 +119,7 @@ export const becomeProvider = asyncHandler(async (req, res) => {
   const user = await User.findByIdAndUpdate(
     userId,
     {
-      isProvider: true,
       providerProfile: provider._id,
-      providerStatus: "pending",
     },
     { new: true }
   );
@@ -157,7 +151,6 @@ export const getProviderProfile = asyncHandler(async (req, res) => {
     full_name: provider.user.fullName,
     email: provider.user.email,
     phone: provider.contactPhone,
-    location: provider.serviceArea?.name || "",
     bio: provider.professionalDescription,
     hourly_rate: provider.pricing?.[0]?.serviceRate || 0,
     years_experience: provider.yearsExperience,
@@ -201,7 +194,6 @@ export const updateProviderProfile = asyncHandler(async (req, res) => {
   await user.save();
 
   provider.contactPhone = phone || provider.contactPhone;
-  provider.serviceArea.name = location || provider.serviceArea.name;
   provider.professionalDescription = bio || provider.professionalDescription;
   provider.yearsExperience = years_experience || provider.yearsExperience;
 

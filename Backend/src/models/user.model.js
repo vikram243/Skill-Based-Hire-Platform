@@ -46,7 +46,6 @@ const userSchema = new mongoose.Schema({
   isProvider: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },
   providerProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Provider', default: null },
-  providerStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
 
   avatar: {
     type: String,
