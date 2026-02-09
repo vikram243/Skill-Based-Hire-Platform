@@ -470,7 +470,7 @@ function ProfilePage() {
                                 }`}
                             />
                             <div>
-                              <p className="font-medium">{activity?.skill?.category}</p>
+                              <p className="font-medium">{activity?.skill?.name}</p>
                               <p className="text-sm text-muted-foreground">
                                 {activity?.orderStatus === "completed"
                                   ? "Service completed"

@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Button } from '../ui/button';
-import { Card } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Separator } from '../ui/separator';
-import { 
-  ArrowLeft, 
-  Star, 
-  MapPin, 
-  Clock, 
-  CheckCircle, 
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Separator } from '../../components/ui/separator';
+import { useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Star,
+  MapPin,
+  Clock,
+  CheckCircle,
   MessageCircle,
   Calendar,
   Shield,
@@ -20,11 +21,11 @@ import {
   Heart,
   Share2
 } from 'lucide-react';
-import { getProviderById } from '../../data/mockData';
 
-export default function SkillDetailPage({ providerId, onNavigate, onBack, user }) {
+export default function SkillDetailPage({ provider }) {
   const [isFavorited, setIsFavorited] = useState(false);
-  const provider = providerId ? getProviderById(providerId) : null;
+  const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
 
   if (!provider) {
     return (
@@ -32,7 +33,7 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
         <div className="container mx-auto px-4 py-8">
           <Card className="p-8 text-center">
             <p className="text-muted-foreground mb-4">Provider not found</p>
-            <Button onClick={onBack}>Go Back</Button>
+            <Button onClick={navigate(-1)}>Go Back</Button>
           </Card>
         </div>
       </div>
@@ -88,20 +89,14 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
   ];
 
   return (
-    <div className="min-h-screen bg-linear-to-br pb-16 from-background via-surface/30 to-background authenticated-page">
-      <Navigation 
-        onNavigate={onNavigate} 
-        user={user}
-        isAuthenticated={!!user}
-        currentPage="skill-detail"
-      />
-      
+    <div className="min-h-screen bg-linear-to-br from-background via-surface/30 to-background authenticated-page">
+
       <div className="container mx-auto px-4 py-6">
-        
+
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           className="mb-6 transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -115,12 +110,12 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
             <Card className="p-6 bg-card border-2 border-border/40 shadow-lg">
               <div className="flex justify-between">
                 <Avatar className="h-20 w-20 ring-4 ring-(--primary-gradient-start)/20">
-                    <AvatarImage src={provider.avatar} alt={provider.name} />
-                    <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white text-xl">
-                      {provider.name.charAt(0)}
-                    </AvatarFallback>
+                  <AvatarImage src={provider.avatar} alt={provider.name} />
+                  <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white text-xl">
+                    {provider.name.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
-                                
+
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
@@ -139,7 +134,7 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
                 <div className="flex items-center space-x-4">
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <h1 className="text-2xl font-bold">{provider.name}</h1>
+                      <h1 className="text-2xl font-bold truncate max-w-64 md:max-w-100">{provider.name}</h1>
                       {provider.isVerified && (
                         <CheckCircle className="w-6 h-6 text-(--primary-gradient-start)" />
                       )}
@@ -147,11 +142,11 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
                     <div className="flex items-center justify-between space-x-4 text-muted-foreground mb-2">
                       <div className="flex items-center space-x-1">
                         <MapPin className="w-4 h-4" />
-                        <span>{provider.location}</span>
+                        <span className='truncate max-w-40 md:max-w-70'>{provider.location}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="w-4 h-4" />
-                        <span>{provider.responseTime} response</span>
+                        <span className='truncate max-w-20 md:max-w-40'>{provider.responseTime} response</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
@@ -160,15 +155,6 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
                         <span className="font-semibold">{provider.rating}</span>
                         <span className="text-muted-foreground">({provider.reviewCount} reviews)</span>
                       </div>
-                      <Badge 
-                        variant={provider.availability === 'available' ? 'default' : 'secondary'}
-                        className={provider.availability === 'available' 
-                          ? 'bg-success text-success-foreground' 
-                          : 'bg-accent text-accent-foreground'
-                        }
-                      >
-                        {provider.availability}
-                      </Badge>
                     </div>
                   </div>
                 </div>
@@ -179,9 +165,9 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
                 <h3 className="font-semibold mb-3">Services Offered</h3>
                 <div className="flex flex-wrap gap-2">
                   {provider.skills.map((skill) => (
-                    <Badge 
+                    <Badge
                       key={skill}
-                      variant="outline" 
+                      variant="outline"
                       className="bg-(--primary-gradient-start)/10 border-(--primary-gradient-start)/30 text-(--primary-gradient-start)"
                     >
                       {skill}
@@ -193,7 +179,19 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
               {/* Bio */}
               <div>
                 <h3 className="font-semibold mb-3">About</h3>
-                <p className="text-muted-foreground leading-relaxed">{provider.bio}</p>
+                <p
+                  className={`text-muted-foreground leading-relaxed transition-all ${expanded ? '' : 'line-clamp-2'
+                    }`}
+                >
+                  {provider.bio}
+                </p>
+
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="mt-2 text-sm font-semibold text-blue-600 hover:underline"
+                >
+                  {expanded ? 'Read less' : 'Read more'}
+                </button>
               </div>
             </Card>
 
@@ -231,8 +229,8 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
                   <div className="grid md:grid-cols-2 gap-4">
                     {portfolio.map((item) => (
                       <Card key={item.id} className="overflow-hidden border-border/40">
-                        <img 
-                          src={item.image} 
+                        <img
+                          src={item.image}
                           alt={item.title}
                           className="w-full h-48 object-cover"
                         />
@@ -297,23 +295,23 @@ export default function SkillDetailPage({ providerId, onNavigate, onBack, user }
             <Card className="p-6 bg-card border-2 border-border/40 shadow-lg sticky top-20">
               <div className="text-center mb-6">
                 <p className="text-3xl font-bold text-(--primary-gradient-start) mb-1">
-                  ${provider.hourlyRate}/hr
+                  ₹{provider.hourlyRate}/hr
                 </p>
                 <p className="text-muted-foreground">Starting rate</p>
               </div>
 
               <div className="space-y-4 mb-6">
-                <Button 
+                <Button
                   size="lg"
                   className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
-                  onClick={() => onNavigate('hire-flow', { selectedProviderId: provider.id })}
+                  onClick={() => navigate('hire-flow', { selectedProviderId: provider.id })}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   Book Now
                 </Button>
-                
-                <Button 
-                  variant="outline" 
+
+                <Button
+                  variant="outline"
                   size="lg"
                   className="w-full border-2 border-(--primary-gradient-start)/30 text-(--primary-gradient-start) hover:bg-(--primary-gradient-start)/5"
                 >

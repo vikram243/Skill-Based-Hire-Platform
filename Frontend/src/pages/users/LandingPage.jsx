@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card } from '../../components/ui/card';
@@ -9,16 +9,15 @@ import { useSelector } from 'react-redux';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'motion/react';
 
-export default function LandingPage({ setIsAuthPanelOpen }) {
+export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearchQuery }) {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
   const { user, isAuthenticated } = useSelector(state => state.user);
 
   const handleSearch = () => {
-    if (searchQuery.trim()) {
-      isAuthenticated ? navigate('/search', { initialSearchQuery: searchQuery }) : setIsAuthPanelOpen(true);
+    if (isAuthenticated) {
+      navigate('/search');
     } else {
-      isAuthenticated ? navigate('/search') : setIsAuthPanelOpen(true);
+      setIsAuthPanelOpen(true);
     }
   };
 
@@ -195,7 +194,14 @@ export default function LandingPage({ setIsAuthPanelOpen }) {
               <motion.div key={skill.id} variants={itemVariants}>
                 <Card
                   className="group h-full p-8 cursor-pointer hover:shadow-2xl transition-all duration-500 bg-card border border-border/80 hover:border-blue-500/50 relative overflow-hidden rounded-3xl"
-                  onClick={() => isAuthenticated ? navigate('/search', { initialSearchQuery: skill.name }) : setIsAuthPanelOpen(true)}
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      setSearchQuery(skill.name);
+                      navigate('/search');
+                    } else {
+                      setIsAuthPanelOpen(true);
+                    }
+                  }}
                 >
                   <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative z-10">
