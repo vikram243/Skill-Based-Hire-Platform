@@ -49,14 +49,14 @@ export default function Navigation({
   const handleNavigate = (id) => {
     let target = '/';
     switch (id) {
-      case 'map':
-        target = '/';
-        break;
       case 'orders':
         target = '/orders';
         break;
       case 'chat':
         target = '/';
+        break;
+      case 'search':
+        target = '/search';
         break;
       case 'profile':
         target = '/profile';
@@ -70,10 +70,19 @@ export default function Navigation({
     navigate(target);
   };
 
+  const handleSearch = () => {
+    if (!isAuthenticated) {
+      setIsAuthPanelOpen(true);
+      return;
+    }
+
+    navigate('/search');
+  };
+
   const navItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'map', label: 'Map', icon: Map },
+    { id: '/', label: 'Home', icon: Home },
     { id: 'orders', label: 'Orders', icon: FileText },
+    { id: 'search', label: 'Search', icon: Search },
     { id: 'chat', label: 'Chat', icon: MessageCircle },
     { id: 'profile', label: 'Profile', icon: null }
   ];
@@ -155,7 +164,7 @@ export default function Navigation({
                     value={searchQuery}
                     onChange={(e) => onSearchChange?.(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') onSearch?.();
+                      if (e.key === 'Enter') (onSearch ? onSearch() : handleSearch());
                     }}
                     className="pr-16 h-11 bg-input-background border-2 border-border/60 shadow-sm focus:shadow-md focus:border-(--primary-gradient-start) transition-all duration-200"
                   />
@@ -169,7 +178,7 @@ export default function Navigation({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={onSearch}
+                  onClick={() => (onSearch ? onSearch() : handleSearch())}
                   className="h-11 w-11 border-2 border-border hover:border-(--primary-gradient-start) hover:bg-(--primary-gradient-start)/10 transition-all duration-200"
                 >
                   <Search className="w-5 h-5" />
@@ -193,7 +202,7 @@ export default function Navigation({
                 <Menubar>
                   <MenubarMenu>
                     <MenubarTrigger>
-                      <div className="flex items-center gap-3 pl-1 pr-4 py-1 rounded-full bg-secondary/30 border border-blue-200 dark:border-blue-800 cursor-pointer hover:bg-secondary/50 transition-colors">
+                      <div className="flex items-center gap-3 pl-1 pr-4 py-1 rounded-full bg-secondary/30 border border-border cursor-pointer hover:bg-secondary/50 transition-colors">
                         <div className="w-7 h-7 rounded-full bg-linear-to-br from-blue-400 to-indigo-800 flex items-center border justify-center text-white text-sm font-bold">
                           {user?.avatar ? (
                             <img src={user.avatar} alt={user.firstName} className="w-full h-full rounded-full" />
@@ -251,7 +260,7 @@ export default function Navigation({
         </div>
 
         {/* Mobile Search */}
-        {isAuthenticated && (
+        {/* {isAuthenticated && (
           <div className="md:hidden px-6 pb-4">
             <div className="flex gap-2">
               <div className="flex-1 relative">
@@ -266,7 +275,7 @@ export default function Navigation({
               </div>
             </div>
           </div>
-        )}
+        )} */}
       </header>
 
       {/* Mobile Bottom Navigation */}
@@ -275,7 +284,28 @@ export default function Navigation({
           <div className="flex justify-around items-center py-2">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentPage === item.id;
+              let targetPath = '/';
+              switch (item.id) {
+                case 'orders':
+                  targetPath = '/orders';
+                  break;
+                case 'chat':
+                  targetPath = '/chats';
+                  break;
+                case 'profile':
+                  targetPath = '/profile';
+                  break;
+                case 'search':
+                  targetPath = '/search';
+                  break;
+                case 'home':
+                  targetPath = '/';
+                  break;
+                default:
+                  targetPath = '/';
+              }
+
+              const isActive = location.pathname === targetPath;
 
               return (
                 <Button

@@ -9,13 +9,6 @@ const SkillSchema = new mongoose.Schema({
     minlength: 3,
     maxlength: 20,
   },
-  category: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 3,
-    maxlength: 20,
-  },
   description: {
     type: String,
     trim: true,

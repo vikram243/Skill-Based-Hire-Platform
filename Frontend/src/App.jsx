@@ -8,6 +8,7 @@ import api from "./lib/axiosSetup";
 const App = () => {
   const dispatch = useDispatch();
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getInitialTheme = () => {
     try {
@@ -31,7 +32,6 @@ const App = () => {
   const toggleDarkMode = () => {
     setIsDarkMode(prev => !prev);
   };
-
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -68,6 +68,8 @@ const App = () => {
         isDarkMode,
         toggleDarkMode,
         isAuthPanelOpen,
+        searchQuery,
+        setSearchQuery,
       })}
     />
   );

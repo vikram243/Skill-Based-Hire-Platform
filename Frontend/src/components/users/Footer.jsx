@@ -12,7 +12,7 @@ export default function Footer(
   const location = useLocation();
   const { isAuthenticated } = useSelector(state => state.user);
   return (
-    <footer className="py-8 px-6 border-t border-border bg-card/30 backdrop-blur-sm">
+    <footer className="pt-8 pb-25 md:pb-8 px-6 border-t border-border bg-card/30 backdrop-blur-sm">
       <div className="container max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Column */}

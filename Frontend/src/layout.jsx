@@ -8,6 +8,7 @@ const Layout = ({
   isDarkMode,
   toggleDarkMode,
   isAuthPanelOpen
+  , searchQuery, setSearchQuery
 }) => {
   return (
     <>
@@ -16,6 +17,8 @@ const Layout = ({
         setIsAuthPanelOpen={setIsAuthPanelOpen}
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
       <Outlet />

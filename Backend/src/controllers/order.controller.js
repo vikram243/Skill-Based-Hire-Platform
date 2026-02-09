@@ -102,7 +102,7 @@ export const getOrders = asyncHandler(async (req, res) => {
             email: "$providerUser.email"
           }
         },
-        skill: { name: "$skill.name", category: "$skill.category" }
+        skill: { name: "$skill.name" }
       }
     },
     { $sort: { createdAt: -1 } }
@@ -186,7 +186,6 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
         },
         skill: {
           name: "$skill.name",
-          category: "$skill.category"
         }
       }
     },
@@ -276,7 +275,7 @@ export const getOrderStats = asyncHandler(async (req, res) => {
       orderStatus: "$status",
       createdAt: 1,
       skill: {
-        category: "$skill.category"
+        name: "$skill.name"
       }
     }
   }

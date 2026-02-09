@@ -23,6 +23,8 @@ export const router = ({
   isDarkMode,
   toggleDarkMode,
   isAuthPanelOpen,
+  searchQuery,
+  setSearchQuery,
 }) =>
   createBrowserRouter([
     {
@@ -33,21 +35,14 @@ export const router = ({
           isDarkMode={isDarkMode}
           toggleDarkMode={toggleDarkMode}
           isAuthPanelOpen={isAuthPanelOpen}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
       ),
       children: [
-        {
-          index: true,
-          element: <LandingPage setIsAuthPanelOpen={setIsAuthPanelOpen} />,
-        },
-        {
-          path: "how-it-works",
-          element: <HowItWorksPage setIsAuthPanelOpen={setIsAuthPanelOpen} />,
-        },
-        {
-          path: "safety",
-          element: <SafetyPage setIsAuthPanelOpen={setIsAuthPanelOpen} />,
-        },
+        { index: true, element: <LandingPage setIsAuthPanelOpen={setIsAuthPanelOpen} searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> },
+        { path: "how-it-works", element: <HowItWorksPage setIsAuthPanelOpen={setIsAuthPanelOpen} /> },
+        { path: "safety", element: <SafetyPage setIsAuthPanelOpen={setIsAuthPanelOpen} /> },
         { path: "insurance", element: <InsurancePage /> },
         { path: "help", element: <HelpCenterPage /> },
         { path: "terms", element: <TermsPage /> },
@@ -56,28 +51,16 @@ export const router = ({
         { path: "guarantee", element: <GuaranteePage /> },
         { path: "guidelines", element: <CommunityGuidelinesPage /> },
         { path: "privacy", element: <PrivacyPage /> },
-        {
-          path: "success-stories",
-          element: (
-            <SuccessStoriesPage setIsAuthPanelOpen={setIsAuthPanelOpen} />
-          ),
-        },
+        { path: "success-stories", element: <SuccessStoriesPage setIsAuthPanelOpen={setIsAuthPanelOpen} /> },
 
         {
           element: <ProtectedRoute />,
           children: [
             { path: "orders", element: <OrdersPage /> },
             { path: "hire/:skillId", element: <HireFlow /> },
-            {
-              path: "profile",
-              element: (
-                <ProfilePage
-                  isDarkMode={isDarkMode}
-                  onToggleDarkMode={toggleDarkMode}
-                />
-              ),
-            },
-            { path: "search", element: <SearchPage /> },
+            { path: "profile", element: <ProfilePage isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} /> },
+            { path: "search", element: <SearchPage searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> },
+            { path: "search/:providerId", element: <SearchPage searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> },
           ],
         },
 

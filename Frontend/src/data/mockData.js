@@ -2,56 +2,48 @@ export const Skills = [
   {
     id: '1',
     name: 'Electrician',
-    category: 'Home Services',
     icon: '⚡',
     description: 'Electrical repairs, installations, and maintenance'
   },
   {
     id: '2',
     name: 'Plumber',
-    category: 'Home Services',
     icon: '🔧',
     description: 'Plumbing repairs, installations, and emergency services'
   },
   {
     id: '3',
     name: 'House Cleaning',
-    category: 'Home Services',
     icon: '🧹',
     description: 'Professional house cleaning and organizing services'
   },
   {
     id: '4',
     name: 'Carpenter',
-    category: 'Home Services',
     icon: '🔨',
     description: 'Woodworking, furniture repair, and custom builds'
   },
   {
     id: '5',
     name: 'Personal Trainer',
-    category: 'Health & Fitness',
     icon: '💪',
     description: 'Fitness training, workout plans, and health coaching'
   },
   {
     id: '6',
     name: 'Massage Therapist',
-    category: 'Health & Fitness',
     icon: '💆',
     description: 'Therapeutic massage and wellness services'
   },
   {
     id: '7',
     name: 'Tutor',
-    category: 'Education',
     icon: '📚',
     description: 'Academic tutoring and educational support'
   },
   {
     id: '8',
     name: 'Pet Sitter',
-    category: 'Pet Care',
     icon: '🐕',
     description: 'Pet sitting, walking, and care services'
   }
@@ -60,14 +52,14 @@ export const Skills = [
 export const Provider = [
   {
     id: '1',
-    name: 'Mike Johnson',
+    name: 'Mike Johnson Mike Johnson Mike Johnson Mike Johnson ',
     avatar: 'https://images.unsplash.com/photo-1736939678218-bd648b5ef3bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBzZXJ2aWNlcyUyMHdvcmtlcnxlbnwxfHx8fDE3NTcxOTIzNDR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
     skills: ['Electrician'],
     rating: 4.9,
     reviewCount: 127,
     pricePerHour: 85,
     distance: '0.8',
-    location: '123 Main St, New York, NY',
+    location: '123 Main St, New York, NY 123 Main St, New York, NY',
     about: 'Licensed electrician with 10+ years of experience. Specializing in residential and commercial electrical work.',
     experience: '10+ years',
     gallery: [
@@ -76,7 +68,6 @@ export const Provider = [
     isAvailable: true,
     responseTime: '~15 mins',
     completedJobs: 156,
-    category: 'Home Services',
     hourlyRate: 45,
     bio: 'Professional plumber and electrician with 10+ years of experience. Available for emergency services.',
     availability: 'available',
@@ -98,7 +89,6 @@ export const Provider = [
     isAvailable: true,
     responseTime: '~10 mins',
     completedJobs: 203,
-    category: 'Home Services',
     hourlyRate: 25,
     bio: 'Detail-oriented cleaning specialist and garden enthusiast. Eco-friendly products used.',
     availability: 'available',
@@ -120,7 +110,6 @@ export const Provider = [
     isAvailable: false,
     responseTime: '~20 mins',
     completedJobs: 312,
-    category: 'Education',
     hourlyRate: 35,
     bio: 'Math and computer science tutor. Also provides tech support for computers and smartphones.',
     availability: 'busy',
@@ -142,7 +131,6 @@ export const Provider = [
     isAvailable: true,
     responseTime: '~5 mins',
     completedJobs: 278,
-    category: 'Pet Services',
     hourlyRate: 30,
     bio: 'Certified personal trainer and pet sitter. Love helping people and pets stay healthy!',
     availability: 'available',
@@ -164,12 +152,34 @@ export const Provider = [
     isAvailable: true,
     responseTime: '~30 mins',
     completedJobs: 187,
-    category: 'Creative',
     hourlyRate: 50,
     bio: 'Professional photographer and chef. Specializing in event photography and catering services.',
     availability: 'available',
     isVerified: false,
-  }
+  },
+  {
+    id: '6',
+    name: 'Thomson Johnson',
+    avatar: 'https://images.unsplash.com/photo-1638718260002-18bdc8082608?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXJwZW50ZXIlMjB3b29kd29ya2luZ3xlbnwxfHx8fDE3NTcxODY3NDh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    skills: ['Electrician'],
+    rating: 3.6,
+    reviewCount: 127,
+    pricePerHour: 85,
+    distance: '0.8',
+    location: '123 Main St, New York, NY',
+    about: 'Licensed electrician with 10+ years of experience. Specializing in residential and commercial electrical work.',
+    experience: '5+ years',
+    gallery: [
+      'https://images.unsplash.com/photo-1617571607645-dd7dd3bf7f6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJpY2lhbiUyMHdvcmtpbmclMjB0b29sc3xlbnwxfHx8fDE3NTcxOTIzNDd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
+    ],
+    isAvailable: true,
+    responseTime: '~15 mins',
+    completedJobs: 156,
+    hourlyRate: 105,
+    bio: 'Professional plumber and electrician with 10+ years of experience. Available for emergency services.',
+    availability: 'available',
+    isVerified: true,
+  },
 ];
 
 export const Orders = [
@@ -240,9 +250,4 @@ export const getProviderById = (id) => {
 
 export const getOrdersByUserId = () => {
   return Orders;
-};
-
-export const getProvidersByCategory = (category) => {
-  if (category === 'all') return Provider;
-  return Provider.filter(provider => provider.category === category);
 };
