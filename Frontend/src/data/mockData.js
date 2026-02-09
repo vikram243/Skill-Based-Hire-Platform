@@ -1,4 +1,4 @@
-export const Skills = [
+export const SkillsContent = [
   {
     id: '1',
     name: 'Electrician',
@@ -215,7 +215,7 @@ export const Orders = [
   }
 ];
 
-export const Categories = [
+export const Skills = [
   'all',
   'Home Services',
   'Education', 

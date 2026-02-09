@@ -3,7 +3,7 @@ import SkillCard from '../../components/users/SkillCard';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Filter, X, SlidersHorizontal, Star, Search, Sparkles, TrendingUp, MapPin, CheckCircle2, ChevronDown } from 'lucide-react';
-import { Provider, getProvidersBySkill, Categories, getProvidersByCategory } from '../../data/mockData';
+import { Provider, getProvidersBySkill, getProvidersByCategory,Skills } from '../../data/mockData';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'motion/react';
 import { useSelector } from 'react-redux';
@@ -11,21 +11,21 @@ import { useSelector } from 'react-redux';
 export default function SearchPage({ onNavigate, initialSearchQuery = '' }) {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [filteredProviders, setFilteredProviders] = useState(Provider);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSkill, setSelectedSkill] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState('all');
   const [ratingFilter, setRatingFilter] = useState(0);
   const [sortBy, setSortBy] = useState('relevance');
   const { user } = useSelector((state) => state.user);
-  const [openToggle, setOpenToggle] = useState('category');
+  const [openToggle, setOpenToggle] = useState('skill');
 
   // Filter and sort providers
   useEffect(() => {
     let filtered = [...Provider];
 
     // Category filter
-    if (selectedCategory !== 'all') {
-      filtered = getProvidersByCategory(selectedCategory);
+    if (selectedSkill !== 'all') {
+      filtered = getProvidersByCategory(selectedSkill);
     }
 
     // Search filter
@@ -68,11 +68,11 @@ export default function SearchPage({ onNavigate, initialSearchQuery = '' }) {
     }
 
     setFilteredProviders(filtered);
-  }, [searchQuery, selectedCategory, priceRange, ratingFilter, sortBy]);
+  }, [searchQuery, selectedSkill, priceRange, ratingFilter, sortBy]);
 
 
-  const handleCategoryFilter = (category) => {
-    setSelectedCategory(category);
+  const handleSkills = (skills) => {
+    setSelectedSkill(skills);
   };
 
   const handleSkillCardClick = (providerId) => {
@@ -81,14 +81,14 @@ export default function SearchPage({ onNavigate, initialSearchQuery = '' }) {
 
   const clearAllFilters = () => {
     setSearchQuery('');
-    setSelectedCategory('all');
+    setSelectedSkill('all');
     setPriceRange('all');
     setRatingFilter(0);
     setSortBy('relevance');
   };
 
   const activeFiltersCount =
-    (selectedCategory !== 'all' ? 1 : 0) +
+    (selectedSkill !== 'all' ? 1 : 0) +
     (priceRange !== 'all' ? 1 : 0) +
     (ratingFilter > 0 ? 1 : 0) +
     (sortBy !== 'relevance' ? 1 : 0);
@@ -136,11 +136,11 @@ export default function SearchPage({ onNavigate, initialSearchQuery = '' }) {
       {/* Category Filter */}
       <div className="mb-8">
         <button
-          onClick={() => toggleFilter("category")}
+          onClick={() => toggleFilter("Skill")}
           className="flex items-center gap-6 mb-4 cursor-pointer"
         >
           <h4 className="font-bold uppercase text-xs tracking-widest text-muted-foreground">
-            Category
+            Skill
           </h4>
           <ChevronDown
             className={`w-4 h-4 transition-transform ${openToggle === "category" ? "rotate-180" : ""
@@ -148,21 +148,21 @@ export default function SearchPage({ onNavigate, initialSearchQuery = '' }) {
           />
         </button>
 
-        {openToggle === "category" && (
+        {openToggle === "skills" && (
           <div className="flex flex-wrap gap-2">
-            {Categories.map((category) => (
+            {Skills.map((skill) => (
               <button
-                key={category}
+                key={Skills}
                 onClick={() => {
-                  handleCategoryFilter(category);
+                  handleSkills(skill);
                   setOpenToggle(null); // 🔥 close after select
                 }}
-                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${selectedCategory === category
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${selectedSkill === skill
                   ? "bg-blue-600 text-white"
                   : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                   }`}
               >
-                {category === "all" ? "All" : category}
+                {skill.name === "all" ? "All" : skill.name}
               </button>
             ))}
           </div>
