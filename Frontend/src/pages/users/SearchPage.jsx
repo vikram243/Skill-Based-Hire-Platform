@@ -17,14 +17,16 @@ import {
   CheckCircle2,
   ChevronDown
 } from 'lucide-react';
-import { Provider, getProvidersBySkill, Categories } from '../../data/mockData';
+import api from '../../lib/axiosSetup';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'motion/react';
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogClose } from '../../components/ui/dialog';
 import { useSelector } from 'react-redux';
 
 export default function SearchPage({ searchQuery = '', setSearchQuery }) {
-  const [filteredProviders, setFilteredProviders] = useState(Provider);
+  console.log('SearchPage rendered with query:', searchQuery);
+  const [filteredProviders, setFilteredProviders] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [priceRange, setPriceRange] = useState('all');
   const [ratingFilter, setRatingFilter] = useState(0);
   const [sortBy, setSortBy] = useState('relevance');
@@ -37,76 +39,101 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    let filtered = [...Provider];
+    const controller = new AbortController();
+    const fetchProviders = async () => {
+      try {
+        setIsLoading(true);
+        const params = {
+          q: searchQuery || undefined,
+          priceRange: priceRange !== 'all' ? priceRange : undefined,
+          rating: ratingFilter > 0 ? ratingFilter : undefined,
+          sortBy: sortBy !== 'relevance' ? sortBy : undefined,
+          locationFilter: locationFilter !== 'all' ? locationFilter : undefined,
+          page: 1,
+          limit: 20,
+        };
 
-    // Search filter
-    if (searchQuery.trim()) {
-      filtered = getProvidersBySkill(searchQuery);
-    }
-
-    // Price range filter
-    if (priceRange !== 'all') {
-      filtered = filtered.filter(provider => {
-        const price = provider.hourlyRate;
-        switch (priceRange) {
-          case 'low': return price < 50;
-          case 'medium': return price >= 50 && price < 100;
-          case 'high': return price >= 100;
-          default: return true;
+        // include lat/lng if available on user
+        if (user?.location?.lat && user?.location?.lng) {
+          params.lat = user.location.lat;
+          params.lng = user.location.lng;
         }
-      });
-    }
 
-    // Rating filter
-    if (ratingFilter > 0) {
-      filtered = filtered.filter(
-        provider => provider.rating >= ratingFilter
-      );
-    }
+        const { data } = await api.get('/api/providers/filter', {
+          params,
+          signal: controller.signal,
+        });
 
-    // LOCATION FILTER
-    if (locationFilter !== 'all') {
-      const withDistance = filtered.filter(
-        p => typeof p.distance === 'string'
-      );
+        const raw = data?.data?.providers || [];
 
-      if (locationFilter === 'close-to-far') {
-        withDistance.sort((a, b) => a.distance - b.distance);
+        console.log('Raw providers from API:', raw);
+
+        const formatDistance = (d) => {
+          if (d == null) return undefined;
+          // distance from backend (meters). format to km/m
+          const meters = Number(d);
+          if (Number.isNaN(meters)) return undefined;
+          if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
+          return `${Math.round(meters)} m`;
+        };
+
+        const normalized = raw.map((p) => {
+          const id = p._id || p.id || (p.user && p.user._id) || Math.random().toString(36).slice(2);
+          const name = p.businessName || p.user?.fullName || [p.user?.firstName, p.user?.lastName].filter(Boolean).join(' ') || 'Unknown';
+          const avatar = p.user?.avatar || p.avatar || '';
+          const skills = (p.selectedSkills || []).map(s => s.name).filter(Boolean);
+          const hourlyRate = Array.isArray(p.pricing) ? (p.pricing[0]?.serviceRate || 0) : (p.pricing?.serviceRate || 0);
+          const rating = p.meta?.avgRating ?? 0;
+          const reviewCount = p.meta?.totalReviews ?? 0;
+          const distance = p.distance != null ? formatDistance(p.distance) : undefined;
+          const bio = p.professionalDescription || p.user?.bio || '';
+          const isVerified = p.verification?.isVerified || false;
+          const completedJobs = p.meta?.completedJobs || 0;
+          const availability = p.isOnline ? 'available' : 'offline';
+
+          return {
+            id,
+            _id: id,
+            name,
+            avatar,
+            skills,
+            hourlyRate,
+            rating,
+            reviewCount,
+            distance,
+            bio,
+            isVerified,
+            completedJobs,
+            availability,
+            // keep raw payload for anything else
+            raw: p,
+          };
+        });
+
+        setFilteredProviders(normalized);
+      } catch (err) {
+        if (err.name === 'CanceledError' || err.name === 'AbortError') return;
+        setFilteredProviders([]);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      if (locationFilter === 'far-to-close') {
-        withDistance.sort((a, b) => b.distance - a.distance);
-      }
+    fetchProviders();
 
-      filtered = withDistance;
-    }
-
-    // Sort
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.hourlyRate - b.hourlyRate);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.hourlyRate - a.hourlyRate);
-        break;
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      default:
-        break;
-    }
-
-    setFilteredProviders(filtered);
+    return () => controller.abort();
   }, [
     searchQuery,
     priceRange,
     ratingFilter,
     sortBy,
-    locationFilter
+    locationFilter,
+    user?.location?.lat,
+    user?.location?.lng
   ]);
 
   const selectedProvider = providerId
-    ? Provider.find(p => String(p.id) === providerId)
+    ? filteredProviders.find(p => String(p.id || p._id) === providerId)
     : null;
 
   const handleSkillCardClick = (id) => {
@@ -384,7 +411,14 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
 
               {/* Results Grid */}
               <AnimatePresence mode="popLayout">
-                {filteredProviders.length === 0 ? (
+                {isLoading ? (
+                  <div className="py-24 text-center">
+                    <div className="flex justify-center mb-6">
+                      <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                    </div>
+                    <p className="text-muted-foreground font-medium">Loading providers...</p>
+                  </div>
+                ) : filteredProviders.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -410,17 +444,18 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
+                    key={`providers-${filteredProviders.length}`}
                     className="grid gap-8 md:grid-cols-2"
                   >
                     {filteredProviders.map((provider) => (
                       <motion.div
-                        key={provider.id}
+                        key={provider.id || provider._id}
                         variants={itemVariants}
                         layout
                       >
                         <SkillCard
                           provider={provider}
-                          onClick={() => handleSkillCardClick(provider.id)}
+                          onClick={() => handleSkillCardClick(provider.id || provider._id)}
                           variant="default"
                         />
                       </motion.div>

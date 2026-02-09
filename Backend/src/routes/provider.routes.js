@@ -10,6 +10,7 @@ import {
     getProviderAnalytics, 
     getProviderReviews,
 } from '../controllers/provider.controller.js';
+import { filterProviders } from '../controllers/filter.controller.js';
 
 import { upload } from '../middlewares/upload.middleware.js';
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
@@ -66,5 +67,8 @@ router.route('/update-profile').patch(
     validate(updateProviderSchema),
     updateProviderProfile
 )
+
+// Public filter endpoint used by frontend search
+router.route('/filter').get(filterProviders);
 
 export default router;

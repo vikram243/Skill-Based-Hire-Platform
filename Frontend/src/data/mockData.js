@@ -1,4 +1,4 @@
-export const SkillsContent = [
+export const Skills = [
   {
     id: '1',
     name: 'Electrician',
@@ -223,17 +223,6 @@ export const Orders = [
     createdAt: '2024-01-04T08:00:00Z',
     estimatedDuration: '4 hours'
   }
-];
-
-export const Skills = [
-  'all',
-  'Home Services',
-  'Education', 
-  'Pet Services',
-  'Food Services',
-  'Creative',
-  'Health & Fitness',
-  'Technology'
 ];
 
 export const getProvidersBySkill = (skillName) => {
