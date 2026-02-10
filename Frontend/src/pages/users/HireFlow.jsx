@@ -1,29 +1,37 @@
-import React, { useState } from 'react';
-import Navigation from '../../components/users/Navigation';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Badge } from '../../components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
 import { Separator } from '../../components/ui/separator';
 import {
   ArrowLeft,
-  Calendar,
-  Clock,
-  MapPin,
   CreditCard,
   Shield,
   CheckCircle,
   Star
 } from 'lucide-react';
-import { getProviderById } from '../../data/mockData';
+import { useParams } from 'react-router-dom';
+import api from '../../lib/axiosSetup'
 
-export default function HireFlow({ providerId, onComplete, onBack, user }) {
+export default function HireFlow() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const provider = providerId ? getProviderById(providerId) : null;
+  const [provider, setProvider] = useState();
+  const { providerId } = useParams();
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchProvider = async () => {
+      const res = await api.post(`/api/providers/${providerId}`);
+      setProvider(res.data);
+    };
+    fetchProvider();
+  }, [providerId]);
 
   const [bookingData, setBookingData] = useState({
     service: '',
@@ -50,48 +58,33 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    // Simulate booking process
     setTimeout(() => {
       setIsLoading(false);
-      onComplete();
     }, 2000);
   };
 
   if (!provider) {
     return (
       <div className="min-h-screen bg-linear-to-br from-background via-surface/30 to-background authenticated-page">
-        <Navigation
-          onNavigate={() => { }}
-          user={user}
-          isAuthenticated={!!user}
-          currentPage="hire-flow"
-        />
         <div className="container mx-auto px-4 py-8">
           <Card className="p-8 text-center">
             <p className="text-muted-foreground mb-4">Provider not found</p>
-            <Button onClick={onBack}>Go Back</Button>
+            <Button onClick={() => navigate(-1)}>Go Back</Button>
           </Card>
         </div>
       </div>
     );
   }
 
-  const estimatedCost = parseInt(bookingData.duration) * provider.hourlyRate;
+  const estimatedCost = parseInt(bookingData?.duration) * provider?.data?.profile?.hourly_rate;
 
   return (
     <div className="min-h-screen bg-linear-to-br pb-18 from-background via-surface/30 to-background authenticated-page">
-      <Navigation
-        onNavigate={() => { }}
-        user={user}
-        isAuthenticated={!!user}
-        currentPage="hire-flow"
-      />
-
       <div className="container mx-auto px-4 py-6">
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={onBack}
+          onClick={() => navigate(-1)}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
@@ -103,8 +96,8 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
             {[1, 2, 3].map((step) => (
               <React.Fragment key={step}>
                 <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${step <= currentStep
-                    ? 'bg-(--primary-gradient-start) border-(--primary-gradient-start) text-white'
-                    : 'border-border text-muted-foreground'
+                  ? 'bg-(--primary-gradient-start) border-(--primary-gradient-start) text-white'
+                  : 'border-border text-muted-foreground'
                   }`}>
                   {step < currentStep ? (
                     <CheckCircle className="w-4 h-4" />
@@ -137,12 +130,12 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                         <select
                           id="service"
                           className="w-full mt-2 p-3 border border-border/40 rounded-lg bg-input-background focus:border-(--primary-gradient-start)/50 focus:ring-(--primary-gradient-start)/20"
-                          value={bookingData.service}
+                          value={bookingData?.service}
                           onChange={(e) => setBookingData({ ...bookingData, service: e.target.value })}
                         >
                           <option value="">Choose a service...</option>
-                          {provider.skills.map((skill) => (
-                            <option key={skill} value={skill}>{skill}</option>
+                          {provider?.data?.skills?.map((skill) => (
+                            <option key={skill?.name} value={skill?.name}>{skill?.name}</option>
                           ))}
                         </select>
                       </div>
@@ -256,20 +249,20 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Service:</span>
-                          <span>{bookingData.service}</span>
+                          <span>{bookingData?.service}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Date & Time:</span>
-                          <span>{bookingData.date} at {bookingData.time}</span>
+                          <span>{bookingData?.date} at {bookingData?.time}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Duration:</span>
-                          <span>{bookingData.duration} hour(s)</span>
+                          <span>{bookingData?.duration} hour(s)</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Urgency:</span>
                           <Badge variant="outline" className="text-xs">
-                            {bookingData.urgency}
+                            {bookingData?.urgency}
                           </Badge>
                         </div>
                         <Separator className="my-2" />
@@ -317,8 +310,8 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                         onClick={handleNext}
                         className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
                         disabled={
-                          (currentStep === 1 && (!bookingData.service || !bookingData.description)) ||
-                          (currentStep === 2 && (!bookingData.date || !bookingData.time || !bookingData.address || !bookingData.phone))
+                          (currentStep === 1 && (!bookingData?.service || !bookingData?.description)) ||
+                          (currentStep === 2 && (!bookingData?.date || !bookingData?.time || !bookingData?.address || !bookingData?.phone))
                         }
                       >
                         Next
@@ -343,17 +336,17 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
               <Card className="p-6 bg-card border-2 border-border/40 shadow-lg sticky top-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={provider.avatar} alt={provider.name} />
+                    <AvatarImage src={provider?.profile?.avatar} alt={provider?.profile?.full_name} />
                     <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                      {provider.name.charAt(0)}
+                      {provider?.profile?.full_name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold">{provider.name}</p>
+                    <p className="font-semibold">{provider?.profile?.full_name}</p>
                     <div className="flex items-center space-x-1">
                       <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-medium">{provider.rating}</span>
-                      <span className="text-sm text-muted-foreground">({provider.reviewCount})</span>
+                      <span className="text-sm font-medium">{provider?.profile?.rating}</span>
+                      <span className="text-sm text-muted-foreground">({provider?.profile?.reviewCount})</span>
                     </div>
                   </div>
                 </div>
@@ -361,15 +354,15 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Hourly Rate:</span>
-                    <span className="font-medium">${provider.hourlyRate}/hr</span>
+                    <span className="font-medium">${provider?.profile?.hourly_rate}/hr</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Response Time:</span>
-                    <span className="font-medium">{provider.responseTime}</span>
+                    <span className="font-medium">{provider?.profile?.responseTime}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Distance:</span>
-                    <span className="font-medium">{provider.distance}</span>
+                    <span className="font-medium">{provider?.profile?.distance}</span>
                   </div>
                 </div>
 
@@ -379,7 +372,7 @@ export default function HireFlow({ providerId, onComplete, onBack, user }) {
                     <div className="text-center">
                       <p className="text-sm text-muted-foreground mb-1">Estimated Cost</p>
                       <p className="text-2xl font-bold text-(--primary-gradient-start)">${estimatedCost}</p>
-                      <p className="text-xs text-muted-foreground">Based on {bookingData.duration} hour(s)</p>
+                      <p className="text-xs text-muted-foreground">Based on {bookingData?.duration} hour(s)</p>
                     </div>
                   </>
                 )}

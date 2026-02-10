@@ -1,23 +1,32 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Card } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
-import { Badge } from '../../components/ui/badge';
-import { Separator } from '../../components/ui/separator';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Textarea } from '../../components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import RegisterProviderPanel from '../../components/users/RegisterProviderPage';
-import { profileSchema, firstZodError } from '../../lib/schemas';
-import ApplicationStatusPanel from '../../components/users/ApplicationStatusPanel';
-import api from '../../lib/axiosSetup';
+import React, { useState, useRef, useEffect } from "react";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "../../components/ui/avatar";
+import { Badge } from "../../components/ui/badge";
+import { Separator } from "../../components/ui/separator";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import RegisterProviderPanel from "../../components/users/RegisterProviderPage";
+import { profileSchema, firstZodError } from "../../lib/schemas";
+import ApplicationStatusPanel from "../../components/users/ApplicationStatusPanel";
+import api from "../../lib/axiosSetup";
 import { useDispatch } from "react-redux";
 import { updateAvatar } from "../../slices/userSlice";
 import { updatePersonalInfo } from "../../slices/userSlice";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from "framer-motion";
 import { useAnimation } from "motion/react";
 import {
   MapPin,
@@ -28,9 +37,9 @@ import {
   Camera,
   Save,
   X,
-  Briefcase
-} from 'lucide-react';
-import { Switch } from '../../components/ui/switch';
+  Briefcase,
+} from "lucide-react";
+import { Switch } from "../../components/ui/switch";
 
 function ProfilePage() {
   const avatarControls = useAnimation();
@@ -81,18 +90,19 @@ function ProfilePage() {
       transition: {
         type: "spring",
         stiffness: 200,
-        damping: 18
-      }
-    }
+        damping: 18,
+      },
+    },
   };
 
   const MotionInput = motion.create(Input);
   const MotionTextarea = motion.create(Textarea);
   const MotionButton = motion.create(Button);
+
   const stringify = (val) => {
-    if (val === null || val === undefined) return '';
-    if (typeof val === 'string') return val;
-    if (typeof val === 'object') {
+    if (val === null || val === undefined) return "";
+    if (typeof val === "string") return val;
+    if (typeof val === "object") {
       if (val.address) return val.address;
       if (val.label) return val.label;
       if (val.source) return val.source;
@@ -105,7 +115,8 @@ function ProfilePage() {
     }
     return String(val);
   };
-  const { user } = useSelector(state => state.user);
+
+  const { user } = useSelector((state) => state.user);
   const [isEditing, setIsEditing] = useState(false);
   const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
   const [isApplicationStatusOpen, setIsApplicationStatusOpen] = useState(false);
@@ -114,26 +125,32 @@ function ProfilePage() {
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [formData, setFormData] = useState({
-    fistName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    location: stringify(user?.location) || '',
-    bio: user?.bio || ''
+    fistName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    location: stringify(user?.location) || "",
+    bio: user?.bio || "",
   });
   const [orderStats, setOrderStats] = useState(null);
-  const [profileError, setProfileError] = useState('');
+  const [profileError, setProfileError] = useState("");
   const navigate = useNavigate();
 
   const displayStats = [
-    { label: 'Total Bookings', value: orderStats?.totalOrders?.toString() || '0' },
-    { label: 'Active orders', value: orderStats?.activeOrders?.toString() || '0' },
+    {
+      label: "Total Bookings",
+      value: orderStats?.totalOrders?.toString() || "0",
+    },
+    {
+      label: "Active orders",
+      value: orderStats?.activeOrders?.toString() || "0",
+    },
   ];
 
   const fetchOrdersStats = async () => {
     try {
-      const response = await api.get('/api/orders/stats/me');
-      setOrderStats(response.data?.data)
+      const response = await api.get("/api/orders/stats/me");
+      setOrderStats(response.data?.data);
     } catch (error) {
-      console.error('Error fetching order stats:', error);
+      console.error("Error fetching order stats:", error);
     }
   };
 
@@ -144,7 +161,7 @@ function ProfilePage() {
   useEffect(() => {
     if (!profileError) return;
     const timer = setTimeout(() => {
-      setProfileError('');
+      setProfileError("");
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -152,22 +169,21 @@ function ProfilePage() {
 
   const onLogout = async () => {
     try {
-      const res = await api.get('/api/users/logout');
-      if (res.status === 200)
-        localStorage.removeItem('accessToken');
-      window.location.href = '/';
+      const res = await api.get("/api/users/logout");
+      if (res.status === 200) localStorage.removeItem("accessToken");
+      window.location.href = "/";
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
   const handleSave = async () => {
-    setProfileError('');
+    setProfileError("");
 
     const parsed = profileSchema.safeParse({
       firstName: formData.fistName,
       lastName: formData.lastName,
-      bio: formData.bio
+      bio: formData.bio,
     });
 
     if (!parsed.success) {
@@ -181,22 +197,24 @@ function ProfilePage() {
       const res = await api.put("/api/users/update-profile", {
         firstName: formData.fistName,
         lastName: formData.lastName,
-        bio: formData.bio
+        bio: formData.bio,
       });
 
       if (res.status === 200) {
-        dispatch(updatePersonalInfo({
-          firstName: res?.data?.data?.firstName,
-          lastName: res?.data?.data?.lastName,
-          fullName: res?.data?.data?.fullName,
-          bio: res?.data?.data?.bio
-        }));
+        dispatch(
+          updatePersonalInfo({
+            firstName: res?.data?.data?.firstName,
+            lastName: res?.data?.data?.lastName,
+            fullName: res?.data?.data?.fullName,
+            bio: res?.data?.data?.bio,
+          }),
+        );
 
         setIsEditing(false);
       }
     } catch (error) {
       setProfileError(
-        error?.response?.data?.message || "Profile update failed"
+        error?.response?.data?.message || "Profile update failed",
       );
     } finally {
       setSaveLoading(false);
@@ -210,15 +228,11 @@ function ProfilePage() {
       const formData = new FormData();
       formData.append("avatar", file);
 
-      const res = await api.put(
-        "/api/users/update-profile",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await api.put("/api/users/update-profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (res.status === 200) {
         dispatch(updateAvatar(res?.data?.data?.avatar));
@@ -250,11 +264,10 @@ function ProfilePage() {
     return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
   };
   return (
-    <AnimatePresence mode='sync'>
+    <AnimatePresence mode="sync">
       <div className="min-h-screen pb-16 bg-background">
         <div className="container mx-auto px-4 py-6">
           <div className="max-w-4xl mx-auto">
-
             <div className="mb-8">
               <h1 className="text-3xl font-bold mb-2">My Profile</h1>
               <p className="text-muted-foreground">
@@ -262,7 +275,12 @@ function ProfilePage() {
               </p>
             </div>
 
-            <motion.div variants={pageVariants} initial="hidden" animate="show" className="grid lg:grid-cols-3 gap-8">
+            <motion.div
+              variants={pageVariants}
+              initial="hidden"
+              animate="show"
+              className="grid lg:grid-cols-3 gap-8"
+            >
               {/* Profile Card */}
               <motion.div variants={cardVariants} className="lg:col-span-1">
                 <Card className="p-6 text-center bg-linear-to-br from-card to-(--surface) border-2 border-border/40 shadow-(--shadow-mid)">
@@ -274,7 +292,10 @@ function ProfilePage() {
                       <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
                         <AvatarImage src={user?.avatar} alt={user?.firstName} />
                         <AvatarFallback className="text-xl bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                          {user?.fullName?.split?.(' ')?.map(n => n[0]).join('') || 'U'}
+                          {user?.fullName
+                            ?.split?.(" ")
+                            ?.map((n) => n[0])
+                            .join("") || "U"}
                         </AvatarFallback>
                       </Avatar>
                     </motion.div>
@@ -291,7 +312,14 @@ function ProfilePage() {
                           className="animate-spin w-4 h-4"
                           viewBox="0 0 24 24"
                         >
-                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
                         </svg>
                       ) : (
                         <Camera className="w-4 h-4" />
@@ -310,21 +338,29 @@ function ProfilePage() {
                     }}
                   />
 
-                  <h2 className="text-xl font-bold mb-1 truncate max-w-70">{user?.fullName}</h2>
-                  <p className="text-muted-foreground mb-2 truncate max-w-70">{user?.email}</p>
+                  <h2 className="text-xl font-bold mb-1 truncate max-w-70">
+                    {user?.fullName}
+                  </h2>
+                  <p className="text-muted-foreground mb-2 truncate max-w-70">
+                    {user?.email}
+                  </p>
 
                   <Badge variant="secondary" className="mb-4">
-                    {user?.isProvider ? 'Service Provider' : 'Customer'}
+                    {user?.isProvider ? "Service Provider" : "Customer"}
                   </Badge>
 
                   <div className="space-y-2 text-sm text-muted-foreground">
                     <div className="flex items-center justify-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      <span className="text-sm truncate max-w-30">{stringify(user?.location)}</span>
+                      <span className="text-sm truncate max-w-30">
+                        {stringify(user?.location)}
+                      </span>
                     </div>
                     <div className="flex items-center justify-center gap-2">
                       <Phone className="w-4 h-4" />
-                      <span className="text-sm truncate max-w-30">+91 {user?.number}</span>
+                      <span className="text-sm truncate max-w-30">
+                        +91 {user?.number}
+                      </span>
                     </div>
                   </div>
 
@@ -350,9 +386,7 @@ function ProfilePage() {
                       onClick={() => {
                         if (user?.isProvider) {
                           navigate("/provider-dashboard");
-                        } else if (
-                          user?.isApplicationAttampted
-                        ) {
+                        } else if (user?.isApplicationAttampted) {
                           setIsApplicationStatusOpen(true);
                         } else {
                           setIsRegisterProviderOpen(true);
@@ -397,15 +431,21 @@ function ProfilePage() {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
                       >
                         <Card className="p-6">
                           <motion.div
                             className="flex items-center justify-between mb-6"
-                            animate={isEditing ? { opacity: 1, scale: 1 } : { opacity: 0.98, scale: 0.995 }}
+                            animate={
+                              isEditing
+                                ? { opacity: 1, scale: 1 }
+                                : { opacity: 0.98, scale: 0.995 }
+                            }
                             transition={{ duration: 0.18 }}
                           >
-                            <h3 className="text-lg font-semibold">Personal Information</h3>
+                            <h3 className="text-lg font-semibold">
+                              Personal Information
+                            </h3>
                             {!isEditing ? (
                               <MotionButton
                                 variant="outline"
@@ -463,77 +503,124 @@ function ProfilePage() {
                           </motion.div>
 
                           {profileError && (
-                            <div className="text-sm text-red-600">{profileError}</div>
+                            <div className="text-sm text-red-600">
+                              {profileError}
+                            </div>
                           )}
 
                           <div className="space-y-4">
                             <div className="grid md:grid-cols-2 gap-4">
-                              <div className='flex gap-1 flex-col'>
-                                <Label htmlFor="name">First Name</Label>
-                                <MotionInput
-                                  id="name"
-                                  value={formData.fistName}
-                                  onChange={(e) => setFormData(prev => ({ ...prev, fistName: e.target.value }))}
-                                  disabled={!isEditing}
-                                  whileFocus={{ scale: 1.01 }}
-                                  transition={{ type: 'spring', stiffness: 300 }}
-                                />
+                              <div className="flex gap-1 flex-col">
+                                <Label>First Name</Label>
+                                <motion.div
+                                  whileFocusWithin={{ scale: 1.01 }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 300,
+                                  }}
+                                >
+                                  <Input
+                                    id="firstName"
+                                    value={formData.fistName}
+                                    onChange={(e) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        fistName: e.target.value,
+                                      }))
+                                    }
+                                    disabled={!isEditing}
+                                  />
+                                </motion.div>
                               </div>
-                              <div className='flex gap-1 flex-col'>
-                                <Label htmlFor="name">Last Name</Label>
-                                <MotionInput
-                                  id="name"
-                                  value={formData.lastName}
-                                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                                  disabled={!isEditing}
-                                  whileFocus={{ scale: 1.01 }}
-                                  transition={{ type: 'spring', stiffness: 300 }}
-                                />
+                              <div className="flex gap-1 flex-col">
+                                <Label>Last Name</Label>
+                                <motion.div
+                                  whileFocusWithin={{ scale: 1.01 }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 300,
+                                  }}
+                                >
+                                  <Input
+                                    id="lastName"
+                                    value={formData.lastName}
+                                    onChange={(e) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        lastName: e.target.value,
+                                      }))
+                                    }
+                                    disabled={!isEditing}
+                                  />
+                                </motion.div>
                               </div>
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-4">
-                              <div className='flex gap-1 flex-col'>
-                                <Label htmlFor="phone">Phone</Label>
-                                <MotionInput
+                              <div className="flex gap-1 flex-col">
+                                <Label>Phone</Label>
+                                <Input
                                   id="phone"
                                   value={user?.number}
-                                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      phone: e.target.value,
+                                    }))
+                                  }
                                   disabled
                                 />
                               </div>
-                              <div className='flex gap-1 flex-col'>
-                                <Label htmlFor="email">Email</Label>
-                                <MotionInput
+                              <div className="flex gap-1 flex-col">
+                                <Label>Email</Label>
+                                <Input
                                   id="email"
                                   value={user?.email}
-                                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      email: e.target.value,
+                                    }))
+                                  }
                                   disabled
                                 />
                               </div>
                             </div>
-                            <div className='flex gap-1 flex-col'>
-                              <Label htmlFor="location">Address</Label>
-                              <MotionTextarea
+                            <div className="flex gap-1 flex-col">
+                              <Label>Address</Label>
+                              <Textarea
                                 id="location"
                                 value={formData?.location}
-                                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    location: e.target.value,
+                                  }))
+                                }
                                 disabled
                                 rows={2}
                               />
                             </div>
 
-                            <div className='flex gap-1 flex-col'>
-                              <Label htmlFor="bio">Bio</Label>
-                              <MotionTextarea
-                                id="bio"
-                                value={formData.bio}
-                                onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                                disabled={!isEditing}
-                                rows={2}
-                                whileFocus={{ scale: 1.01 }}
-                                transition={{ type: 'spring', stiffness: 300 }}
-                              />
+                            <div className="flex gap-1 flex-col">
+                              <Label>Bio</Label>
+                              <motion.div
+                                whileFocusWithin={{ scale: 1.01 }}
+                                transition={{ type: "spring", stiffness: 300 }}
+                              >
+                                <MotionTextarea
+                                  id="bio"
+                                  value={formData.bio}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      bio: e.target.value,
+                                    }))
+                                  }
+                                  disabled={!isEditing}
+                                  rows={2}
+                                />
+                              </motion.div>
                             </div>
                           </div>
                         </Card>
@@ -548,45 +635,58 @@ function ProfilePage() {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
                       >
                         <Card className="p-6">
-                          <h3 className="text-lg font-semibold mb-6">Recent Activity</h3>
-                          <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-4">
-                            {(!orderStats?.recentOrders || orderStats.recentOrders.length === 0) && (
-                              <div className="text-sm text-muted-foreground text-center pb-10">
-                                No recent activity
-                              </div>
-                            )}
+                          <h3 className="text-lg font-semibold mb-6">
+                            Recent Activity
+                          </h3>
+                          <motion.div
+                            variants={listVariants}
+                            initial="hidden"
+                            animate="show"
+                            className="space-y-4"
+                          >
+                            {(!orderStats?.recentOrders ||
+                              orderStats.recentOrders.length === 0) && (
+                                <div className="text-sm text-muted-foreground text-center pb-10">
+                                  No recent activity
+                                </div>
+                              )}
 
-                            {orderStats?.recentOrders?.map((activity, index) => (
-                              <motion.div
-                                key={index}
-                                variants={listItem}
-                                className="flex items-center justify-between p-4 rounded-lg bg-(--surface) border border-border/40"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className={`w-2 h-2 rounded-full ${activity?.orderStatus === "completed"
-                                      ? "bg-success"
-                                      : "bg-(--primary-gradient-start)"
-                                      }`}
-                                  />
-                                  <div>
-                                    <p className="font-medium">{activity?.skill?.name}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                      {activity?.orderStatus === "completed"
-                                        ? "Service completed"
-                                        : "Service hired"} • {timeAgo(activity?.createdAt)}
-                                    </p>
+                            {orderStats?.recentOrders?.map(
+                              (activity, index) => (
+                                <motion.div
+                                  key={index}
+                                  variants={listItem}
+                                  className="flex items-center justify-between p-4 rounded-lg bg-(--surface) border border-border/40"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div
+                                      className={`w-2 h-2 rounded-full ${activity?.orderStatus === "completed"
+                                          ? "bg-success"
+                                          : "bg-(--primary-gradient-start)"
+                                        }`}
+                                    />
+                                    <div>
+                                      <p className="font-medium">
+                                        {activity?.skill?.name}
+                                      </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        {activity?.orderStatus === "completed"
+                                          ? "Service completed"
+                                          : "Service hired"}{" "}
+                                        • {timeAgo(activity?.createdAt)}
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
 
-                                <div className="flex items-center gap-1">
-                                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                </div>
-                              </motion.div>
-                            ))}
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                  </div>
+                                </motion.div>
+                              ),
+                            )}
                           </motion.div>
                         </Card>
                       </motion.div>
@@ -600,22 +700,29 @@ function ProfilePage() {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
                       >
                         <Card className="p-6">
-                          <h3 className="text-lg font-semibold mb-6">Account Settings</h3>
+                          <h3 className="text-lg font-semibold mb-6">
+                            Account Settings
+                          </h3>
                           <div className="space-y-6">
-
                             <div className="space-y-4">
                               <h4 className="font-medium">Notifications</h4>
                               <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                   <span>Email notifications</span>
-                                  <Switch defaultChecked className="border border-border" />
+                                  <Switch
+                                    defaultChecked
+                                    className="border border-border"
+                                  />
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span>SMS notifications</span>
-                                  <Switch defaultChecked className="border border-border" />
+                                  <Switch
+                                    defaultChecked
+                                    className="border border-border"
+                                  />
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span>Marketing emails</span>
@@ -635,7 +742,10 @@ function ProfilePage() {
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span>Show location</span>
-                                  <Switch defaultChecked className="border border-border" />
+                                  <Switch
+                                    defaultChecked
+                                    className="border border-border"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -667,4 +777,4 @@ function ProfilePage() {
   );
 }
 
-export default ProfilePage
+export default ProfilePage;

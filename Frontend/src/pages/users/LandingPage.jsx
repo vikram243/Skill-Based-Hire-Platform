@@ -317,7 +317,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button
-                    onClick={() => isAuthenticated ? navigate('/register-provider') : setIsAuthPanelOpen(true)}
+                    onClick={() => isAuthenticated ? navigate('/profile') : setIsAuthPanelOpen(true)}
                     size="lg"
                     className="h-16 px-10 bg-white text-indigo-900 hover:bg-indigo-50 font-black rounded-2xl text-lg shadow-xl"
                   >
