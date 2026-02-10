@@ -17,6 +17,8 @@ import api from '../../lib/axiosSetup';
 import { useDispatch } from "react-redux";
 import { updateAvatar } from "../../slices/userSlice";
 import { updatePersonalInfo } from "../../slices/userSlice";
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAnimation } from "motion/react";
 import {
   MapPin,
   Phone,
@@ -31,6 +33,62 @@ import {
 import { Switch } from '../../components/ui/switch';
 
 function ProfilePage() {
+  const avatarControls = useAnimation();
+  const pageVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 16, scale: 0.98 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
+  };
+
+  const listVariants = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: 0.06,
+      },
+    },
+  };
+
+  const listItem = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0 },
+  };
+
+  const avatarVariants = {
+    rest: {
+      scale: 1,
+    },
+    hover: {
+      scale: 1.05,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 18
+      }
+    }
+  };
+
+  const MotionInput = motion.create(Input);
+  const MotionTextarea = motion.create(Textarea);
+  const MotionButton = motion.create(Button);
   const stringify = (val) => {
     if (val === null || val === undefined) return '';
     if (typeof val === 'string') return val;
@@ -192,362 +250,420 @@ function ProfilePage() {
     return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
   };
   return (
-    <div className="min-h-screen pb-16 bg-background">
-      <div className="container mx-auto px-4 py-6">
-        <div className="max-w-4xl mx-auto">
+    <AnimatePresence mode='sync'>
+      <div className="min-h-screen pb-16 bg-background">
+        <div className="container mx-auto px-4 py-6">
+          <div className="max-w-4xl mx-auto">
 
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-            <p className="text-muted-foreground">
-              Manage your account settings and preferences
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Profile Card */}
-            <div className="lg:col-span-1">
-              <Card className="p-6 text-center bg-linear-to-br from-card to-(--surface) border-2 border-border/40 shadow-(--shadow-mid)">
-                <div className="relative inline-block mb-4">
-                  <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
-                    <AvatarImage src={user?.avatar} alt={user?.firstName} />
-                    <AvatarFallback className="text-xl bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                      {user?.fullName?.split?.(' ')?.map(n => n[0]).join('') || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button
-                    size="sm"
-                    disabled={avatarLoading}
-                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-accent hover:bg-accent/90 cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {avatarLoading ? (
-                      <svg
-                        className="animate-spin w-4 h-4"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      </svg>
-                    ) : (
-                      <Camera className="w-4 h-4" />
-                    )}
-                  </Button>
-
-                </div>
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) updateProfilePicture(file);
-                  }}
-                />
-
-                <h2 className="text-xl font-bold mb-1 truncate max-w-70">{user?.fullName}</h2>
-                <p className="text-muted-foreground mb-2 truncate max-w-70">{user?.email}</p>
-
-                <Badge variant="secondary" className="mb-4">
-                  {user?.isProvider ? 'Service Provider' : 'Customer'}
-                </Badge>
-
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-center justify-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    <span className="text-sm truncate max-w-30">{stringify(user?.location)}</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    <span className="text-sm truncate max-w-30">+91 {user?.number}</span>
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                <div className="grid grid-cols-2 gap-4">
-                  {displayStats.slice(0, 2).map((stat, i) => (
-                    <div key={i}>
-                      <div className="font-bold text-lg text-(--primary-gradient-start)">
-                        {stat.value}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {stat.label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full mt-3 bg-linear-to-r cursor-pointer from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
-                    onClick={() => {
-                      if (user?.isProvider) {
-                        navigate("/provider-dashboard");
-                      } else if (
-                        user?.isApplicationAttampted
-                      ) {
-                        setIsApplicationStatusOpen(true);
-                      } else {
-                        setIsRegisterProviderOpen(true);
-                      }
-                    }}
-                  >
-                    {user?.isProvider
-                      ? "Go to Provider Dashboard"
-                      : user?.isApplicationAttampted
-                        ? "Check Application Status"
-                        : "Become Provider"}
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="w-full cursor-pointer text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={onLogout}
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              </Card>
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold mb-2">My Profile</h1>
+              <p className="text-muted-foreground">
+                Manage your account settings and preferences
+              </p>
             </div>
 
-            {/* Main Content */}
-            <div className="lg:col-span-2">
-              <Tabs defaultValue="personal" className="space-y-6">
-                <TabsList className="grid w-full h-full grid-cols-3">
-                  <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                  <TabsTrigger value="activity">Activity</TabsTrigger>
-                  <TabsTrigger value="settings">Settings</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="personal">
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold">Personal Information</h3>
-                      {!isEditing ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsEditing(true)}
+            <motion.div variants={pageVariants} initial="hidden" animate="show" className="grid lg:grid-cols-3 gap-8">
+              {/* Profile Card */}
+              <motion.div variants={cardVariants} className="lg:col-span-1">
+                <Card className="p-6 text-center bg-linear-to-br from-card to-(--surface) border-2 border-border/40 shadow-(--shadow-mid)">
+                  <div className="relative inline-block mb-4">
+                    <motion.div
+                      animate={avatarControls}
+                      variants={avatarVariants}
+                    >
+                      <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
+                        <AvatarImage src={user?.avatar} alt={user?.firstName} />
+                        <AvatarFallback className="text-xl bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
+                          {user?.fullName?.split?.(' ')?.map(n => n[0]).join('') || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </motion.div>
+                    <MotionButton
+                      size="sm"
+                      disabled={avatarLoading}
+                      onMouseEnter={() => avatarControls.start("hover")}
+                      onMouseLeave={() => avatarControls.start("rest")}
+                      className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-accent hover:bg-accent/90 cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {avatarLoading ? (
+                        <svg
+                          className="animate-spin w-4 h-4"
+                          viewBox="0 0 24 24"
                         >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </Button>
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        </svg>
                       ) : (
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsEditing(false)}
+                        <Camera className="w-4 h-4" />
+                      )}
+                    </MotionButton>
+                  </div>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) updateProfilePicture(file);
+                    }}
+                  />
+
+                  <h2 className="text-xl font-bold mb-1 truncate max-w-70">{user?.fullName}</h2>
+                  <p className="text-muted-foreground mb-2 truncate max-w-70">{user?.email}</p>
+
+                  <Badge variant="secondary" className="mb-4">
+                    {user?.isProvider ? 'Service Provider' : 'Customer'}
+                  </Badge>
+
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-sm truncate max-w-30">{stringify(user?.location)}</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      <span className="text-sm truncate max-w-30">+91 {user?.number}</span>
+                    </div>
+                  </div>
+
+                  <Separator className="my-6" />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {displayStats.slice(0, 2).map((stat, i) => (
+                      <div key={i}>
+                        <div className="font-bold text-lg text-(--primary-gradient-start)">
+                          {stat.value}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {stat.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 space-y-2">
+                    <MotionButton
+                      variant="outline"
+                      className="w-full mt-3 bg-linear-to-r cursor-pointer from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
+                      onClick={() => {
+                        if (user?.isProvider) {
+                          navigate("/provider-dashboard");
+                        } else if (
+                          user?.isApplicationAttampted
+                        ) {
+                          setIsApplicationStatusOpen(true);
+                        } else {
+                          setIsRegisterProviderOpen(true);
+                        }
+                      }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={{ duration: 0.1 }}
+                    >
+                      {user?.isProvider
+                        ? "Go to Provider Dashboard"
+                        : user?.isApplicationAttampted
+                          ? "Check Application Status"
+                          : "Become Provider"}
+                    </MotionButton>
+
+                    <MotionButton
+                      variant="outline"
+                      className="w-full cursor-pointer text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      onClick={onLogout}
+                      whileTap={{ scale: 0.96 }}
+                      transition={{ duration: 0.1 }}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </MotionButton>
+                  </div>
+                </Card>
+              </motion.div>
+
+              {/* Main Content */}
+              <motion.div variants={cardVariants} className="lg:col-span-2">
+                <Tabs defaultValue="personal" className="space-y-6">
+                  <TabsList className="grid w-full h-full grid-cols-3">
+                    <TabsTrigger value="personal">Personal Info</TabsTrigger>
+                    <TabsTrigger value="activity">Activity</TabsTrigger>
+                    <TabsTrigger value="settings">Settings</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="personal">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key="personal"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                      >
+                        <Card className="p-6">
+                          <motion.div
+                            className="flex items-center justify-between mb-6"
+                            animate={isEditing ? { opacity: 1, scale: 1 } : { opacity: 0.98, scale: 0.995 }}
+                            transition={{ duration: 0.18 }}
                           >
-                            <X className="w-4 h-4 mr-2" />
-                            Cancel
-                          </Button>
-                          <Button
-                            size="sm"
-                            disabled={saveLoading}
-                            onClick={handleSave}
-                            className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
-                          >
-                            {saveLoading ? (
-                              <svg
-                                className="animate-spin w-4 h-4"
-                                viewBox="0 0 24 24"
+                            <h3 className="text-lg font-semibold">Personal Information</h3>
+                            {!isEditing ? (
+                              <MotionButton
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsEditing(true)}
+                                whileTap={{ scale: 0.96 }}
+                                transition={{ duration: 0.1 }}
                               >
-                                <circle
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                  fill="none"
-                                />
-                              </svg>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit
+                              </MotionButton>
                             ) : (
-                              <>
-                                <Save className="w-4 h-4 mr-2" />
-                                Save
-                              </>
+                              <div className="flex gap-2">
+                                <MotionButton
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setIsEditing(false)}
+                                  whileTap={{ scale: 0.96 }}
+                                  transition={{ duration: 0.1 }}
+                                >
+                                  <X className="w-4 h-4 mr-2" />
+                                  Cancel
+                                </MotionButton>
+                                <MotionButton
+                                  size="sm"
+                                  disabled={saveLoading}
+                                  onClick={handleSave}
+                                  className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
+                                  whileTap={{ scale: 0.96 }}
+                                  transition={{ duration: 0.1 }}
+                                >
+                                  {saveLoading ? (
+                                    <svg
+                                      className="animate-spin w-4 h-4"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                        fill="none"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <>
+                                      <Save className="w-4 h-4 mr-2" />
+                                      Save
+                                    </>
+                                  )}
+                                </MotionButton>
+                              </div>
                             )}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
+                          </motion.div>
 
-                    {profileError && (
-                      <div className="text-sm text-red-600">{profileError}</div>
-                    )}
+                          {profileError && (
+                            <div className="text-sm text-red-600">{profileError}</div>
+                          )}
 
-                    <div className="space-y-4">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className='flex gap-1 flex-col'>
-                          <Label htmlFor="name">First Name</Label>
-                          <Input
-                            id="name"
-                            value={formData.fistName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, fistName: e.target.value }))}
-                            disabled={!isEditing}
-                          />
-                        </div>
-                        <div className='flex gap-1 flex-col'>
-                          <Label htmlFor="name">Last Name</Label>
-                          <Input
-                            id="name"
-                            value={formData.lastName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                            disabled={!isEditing}
-                          />
-                        </div>
-                      </div>
+                          <div className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div className='flex gap-1 flex-col'>
+                                <Label htmlFor="name">First Name</Label>
+                                <MotionInput
+                                  id="name"
+                                  value={formData.fistName}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, fistName: e.target.value }))}
+                                  disabled={!isEditing}
+                                  whileFocus={{ scale: 1.01 }}
+                                  transition={{ type: 'spring', stiffness: 300 }}
+                                />
+                              </div>
+                              <div className='flex gap-1 flex-col'>
+                                <Label htmlFor="name">Last Name</Label>
+                                <MotionInput
+                                  id="name"
+                                  value={formData.lastName}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                                  disabled={!isEditing}
+                                  whileFocus={{ scale: 1.01 }}
+                                  transition={{ type: 'spring', stiffness: 300 }}
+                                />
+                              </div>
+                            </div>
 
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className='flex gap-1 flex-col'>
-                          <Label htmlFor="phone">Phone</Label>
-                          <Input
-                            id="phone"
-                            value={user?.number}
-                            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                            disabled
-                          />
-                        </div>
-                        <div className='flex gap-1 flex-col'>
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            value={user?.email}
-                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                            disabled
-                          />
-                        </div>
-                      </div>
-                      <div className='flex gap-1 flex-col'>
-                        <Label htmlFor="location">Address</Label>
-                        <Textarea
-                          id="location"
-                          value={formData?.location}
-                          onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                          disabled
-                          rows={2}
-                        />
-                      </div>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div className='flex gap-1 flex-col'>
+                                <Label htmlFor="phone">Phone</Label>
+                                <MotionInput
+                                  id="phone"
+                                  value={user?.number}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                                  disabled
+                                />
+                              </div>
+                              <div className='flex gap-1 flex-col'>
+                                <Label htmlFor="email">Email</Label>
+                                <MotionInput
+                                  id="email"
+                                  value={user?.email}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                  disabled
+                                />
+                              </div>
+                            </div>
+                            <div className='flex gap-1 flex-col'>
+                              <Label htmlFor="location">Address</Label>
+                              <MotionTextarea
+                                id="location"
+                                value={formData?.location}
+                                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                                disabled
+                                rows={2}
+                              />
+                            </div>
 
-                      <div className='flex gap-1 flex-col'>
-                        <Label htmlFor="bio">Bio</Label>
-                        <Textarea
-                          id="bio"
-                          value={formData.bio}
-                          onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                          disabled={!isEditing}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="activity">
-                  <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-6">Recent Activity</h3>
-                    <div className="space-y-4">
-                      {(!orderStats?.recentOrders || orderStats.recentOrders.length === 0) && (
-                        <div className="text-sm text-muted-foreground text-center pb-10">
-                          No recent activity
-                        </div>
-                      )}
-
-                      {orderStats?.recentOrders?.map((activity, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-4 rounded-lg bg-(--surface) border border-border/40"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-2 h-2 rounded-full ${activity?.orderStatus === "completed"
-                                ? "bg-success"
-                                : "bg-(--primary-gradient-start)"
-                                }`}
-                            />
-                            <div>
-                              <p className="font-medium">{activity?.skill?.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {activity?.orderStatus === "completed"
-                                  ? "Service completed"
-                                  : "Service hired"} • {timeAgo(activity?.createdAt)}
-                              </p>
+                            <div className='flex gap-1 flex-col'>
+                              <Label htmlFor="bio">Bio</Label>
+                              <MotionTextarea
+                                id="bio"
+                                value={formData.bio}
+                                onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                                disabled={!isEditing}
+                                rows={2}
+                                whileFocus={{ scale: 1.01 }}
+                                transition={{ type: 'spring', stiffness: 300 }}
+                              />
                             </div>
                           </div>
+                        </Card>
+                      </motion.div>
+                    </AnimatePresence>
+                  </TabsContent>
 
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                </TabsContent>
+                  <TabsContent value="activity">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key="activity"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                      >
+                        <Card className="p-6">
+                          <h3 className="text-lg font-semibold mb-6">Recent Activity</h3>
+                          <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-4">
+                            {(!orderStats?.recentOrders || orderStats.recentOrders.length === 0) && (
+                              <div className="text-sm text-muted-foreground text-center pb-10">
+                                No recent activity
+                              </div>
+                            )}
 
-                <TabsContent value="settings">
-                  <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-6">Account Settings</h3>
-                    <div className="space-y-6">
+                            {orderStats?.recentOrders?.map((activity, index) => (
+                              <motion.div
+                                key={index}
+                                variants={listItem}
+                                className="flex items-center justify-between p-4 rounded-lg bg-(--surface) border border-border/40"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${activity?.orderStatus === "completed"
+                                      ? "bg-success"
+                                      : "bg-(--primary-gradient-start)"
+                                      }`}
+                                  />
+                                  <div>
+                                    <p className="font-medium">{activity?.skill?.name}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {activity?.orderStatus === "completed"
+                                        ? "Service completed"
+                                        : "Service hired"} • {timeAgo(activity?.createdAt)}
+                                    </p>
+                                  </div>
+                                </div>
 
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Notifications</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span>Email notifications</span>
-                            <Switch defaultChecked className="border border-border" />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>SMS notifications</span>
-                            <Switch defaultChecked className="border border-border" />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>Marketing emails</span>
-                            <Switch className="border border-border" />
-                          </div>
-                        </div>
-                      </div>
+                                <div className="flex items-center gap-1">
+                                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                </div>
+                              </motion.div>
+                            ))}
+                          </motion.div>
+                        </Card>
+                      </motion.div>
+                    </AnimatePresence>
+                  </TabsContent>
 
-                      <Separator />
+                  <TabsContent value="settings">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key="settings"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                      >
+                        <Card className="p-6">
+                          <h3 className="text-lg font-semibold mb-6">Account Settings</h3>
+                          <div className="space-y-6">
 
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Privacy</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span>Profile visibility</span>
-                            <Badge variant="secondary">Public</Badge>
+                            <div className="space-y-4">
+                              <h4 className="font-medium">Notifications</h4>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span>Email notifications</span>
+                                  <Switch defaultChecked className="border border-border" />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span>SMS notifications</span>
+                                  <Switch defaultChecked className="border border-border" />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span>Marketing emails</span>
+                                  <Switch className="border border-border" />
+                                </div>
+                              </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-4">
+                              <h4 className="font-medium">Privacy</h4>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span>Profile visibility</span>
+                                  <Badge variant="secondary">Public</Badge>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span>Show location</span>
+                                  <Switch defaultChecked className="border border-border" />
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span>Show location</span>
-                            <Switch defaultChecked className="border border-border" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
+                        </Card>
+                      </motion.div>
+                    </AnimatePresence>
+                  </TabsContent>
+                </Tabs>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
-      </div>
-      <RegisterProviderPanel
-        isOpen={isRegisterProviderOpen}
-        onClose={() => setIsRegisterProviderOpen(false)}
-        onSuccess={() => {
-          setIsRegisterProviderOpen(false);
-        }}
-        number={user?.number}
-      />
+        <RegisterProviderPanel
+          isOpen={isRegisterProviderOpen}
+          onClose={() => setIsRegisterProviderOpen(false)}
+          onSuccess={() => {
+            setIsRegisterProviderOpen(false);
+          }}
+          number={user?.number}
+        />
 
-      <ApplicationStatusPanel
-        isOpen={isApplicationStatusOpen}
-        onClose={() => setIsApplicationStatusOpen(false)}
-      />
-    </div>
+        <ApplicationStatusPanel
+          isOpen={isApplicationStatusOpen}
+          onClose={() => setIsApplicationStatusOpen(false)}
+        />
+      </div>
+    </AnimatePresence>
   );
 }
 

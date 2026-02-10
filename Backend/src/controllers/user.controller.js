@@ -90,10 +90,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const fullName = `${firstName} ${lastName}`;
   const payload = { firstName, lastName, fullName, email, number };
 
-  const user = await User.create(payload).populate({
-    path: "providerProfile",
-    select: "applicationStatus submittedAt isAttampted"
-  });
+  const user = await User.create(payload)
 
   const sessionId = crypto.randomUUID();
   const accessToken = user.generateAccessToken(sessionId);

@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   ChevronDown
 } from 'lucide-react';
-import { Provider, getProvidersBySkill, Categories } from '../../data/mockData';
+import { Provider, getProvidersBySkill } from '../../data/mockData';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'motion/react';
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogClose } from '../../components/ui/dialog';
