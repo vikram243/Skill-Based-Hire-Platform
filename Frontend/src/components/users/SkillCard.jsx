@@ -41,13 +41,13 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
                     isCompact ? 'w-3 h-3' : 'w-4 h-4'
                   }`} />
                 )}
-                <h3 className={`font-semibold group-hover:text-(--primary-gradient-start) transition-colors duration-200 ${
+                <h3 className={`font-semibold group-hover:text-(--primary-gradient-start) truncate max-w-45 transition-colors duration-200 ${
                   isCompact ? 'text-sm' : 'text-base'
                 }`}>
                   {provider.name}
                 </h3>
               </div>
-              <p className={`text-muted-foreground ${isCompact ? 'text-xs' : 'text-sm'}`}>
+              <p className={`text-muted-foreground truncate max-w-45 ${isCompact ? 'text-xs' : 'text-sm'}`}>
                 {provider.location}
               </p>
             </div>
@@ -55,18 +55,6 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
           
           {/* Availability Status */}
           <div className="flex flex-col items-end space-y-1">
-            <Badge 
-              variant={provider.availability === 'available' ? 'default' : 'secondary'}
-              className={`${
-                provider.availability === 'available' 
-                  ? 'bg-success text-success-foreground' 
-                  : provider.availability === 'busy'
-                  ? 'bg-accent text-accent-foreground'
-                  : 'bg-muted text-muted-foreground'
-              } ${isCompact ? 'text-xs px-2 py-0.5' : 'text-xs'}`}
-            >
-              {provider.availability}
-            </Badge>
             {!isCompact && (
               <p className="text-xs text-muted-foreground flex items-center">
                 <Clock className="w-3 h-3 ml-3 mr-1" />
@@ -83,7 +71,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
               <Badge 
                 key={skill}
                 variant="outline" 
-                className={`bg-background/50 border-border/40 hover:border-(--primary-gradient-start)/40 transition-colors duration-200 ${
+                className={`bg-(--primary-gradient-start)/10 border-(--primary-gradient-start)/30 text-(--primary-gradient-start) transition-colors duration-200 ${
                   isCompact ? 'text-xs px-2 py-0.5' : 'text-xs'
                 }`}
               >
@@ -135,7 +123,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             </p>
             {!isCompact && (
               <p className="text-xs text-muted-foreground">
-                {provider.completedJobs} jobs
+                {provider.completedJobs} jobs completed
               </p>
             )}
           </div>
