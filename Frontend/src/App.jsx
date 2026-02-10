@@ -1,14 +1,18 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUser, logoutUser, setLoading } from "./slices/userSlice";
 import api from "./lib/axiosSetup";
+import FullPageLoader from "./components/ui/full-page-loader";
 
 const App = () => {
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.user);
+
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getInitialTheme = () => {
     try {
@@ -17,11 +21,11 @@ const App = () => {
         return JSON.parse(savedTheme);
       }
       return window.matchMedia("(prefers-color-scheme: dark)").matches;
-    } catch (e) {
-      console.warn("Error getting initial theme", e);
+    } catch {
       return false;
     }
   };
+
   const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
   useEffect(() => {
@@ -40,6 +44,7 @@ const App = () => {
       const token = localStorage.getItem("accessToken");
       if (!token) {
         dispatch(logoutUser());
+        dispatch(setLoading(false));
         return;
       }
 
@@ -54,12 +59,17 @@ const App = () => {
       } catch (err) {
         localStorage.removeItem("accessToken");
         dispatch(logoutUser());
-        console.warn("Error verifying auth", err);
+      } finally {
+        dispatch(setLoading(false));
       }
     };
 
     verifyAuth();
   }, [dispatch]);
+
+  if (loading) {
+    return <FullPageLoader />;
+  }
 
   return (
     <RouterProvider

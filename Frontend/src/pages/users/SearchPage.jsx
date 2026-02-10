@@ -24,7 +24,6 @@ import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogClose } from '
 import { useSelector } from 'react-redux';
 
 export default function SearchPage({ searchQuery = '', setSearchQuery }) {
-  console.log('SearchPage rendered with query:', searchQuery);
   const [filteredProviders, setFilteredProviders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [priceRange, setPriceRange] = useState('all');
@@ -65,8 +64,6 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
         });
 
         const raw = data?.data?.providers || [];
-
-        console.log('Raw providers from API:', raw);
 
         const formatDistance = (d) => {
           if (d == null) return undefined;
