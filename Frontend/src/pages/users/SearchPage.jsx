@@ -64,30 +64,22 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
         });
 
         const raw = data?.data?.providers || [];
-        console.log('Raw providers from API:', raw);
-
-        const formatDistance = (d) => {
-          if (d == null) return undefined;
-          // distance from backend (meters). format to km/m
-          const meters = Number(d);
-          if (Number.isNaN(meters)) return undefined;
-          if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
-          return `${Math.round(meters)} m`;
-        };
 
         const normalized = raw.map((p) => {
-          const id = p._id || p.id || (p.user && p.user._id) || Math.random().toString(36).slice(2);
-          const name = p.businessName || p.user?.fullName || [p.user?.firstName, p.user?.lastName].filter(Boolean).join(' ') || 'Unknown';
-          const avatar = p.user?.avatar || p.avatar || '';
-          const skills = (p.selectedSkills || []).map(s => s.name).filter(Boolean);
-          const hourlyRate = Array.isArray(p.pricing) ? (p.pricing[0]?.serviceRate || 0) : (p.pricing?.serviceRate || 0);
-          const rating = p.meta?.avgRating ?? 0;
-          const reviewCount = p.meta?.totalReviews ?? 0;
-          const distance = p.distance != null ? formatDistance(p.distance) : undefined;
-          const bio = p.professionalDescription || p.user?.bio || '';
-          const isVerified = p.verification?.isVerified || false;
-          const completedJobs = p.meta?.completedJobs || 0;
-          const availability = p.isOnline ? 'available' : 'offline';
+          const id = p._id || p.id;
+          const name = p.name;
+          const avatar = p.avatar || '';
+          const skills = p.skills;
+          const hourlyRate = p.price;
+          const rating = p.rating;
+          const reviewCount = p.reviewCount ?? 0;
+          const distance = p.distanceText;
+          const bio = p.bio || '';
+          const isVerified = p.isVerified || false;
+          const completedJobs = p.completedJobs || 0;
+          const estimatedTime = p.estimatedTimeText;
+          const location = p.location;
+          const rateType = p.rateType;
 
           return {
             id,
@@ -102,9 +94,9 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
             bio,
             isVerified,
             completedJobs,
-            availability,
-            // keep raw payload for anything else
-            raw: p,
+            estimatedTime,
+            location,
+            rateType
           };
         });
 

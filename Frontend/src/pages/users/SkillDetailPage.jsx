@@ -133,9 +133,9 @@ export default function SkillDetailPage({ provider }) {
             <MotionCard className="p-6 bg-card border-2 border-border/40 shadow-lg">
               <div className="flex justify-between">
                 <MotionAvatar initial={false} whileHover={{ scale: 1.04 }} transition={{ duration: 0.2 }} className="h-20 w-20 ring-4 ring-(--primary-gradient-start)/20">
-                  <AvatarImage src={provider?.providers?.avatar} alt={provider?.providers?.name} />
+                  <AvatarImage src={provider.avatar} alt={provider.name} />
                   <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white text-xl">
-                    {provider?.providers?.name.charAt(0)}
+                    {provider.name.charAt(0)}
                   </AvatarFallback>
                 </MotionAvatar>
 
@@ -161,26 +161,26 @@ export default function SkillDetailPage({ provider }) {
                 <div className="flex items-center space-x-4">
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <h1 className="text-2xl font-bold truncate max-w-64 md:max-w-100">{provider?.providers?.name}</h1>
-                      {provider?.providers?.isVerified && (
+                      <h1 className="text-2xl font-bold truncate max-w-64 md:max-w-100">{provider.name}</h1>
+                      {provider.isVerified && (
                         <CheckCircle className="w-6 h-6 text-(--primary-gradient-start)" />
                       )}
                     </div>
                     <div className="flex items-center justify-between space-x-4 text-muted-foreground mb-2">
                       <div className="flex items-center space-x-1">
                         <MapPin className="w-4 h-4" />
-                        <span className='truncate max-w-40 md:max-w-70'>{provider?.providers?.location}</span>
+                        <span className='truncate max-w-40 md:max-w-70'>{provider.location}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="w-4 h-4" />
-                        <span className='truncate max-w-20 md:max-w-40'>{provider?.providers?.responseTime} response</span>
+                        <span className='truncate max-w-20 md:max-w-40'>{provider.responseTime || 'N/A'} response time</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-1">
                         <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                        <span className="font-semibold">{provider?.providers?.rating}</span>
-                        <span className="text-muted-foreground">({provider?.providers?.reviewCount} reviews)</span>
+                        <span className="font-semibold">{provider.rating}</span>
+                        <span className="text-muted-foreground">({provider.reviewCount} reviews)</span>
                       </div>
                     </div>
                   </div>
@@ -191,7 +191,7 @@ export default function SkillDetailPage({ provider }) {
               <div className="mb-6">
                 <h3 className="font-semibold mb-3">Services Offered</h3>
                 <div className="flex flex-wrap gap-2">
-                  {provider?.providers?.skills.map((skill) => (
+                  {provider.skills.map((skill) => (
                     <Badge
                       key={skill}
                       variant="outline"
@@ -207,7 +207,7 @@ export default function SkillDetailPage({ provider }) {
               <div>
                 <h3 className="font-semibold mb-3">About</h3>
                 <MotionP layout transition={{ duration: 0.25, ease: 'easeOut' }} className={`text-muted-foreground leading-relaxed ${expanded ? '' : 'line-clamp-4'}`}>
-                  {provider?.providers?.bio}
+                  {provider.bio}
                 </MotionP>
                 <button onClick={() => setExpanded(!expanded)} className="mt-2 text-sm font-semibold text-blue-600 hover:underline">
                   {expanded ? 'Read less' : 'Read more'}
@@ -314,7 +314,7 @@ export default function SkillDetailPage({ provider }) {
                       <div className="flex items-center space-x-3">
                         <CheckCircle className="w-6 h-6 text-(--primary-gradient-start)" />
                         <div>
-                          <p className="font-semibold">{provider?.providers?.completedJobs}+ Completed Jobs</p>
+                          <p className="font-semibold">{provider.completedJobs}+ Completed Jobs</p>
                           <p className="text-sm text-muted-foreground">Successfully completed projects with high satisfaction</p>
                         </div>
                       </div>
@@ -350,7 +350,7 @@ export default function SkillDetailPage({ provider }) {
             <MotionCard initial={false} className="p-6 bg-card border-2 border-border/40 shadow-lg sticky top-20">
               <div className="text-center mb-6">
                 <p className="text-3xl font-bold text-(--primary-gradient-start) mb-1">
-                  ₹{provider?.providers?.hourlyRate}/hr
+                  ₹{provider.hourlyRate}/hr
                 </p>
                 <p className="text-muted-foreground">Starting rate</p>
               </div>
@@ -359,7 +359,7 @@ export default function SkillDetailPage({ provider }) {
                 <MotionButton
                   size="lg"
                   className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                  onClick={() => navigate(`/hire/${provider?.providers?._id}`, { selectedProviderId: provider?.providers?.id })}
+                  onClick={() => navigate(`/hire/${provider._id}`, { selectedProviderId: provider.id })}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.96 }}
                   transition={{ duration: 0.15 }}
@@ -385,15 +385,19 @@ export default function SkillDetailPage({ provider }) {
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Response Time:</span>
-                  <span className="font-medium">{provider?.providers?.responseTime}</span>
+                  <span className="font-medium">{provider.responseTime}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Completed Jobs:</span>
-                  <span className="font-medium">{provider?.providers?.completedJobs}</span>
+                  <span className="font-medium">{provider.completedJobs}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Distance:</span>
-                  <span className="font-medium">{provider?.providers?.distance}</span>
+                  <span className="font-medium">{provider.distance}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Estimated Time:</span>
+                  <span className="font-medium">{provider.estimatedTime}</span>
                 </div>
               </div>
 
