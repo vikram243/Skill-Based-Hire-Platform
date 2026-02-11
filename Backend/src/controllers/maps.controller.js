@@ -3,6 +3,7 @@ import config from '../config/config.js';
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import { asyncHandler } from '../utils/async.handeller.js';
 import User from '../models/user.model.js';
+import Provider from '../models/provider.model.js';
 
 const parseAddressComponents = (components = []) => {
     const out = { city: '', state: '', pin: '', address: '' };

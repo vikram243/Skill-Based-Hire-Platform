@@ -11,6 +11,7 @@ import { logActivity } from '../utils/activity.handeller.js';
 
 export const becomeProvider = asyncHandler(async (req, res) => {
   const userId = req.user.id;
+  const user = await User.findById(userId)
   const existingProvider = await Provider.findOne({ user: userId });
   if (existingProvider) {
     if (req.files && req.files.length > 0) {
@@ -114,14 +115,14 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     location: {
       geo: {
         type: "Point",
-        coordinates: [info.lng, info.lat]
+        coordinates: [user.location.lng, user.location.lat]
       }
     }        
   };
 
 const provider = await Provider.create(providerPayload);
 
-const user = await User.findByIdAndUpdate(
+await User.findByIdAndUpdate(
   userId,
   {
     providerProfile: provider._id,
