@@ -70,8 +70,10 @@ const userSchema = new mongoose.Schema({
     city: String,
     state: String,
     lat: Number,
-    lon: Number
+    lng: Number
   },
+
+  isAttampted: { type: Boolean, default: false },
 
   socketId: {
     type: String,

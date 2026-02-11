@@ -1,8 +1,10 @@
 import Provider from "../models/provider.model.js";
+import User from "../models/user.model.js";
 import { asyncHandler } from "../utils/async.handeller.js";
-import { ApiResponse } from "../utils/api.handeller.js";
+import { ApiResponse, ApiError } from "../utils/api.handeller.js";
 
 export const filterProviders = asyncHandler(async (req, res) => {
+
   const {
     q,
     skill,
@@ -12,213 +14,161 @@ export const filterProviders = asyncHandler(async (req, res) => {
     minExp,
     maxExp,
     rating,
-    sortBy = "relevance",
-    locationFilter,
-    lat,
-    lng,
-    radius,
+    sortBy = "nearest",
     page = 1,
-    limit = 10,
+    limit = 10
   } = req.query;
 
   const pageNum = Math.max(Number(page) || 1, 1);
   const limitNum = Math.max(Number(limit) || 10, 1);
   const skip = (pageNum - 1) * limitNum;
 
-  const filter = {
-    applicationStatus: "approved",
+  const RADIUS_KM = 35;
+  const RADIUS_METERS = RADIUS_KM * 1000;
+
+  // ✅ Get logged-in user location
+  const user = await User.findById(req?.user?.id).lean();
+
+  if (!user?.location?.lat || !user?.location?.lon) {
+    throw new ApiError(400, "User location not found");
+  }
+
+  const nearPoint = {
+    type: "Point",
+    coordinates: [user.location.lon, user.location.lat],
   };
 
-  // Exclude own provider card
-  if (req.user?.isProvider && req.user?.providerProfile) {
-    filter._id = { $ne: req.user.providerProfile };
-  }
+  // ✅ STRICT BASE FILTER (All 4 conditions)
+  const matchFilter = {
+    applicationStatus: "approved",
+    isOnline: true,
+    isAvailable: true
+  };
 
-  // Search
+  // 🔎 Search filter
   if (q || skill) {
     const searchTerm = q || skill;
-    filter.$or = [
-      { "selectedSkills.name": { $regex: searchTerm, $options: "i" } },
+    matchFilter.$or = [
       { businessName: { $regex: searchTerm, $options: "i" } },
+      { "selectedSkills.name": { $regex: searchTerm, $options: "i" } }
     ];
   }
 
-  // Price filter
+  // 💰 Price filter
   if (priceRange && priceRange !== "all") {
-    if (priceRange === "low") {
-      filter["pricing.serviceRate"] = { $lt: 50 };
-    } else if (priceRange === "medium") {
-      filter["pricing.serviceRate"] = { $gte: 50, $lt: 100 };
-    } else if (priceRange === "high") {
-      filter["pricing.serviceRate"] = { $gte: 100 };
-    }
+    if (priceRange === "low")
+      matchFilter["pricing.serviceRate"] = { $lt: 50 };
+    else if (priceRange === "medium")
+      matchFilter["pricing.serviceRate"] = { $gte: 50, $lt: 100 };
+    else if (priceRange === "high")
+      matchFilter["pricing.serviceRate"] = { $gte: 100 };
   } else if (minRate || maxRate) {
-    filter["pricing.serviceRate"] = {};
-    if (minRate) filter["pricing.serviceRate"].$gte = Number(minRate);
-    if (maxRate) filter["pricing.serviceRate"].$lte = Number(maxRate);
+    matchFilter["pricing.serviceRate"] = {};
+    if (minRate) matchFilter["pricing.serviceRate"].$gte = Number(minRate);
+    if (maxRate) matchFilter["pricing.serviceRate"].$lte = Number(maxRate);
   }
 
-  // Experience filter
+  // 👨‍💼 Experience filter
   if (minExp || maxExp) {
-    filter.yearsExperience = {};
-    if (minExp) filter.yearsExperience.$gte = Number(minExp);
-    if (maxExp) filter.yearsExperience.$lte = Number(maxExp);
+    matchFilter.yearsExperience = {};
+    if (minExp) matchFilter.yearsExperience.$gte = Number(minExp);
+    if (maxExp) matchFilter.yearsExperience.$lte = Number(maxExp);
   }
 
-  // Rating filter
+  // ⭐ Rating filter
   if (rating) {
-    filter["meta.avgRating"] = { $gte: Number(rating) };
+    matchFilter["meta.avgRating"] = { $gte: Number(rating) };
   }
 
-  /* ======================================================
-      GEO SEARCH CASE
-  ====================================================== */
+  // ✅ GEO + FILTER PIPELINE
+  const pipeline = [
+    {
+      $geoNear: {
+        near: nearPoint,
+        distanceField: "distance",
+        maxDistance: RADIUS_METERS,
+        spherical: true,
+        query: matchFilter
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    { $unwind: "$user" },
 
-  if (lat && lng) {
-    const nearPoint = {
-      type: "Point",
-      coordinates: [parseFloat(lng), parseFloat(lat)],
-    };
+    // ✅ Final mandatory check
+    {
+      $match: {
+        "user.isProvider": true
+      }
+    }
+  ];
 
-    const maxDistance = radius ? Number(radius) * 1000 : undefined;
+  // 🔄 Sorting
+  let sortStage = { distance: 1 };
 
-    const pipeline = [
-      {
-        $geoNear: {
-          near: nearPoint,
-          distanceField: "distance",
-          spherical: true,
-          ...(maxDistance && { maxDistance }),
-        },
-      },
-      { $match: filter },
-      {
-        $lookup: {
-          from: "users",
-          localField: "user",
-          foreignField: "_id",
-          as: "user",
-        },
-      },
-      { $unwind: "$user" },
+  if (sortBy === "rating")
+    sortStage = { "meta.avgRating": -1 };
 
-      // Only required fields
-      {
-        $project: {
-          _id: 1,
-          businessName: 1,
-          selectedSkills: 1,
-          pricing: 1,
-          meta: 1,
-          professionalDescription: 1,
-          verification: 1,
-          isOnline: 1,
-          distance: 1,
-          "user.avatar": 1,
-          "user.location.address": 1,
-        },
-      },
-    ];
+  if (sortBy === "price-low")
+    sortStage = { "pricing.0.serviceRate": 1 };
 
-    // Sorting
-    let sortStage = { "meta.avgRating": -1 };
+  if (sortBy === "price-high")
+    sortStage = { "pricing.0.serviceRate": -1 };
 
-    if (locationFilter === "close-to-far") sortStage = { distance: 1 };
-    if (locationFilter === "far-to-close") sortStage = { distance: -1 };
-    if (sortBy === "price-low") sortStage = { "pricing.0.serviceRate": 1 };
-    if (sortBy === "price-high") sortStage = { "pricing.0.serviceRate": -1 };
-    if (sortBy === "rating") sortStage = { "meta.avgRating": -1 };
+  pipeline.push({ $sort: sortStage });
 
-    pipeline.push({ $sort: sortStage });
+  // Pagination
+  pipeline.push({
+    $facet: {
+      results: [{ $skip: skip }, { $limit: limitNum }],
+      totalCount: [{ $count: "count" }]
+    }
+  });
 
-    pipeline.push({
-      $facet: {
-        results: [{ $skip: skip }, { $limit: limitNum }],
-        totalCount: [{ $count: "count" }],
-      },
-    });
+  const agg = await Provider.aggregate(pipeline);
 
-    const agg = await Provider.aggregate(pipeline);
+  const results = agg[0]?.results || [];
+  const total = agg[0]?.totalCount?.[0]?.count || 0;
 
-    const results = agg[0]?.results || [];
-    const total = agg[0]?.totalCount?.[0]?.count || 0;
+  // ✅ Final formatted response
+  const providers = results.map((p) => {
 
-    const providers = results.map((p) => ({
+    const distanceKm = Number((p.distance / 1000).toFixed(2));
+    const estimatedTimeMin = Math.ceil((distanceKm / 40) * 60);
+
+    return {
       _id: p._id,
       name: p.businessName || "Unknown",
       avatar: p.user?.avatar || null,
-      skills: (p.selectedSkills || []).map((s) => s.name),
+      skills: (p.selectedSkills || []).map(s => s.name),
       hourlyRate: p.pricing?.[0]?.serviceRate || 0,
       rating: p.meta?.avgRating || 0,
       reviewCount: p.meta?.totalReviews || 0,
       completedJobs: p.meta?.completedJobs || 0,
       bio: p.professionalDescription || "",
       isVerified: p.verification?.isVerified || false,
-      availability: p.isOnline ? "available" : "offline",
-      distance:
-        p.distance != null
-          ? p.distance >= 1000
-            ? `${(p.distance / 1000).toFixed(1)} km`
-            : `${Math.round(p.distance)} m`
-          : undefined,
-      location: p.user?.location?.address || null,
-    }));
+      location: p.user?.location?.address || "Address is now available",
 
-    return res.status(200).json(
-      new ApiResponse(200, {
-        total,
-        page: pageNum,
-        pages: Math.ceil(total / limitNum),
-        providers,
-      }, "filter success")
-    );
-  }
-
-  /* ======================================================
-      NON-GEO CASE
-  ====================================================== */
-
-  let query = Provider.find(filter)
-    .select(
-      "businessName selectedSkills pricing meta professionalDescription verification isOnline"
-    )
-    .populate({
-      path: "user",
-      select: "avatar location.address",
-    })
-    .lean();
-
-  // Sorting
-  if (sortBy === "price-low")
-    query = query.sort({ "pricing.0.serviceRate": 1 });
-  else if (sortBy === "price-high")
-    query = query.sort({ "pricing.0.serviceRate": -1 });
-  else query = query.sort({ "meta.avgRating": -1 });
-
-  const total = await Provider.countDocuments(filter);
-  const rawProviders = await query.skip(skip).limit(limitNum);
-
-  const providers = rawProviders.map((p) => ({
-    _id: p._id,
-    name: p.businessName || "Unknown",
-    avatar: p.user?.avatar || null,
-    skills: (p.selectedSkills || []).map((s) => s.name),
-    hourlyRate: p.pricing?.[0]?.serviceRate || 0,
-    rating: p.meta?.avgRating || 0,
-    reviewCount: p.meta?.totalReviews || 0,
-    completedJobs: p.meta?.completedJobs || 0,
-    bio: p.professionalDescription || "",
-    isVerified: p.verification?.isVerified || false,
-    availability: p.isOnline ? "available" : "offline",
-    location: p.user?.location?.address || null,
-  }));
+      distanceKm,
+      estimatedTimeMin,
+      distanceText: `${distanceKm} km`,
+      estimatedTimeText: `${estimatedTimeMin} mins`
+    };
+  });
 
   return res.status(200).json(
     new ApiResponse(200, {
       total,
       page: pageNum,
       pages: Math.ceil(total / limitNum),
-      providers,
-    }, "filter success")
+      radiusKm: RADIUS_KM,
+      providers
+    }, "Providers fetched successfully")
   );
 });

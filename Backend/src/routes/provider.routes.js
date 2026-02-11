@@ -74,7 +74,9 @@ router.route('/update-profile').patch(
     updateProviderProfile
 )
 
-// Public filter endpoint used by frontend search
-router.route('/filter').get(filterProviders);
+router.route('/filter').get(
+    isAuthenticated,
+    filterProviders
+);
 
 export default router;

@@ -15,7 +15,7 @@ export const becomeProvider = asyncHandler(async (req, res) => {
   if (existingProvider) {
     if (req.files && req.files.length > 0) {
       await Promise.all(
-        req.files.map((file) => fs.promises.unlink(file.path).catch(() => {}))
+        req.files.map((file) => fs.promises.unlink(file.path).catch(() => { }))
       );
     }
     throw new ApiError(400, "Provider profile already exists");
@@ -43,7 +43,7 @@ export const becomeProvider = asyncHandler(async (req, res) => {
 
         if (!result) {
           // ensure local file is removed if upload failed
-          await fs.promises.unlink(file.path).catch(() => {});
+          await fs.promises.unlink(file.path).catch(() => { });
           return null;
         }
 
@@ -111,37 +111,43 @@ export const becomeProvider = asyncHandler(async (req, res) => {
 
     applicationStatus: "pending",
 
-    isAttampted: true
+    location: {
+      geo: {
+        type: "Point",
+        coordinates: [info.lng, info.lat]
+      }
+    }        
   };
 
-  const provider = await Provider.create(providerPayload);
+const provider = await Provider.create(providerPayload);
 
-  const user = await User.findByIdAndUpdate(
-    userId,
-    {
-      providerProfile: provider._id,
-    },
-    { new: true }
-  );
+const user = await User.findByIdAndUpdate(
+  userId,
+  {
+    providerProfile: provider._id,
+    isAttampted: true
+  },
+  { new: true }
+);
 
-  await logActivity({
-    action: "Provider Application Received",
-    target: provider._id,
-    targetModel: "Provider",
-    description: `${user.fullName} submitted a provider application`
-  });
+await logActivity({
+  action: "Provider Application Received",
+  target: provider._id,
+  targetModel: "Provider",
+  description: `${user.fullName} submitted a provider application`
+});
 
-  res.status(201).json(
-    new ApiResponse(
-      201,
-      provider,
-      "Provider application submitted successfully"
-    )
-  );
+res.status(201).json(
+  new ApiResponse(
+    201,
+    provider,
+    "Provider application submitted successfully"
+  )
+);
 });
 
 export const hireProviderId = asyncHandler(async (req, res) => {
-  const  { providerId } = req.params;
+  const { providerId } = req.params;
   if (!providerId) throw new ApiError(403, "Provider id is required");
 
   const provider = await Provider.findById(providerId).populate("user", "avatar email location");

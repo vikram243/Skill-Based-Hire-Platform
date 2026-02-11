@@ -23,21 +23,20 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
       {/* Hover Effect Overlay */}
       <div className="absolute inset-0 bg-linear-to-br from-(--primary-gradient-start)/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
-      {/* Content */}
       <div className="relative z-10 flex flex-col h-full justify-between">
         {/* Header */}
         <div>
         <div className={`flex items-start justify-between ${isCompact ? 'mb-3' : 'mb-4'}`}>
           <div className="flex flex-col space-x-3">
             <Avatar className={`${isCompact ? 'h-10 w-10' : 'h-12 w-12'} ring-2 mb-2 ring-border/20 group-hover:ring-(--primary-gradient-start)/30 transition-all duration-300`}>
-              <AvatarImage src={provider.avatar} alt={provider.name} />
+              <AvatarImage src={provider?.providers?.avatar} alt={provider?.providers?.name} />
               <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                {provider.name.charAt(0)}
+                {provider?.providers?.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center space-x-2">
-                {provider.isVerified && (
+                {provider?.providers?.isVerified && (
                   <CheckCircle className={`text-(--primary-gradient-start) ${
                     isCompact ? 'w-3 h-3' : 'w-4 h-4'
                   }`} />
@@ -45,11 +44,11 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
                 <h3 className={`font-semibold group-hover:text-(--primary-gradient-start) truncate max-w-45 transition-colors duration-200 ${
                   isCompact ? 'text-sm' : 'text-base'
                 }`}>
-                  {provider.name}
+                  {provider?.providers?.name}
                 </h3>
               </div>
               <p className={`text-muted-foreground truncate max-w-45 ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                {provider.location}
+                {provider?.providers?.location}
               </p>
             </div>
           </div>
@@ -59,7 +58,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             {!isCompact && (
               <p className="text-xs text-muted-foreground flex items-center">
                 <Clock className="w-3 h-3 ml-3 mr-1" />
-                {provider.responseTime}
+                {provider?.providers?.responseTime || "N/A"}
               </p>
             )}
           </div>
@@ -68,7 +67,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
         {/* Skills */}
         <div className={`${isCompact ? 'mb-3' : 'mb-4'}`}>
           <div className="flex flex-wrap gap-1.5">
-            {provider.skills.slice(0, isCompact ? 2 : 3).map((skill) => (
+            {provider?.providers?.skills.slice(0, isCompact ? 2 : 3).map((skill) => (
               <Badge 
                 key={skill}
                 variant="outline" 
@@ -79,9 +78,9 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
                 {skill}
               </Badge>
             ))}
-            {provider.skills.length > (isCompact ? 2 : 3) && (
+            {provider?.providers?.skills.length > (isCompact ? 2 : 3) && (
               <Badge variant="outline" className={`bg-muted/50 ${isCompact ? 'text-xs px-2 py-0.5' : 'text-xs'}`}>
-                +{provider.skills.length - (isCompact ? 2 : 3)}
+                +{provider?.providers?.skills.length - (isCompact ? 2 : 3)}
               </Badge>
             )}
           </div>
@@ -90,7 +89,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
         {/* Bio */}
         {!isCompact && (
           <p className="text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
-            {provider.bio}
+            {provider?.providers?.bio}
           </p>
         )}
         </div>
@@ -102,16 +101,17 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             <div className="flex items-center space-x-1">
               <Star className={`text-yellow-500 fill-current ${isCompact ? 'w-3 h-3' : 'w-4 h-4'}`} />
               <span className={`font-medium ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                {provider.rating}
+                {provider?.providers?.rating}
               </span>
               <span className={`text-muted-foreground ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                ({provider.reviewCount})
+                ({provider?.providers?.reviewCount})
               </span>
             </div>
             {!isCompact && (
               <div className="flex items-center space-x-1 text-muted-foreground text-sm">
                 <MapPin className="w-3 h-3" />
-                <span>{provider.distance}</span>
+                <span>{provider?.providers?.distanceText}</span>
+                <span className='ml-2'>{provider?.providers?.estimatedTimeText || 'N/A'} away</span>
               </div>
             )}
           </div>
@@ -120,11 +120,11 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             <p className={`font-bold text-(--primary-gradient-start) ${
               isCompact ? 'text-sm' : 'text-base'
             }`}>
-              ₹{provider.hourlyRate}/hr
+              ₹{provider?.providers?.hourlyRate}/hr
             </p>
             {!isCompact && (
               <p className="text-xs text-muted-foreground">
-                {provider.completedJobs} jobs completed
+                {provider?.providers?.completedJobs} jobs completed
               </p>
             )}
           </div>
@@ -150,7 +150,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
               onClick={(e) => {
                 e.stopPropagation();
                 // Would typically open chat
-                console.log('Open chat with', provider.name);
+                console.log('Open chat with', provider?.providers?.name);
               }}
             >
               <MessageCircle className="w-4 h-4 mr-2" />
