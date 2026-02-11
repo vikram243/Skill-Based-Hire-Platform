@@ -7,6 +7,7 @@ import { Star, MapPin, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 
 export default function SkillCard({ provider, onClick, variant = 'default' }) {
   const isCompact = variant === 'compact';
+  console.log('Rendering SkillCard for provider:', provider);
 
   if (!provider) {
     return null;
