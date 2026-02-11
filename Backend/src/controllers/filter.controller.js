@@ -1,5 +1,6 @@
 import Provider from "../models/provider.model.js";
 import User from "../models/user.model.js";
+import mongoose from "mongoose";
 import { asyncHandler } from "../utils/async.handeller.js";
 import { ApiResponse, ApiError } from "../utils/api.handeller.js";
 
@@ -29,20 +30,20 @@ export const filterProviders = asyncHandler(async (req, res) => {
   // ✅ Get logged-in user location
   const user = await User.findById(req?.user?.id).lean();
 
-  if (!user?.location?.lat || !user?.location?.lon) {
+  if (!user?.location?.lat || !user?.location?.lng) {
     throw new ApiError(400, "User location not found");
   }
 
   const nearPoint = {
     type: "Point",
-    coordinates: [user.location.lon, user.location.lat],
+    coordinates: [user.location.lng, user.location.lat],
   };
 
   // ✅ STRICT BASE FILTER (All 4 conditions)
   const matchFilter = {
-    applicationStatus: "approved",
     isOnline: true,
-    isAvailable: true
+    isAvailable: true,
+    user: { $ne: new mongoose.Types.ObjectId(req.user.id) }
   };
 
   // 🔎 Search filter
@@ -101,10 +102,9 @@ export const filterProviders = asyncHandler(async (req, res) => {
     },
     { $unwind: "$user" },
 
-    // ✅ Final mandatory check
     {
       $match: {
-        "user.isProvider": true
+        "user.isProvider": true,
       }
     }
   ];
@@ -140,20 +140,21 @@ export const filterProviders = asyncHandler(async (req, res) => {
   const providers = results.map((p) => {
 
     const distanceKm = Number((p.distance / 1000).toFixed(2));
-    const estimatedTimeMin = Math.ceil((distanceKm / 40) * 60);
+    const estimatedTimeMin = Math.ceil((distanceKm / 30) * 60);
 
     return {
       _id: p._id,
       name: p.businessName || "Unknown",
       avatar: p.user?.avatar || null,
       skills: (p.selectedSkills || []).map(s => s.name),
-      hourlyRate: p.pricing?.[0]?.serviceRate || 0,
+      price: p.pricing?.[0]?.serviceRate || 0,
+      rateType: p.pricing?.[0].rateType,
       rating: p.meta?.avgRating || 0,
       reviewCount: p.meta?.totalReviews || 0,
       completedJobs: p.meta?.completedJobs || 0,
       bio: p.professionalDescription || "",
       isVerified: p.verification?.isVerified || false,
-      location: p.user?.location?.address || "Address is now available",
+      location: p.user?.location?.address || "Address is not available",
 
       distanceKm,
       estimatedTimeMin,
