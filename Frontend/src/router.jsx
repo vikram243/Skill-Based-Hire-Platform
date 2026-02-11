@@ -57,10 +57,10 @@ export const router = ({
           element: <ProtectedRoute />,
           children: [
             { path: "orders", element: <OrdersPage /> },
-            { path: "hire/:skillId", element: <HireFlow /> },
-            { path: "profile", element: <ProfilePage isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} /> },
+            { path: "profile", element: <ProfilePage /> },
             { path: "search", element: <SearchPage searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> },
             { path: "search/:providerId", element: <SearchPage searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> },
+            { path: "hire/:providerId", element: <HireFlow />}
           ],
         },
 

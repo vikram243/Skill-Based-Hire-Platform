@@ -9,6 +9,7 @@ import {
     getProviderHistory, 
     getProviderAnalytics, 
     getProviderReviews,
+    hireProviderId
 } from '../controllers/provider.controller.js';
 import { filterProviders } from '../controllers/filter.controller.js';
 
@@ -24,6 +25,11 @@ router.route('/onboardProvider').post(
     upload.array('documents',3),
     validate(becomeProviderSchema),
     becomeProvider
+)
+
+router.route('/:providerId').post(
+    isAuthenticated,
+    hireProviderId
 )
 
 router.route('/dashboard').get(

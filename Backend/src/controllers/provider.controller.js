@@ -140,6 +140,37 @@ export const becomeProvider = asyncHandler(async (req, res) => {
   );
 });
 
+export const hireProviderId = asyncHandler(async (req, res) => {
+  const  { providerId } = req.params;
+  if (!providerId) throw new ApiError(403, "Provider id is required");
+
+  const provider = await Provider.findById(providerId).populate("user", "avatar email location");
+  if (!provider) throw new ApiError(404, "Provider not found");
+
+  const profile = {
+    full_name: provider.fullName,
+    email: provider.user.email,
+    phone: provider.contactPhone,
+    bio: provider.professionalDescription,
+    hourly_rate: provider.pricing?.[0]?.serviceRate || 0,
+    years_experience: provider.yearsExperience,
+    avatar: provider.user.avatar || null,
+    location: provider.user.location || null
+  };
+
+  const skills = provider.selectedSkills.map(skill => ({
+    id: skill.skillId?.toString() || skill.name,
+    name: skill.name,
+    price: provider.pricing.find(p => p.skill.name === skill.name)?.serviceRate || 0
+  }));
+
+  const galleryImages = provider.documents.map(doc => doc.url);
+
+  return res.status(200).json(
+    new ApiResponse(200, { profile, skills, galleryImages }, "Provider profile fetched")
+  );
+})
+
 export const getProviderProfile = asyncHandler(async (req, res) => {
   const providerId = req.user?.providerProfile;
   if (!providerId) throw new ApiError(403, "Provider profile not linked");

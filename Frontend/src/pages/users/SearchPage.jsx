@@ -64,6 +64,7 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
         });
 
         const raw = data?.data?.providers || [];
+        console.log('Raw providers from API:', raw);
 
         const formatDistance = (d) => {
           if (d == null) return undefined;
@@ -173,7 +174,7 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
   };
 
   const FilterSection = ({ isMobile = false }) => (
-    <div className={`space-y-8 ${isMobile ? '' : 'sticky top-24'}`}>
+    <div className={`space-y-8 ${isMobile ? '' : 'sticky top-27'}`}>
       {!isMobile && (
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-black text-xl flex items-center gap-2">
@@ -419,7 +420,7 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="py-24 text-center"
+                    className="py-16 text-center"
                   >
                     <div className="w-24 h-24 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-6">
                       <Search className="w-10 h-10 text-muted-foreground" />

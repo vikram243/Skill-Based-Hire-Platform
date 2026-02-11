@@ -359,7 +359,7 @@ export default function SkillDetailPage({ provider }) {
                 <MotionButton
                   size="lg"
                   className="w-full bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                  onClick={() => navigate('hire-flow', { selectedProviderId: provider.id })}
+                  onClick={() => navigate(`/hire/${provider._id}`, { selectedProviderId: provider.id })}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.96 }}
                   transition={{ duration: 0.15 }}
