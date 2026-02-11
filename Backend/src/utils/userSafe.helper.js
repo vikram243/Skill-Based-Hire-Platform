@@ -12,5 +12,5 @@ export const getSafeUser = (user) => ({
   bio: user.bio,
   providerStatus: user.providerProfile?.applicationStatus ?? null,
   submittedAt: user.providerProfile?.submittedAt ?? null,
-  isApplicationAttampted: user.providerProfile?.isAttampted ?? null,
+  isApplicationAttampted: user?.isAttampted ?? null,
 });

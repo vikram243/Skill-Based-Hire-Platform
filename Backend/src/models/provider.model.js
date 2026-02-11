@@ -100,6 +100,22 @@ const ProviderSchema = new mongoose.Schema({
 
   isOnline: { type: Boolean, default: false },
 
+  isAvailable: { type: Boolean, default: false },
+
+  location: {
+    geo: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point"
+      },
+      coordinates: {
+        type: [Number],
+        required: true
+      }
+    }
+  },
+
   verification: {
     isVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date },
@@ -114,8 +130,6 @@ const ProviderSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
-
-  isAttampted: { type: Boolean, default: false },
 
   submittedAt: {
     type: Date,
@@ -136,9 +150,7 @@ ProviderSchema.index({
   professionalDescription: 'text'
 });
 
-ProviderSchema.index({
-  'serviceArea.geo': '2dsphere'
-});
+ProviderSchema.index({ "location.geo": "2dsphere" });
 
 const Provider = mongoose.model('Provider', ProviderSchema);
 export default Provider;

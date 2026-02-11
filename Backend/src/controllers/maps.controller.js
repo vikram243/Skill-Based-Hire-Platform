@@ -113,7 +113,6 @@ const getCoordinates = asyncHandler(async (req, res) => {
     try {
         const info = await callGeocode(address);
 
-        // if user present, save location
         if (req.user && req.user.id) {
             await User.findByIdAndUpdate(req.user.id, {
                 location: {
@@ -123,9 +122,20 @@ const getCoordinates = asyncHandler(async (req, res) => {
                     city: info.city,
                     state: info.state,
                     lat: info.lat,
-                    lon: info.lng
+                    lng: info.lng
                 }
             });
+            const user = await User.findById(req.user.id);
+            if (user?.providerProfile) {
+                await Provider.findByIdAndUpdate(user.providerProfile, {
+                    location: {
+                        geo: {
+                            type: "Point",
+                            coordinates: [info.lng, info.lat]
+                        }
+                    }
+                });
+            }
         }
 
         return res.status(200).json(new ApiResponse(200, info, 'Location resolved'));
@@ -151,9 +161,20 @@ const getReverse = asyncHandler(async (req, res) => {
                     city: info.city,
                     state: info.state,
                     lat: info.lat,
-                    lon: info.lng
+                    lng: info.lng
                 }
             });
+            const user = await User.findById(req.user.id);
+            if (user?.providerProfile) {
+                await Provider.findByIdAndUpdate(user.providerProfile, {
+                    location: {
+                        geo: {
+                            type: "Point",
+                            coordinates: [info.lng, info.lat]
+                        }
+                    }
+                });
+            }
         }
 
         return res.status(200).json(new ApiResponse(200, info, 'Reverse geocoded'));
@@ -189,7 +210,6 @@ const getSuggestions = asyncHandler(async (req, res) => {
 
 const getIpLookup = asyncHandler(async (req, res) => {
     try {
-        // call ip-api from server to avoid CORS and client-side blocks
         const url = `http://ip-api.com/json/`;
         const r = await axios.get(url, { timeout: 5000 });
         const d = r.data || {};
@@ -200,12 +220,11 @@ const getIpLookup = asyncHandler(async (req, res) => {
             regionName: d.regionName || '',
             zip: d.zip || '',
             lat: d.lat || null,
-            lon: d.lon || null,
+            lng: d.lon || null,
             status: d.status || 'fail',
             message: d.message || null
         };
 
-        // persist on user if authenticated
         if (req.user && req.user.id && info.status === 'success') {
             await User.findByIdAndUpdate(req.user.id, {
                 location: {
@@ -215,9 +234,20 @@ const getIpLookup = asyncHandler(async (req, res) => {
                     city: info.city,
                     state: info.regionName,
                     lat: info.lat,
-                    lon: info.lon
+                    lng: info.lng
                 }
             });
+            const user = await User.findById(req.user.id);
+            if (user?.providerProfile) {
+                await Provider.findByIdAndUpdate(user.providerProfile, {
+                    location: {
+                        geo: {
+                            type: "Point",
+                            coordinates: [info.lng, info.lat]
+                        }
+                    }
+                });
+            }
         }
 
         return res.status(200).json(new ApiResponse(200, info, 'IP lookup fetched'));
