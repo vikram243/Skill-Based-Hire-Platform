@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getAllSkillsName, createSkill, getPopularSkillsName } from "../controllers/skill.controller.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validation.middleware.js";
-import { createSkillSchema, getSkillsByCategorySchema } from "../validators/skill.validator.js";
+import { createSkillSchema } from "../validators/skill.validator.js";
 
 const router = Router();
 

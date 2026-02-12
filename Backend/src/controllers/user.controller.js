@@ -217,7 +217,6 @@ const updateProfile = asyncHandler(async (req, res) => {
     responseData.avatar = uploadResult.secure_url;
   }
 
-  // handle location updates (either string or structured object)
   if (location) {
     if (typeof location === 'string') {
       updates['location.address'] = location;
@@ -230,7 +229,7 @@ const updateProfile = asyncHandler(async (req, res) => {
       if (location.city) locObj.city = location.city;
       if (location.state) locObj.state = location.state;
       if (location.lat !== undefined) locObj.lat = Number(location.lat);
-      if (location.lon !== undefined) locObj.lon = Number(location.lon);
+      if (location.lng !== undefined) locObj.lng = Number(location.lng);
 
       updates.location = locObj;
       responseData.location = locObj;

@@ -10,43 +10,60 @@ import { uploadOnCloudinary } from '../config/cloudinary.config.js';
 import { logActivity } from '../utils/activity.handeller.js';
 
 export const becomeProvider = asyncHandler(async (req, res) => {
+
   const userId = req.user.id;
-  const user = await User.findById(userId)
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+
   const existingProvider = await Provider.findOne({ user: userId });
   if (existingProvider) {
-    if (req.files && req.files.length > 0) {
+    if (req.files?.length) {
       await Promise.all(
-        req.files.map((file) => fs.promises.unlink(file.path).catch(() => { }))
+        req.files.map(f => fs.promises.unlink(f.path).catch(()=>{}))
       );
     }
     throw new ApiError(400, "Provider profile already exists");
   }
 
+  /* ---------- SAFE JSON PARSER ---------- */
+  const parseIfString = (val) => {
+    try {
+      if (!val) return undefined;
+      if (typeof val === "string") return JSON.parse(val);
+      if (Array.isArray(val))
+        return typeof val[0] === "string" ? JSON.parse(val[0]) : val[0];
+      return val;
+    } catch {
+      return undefined;
+    }
+  };
+
+  /* ---------- NORMALIZE SKILL ---------- */
   const normalizeSkillEntry = (skill) => {
     if (!skill) return null;
 
-    const isValidObjectId =
+    const validId =
       skill.skillId &&
       mongoose.Types.ObjectId.isValid(skill.skillId);
 
     return {
-      skillId: isValidObjectId ? skill.skillId : null,
-      name: skill.name,
-      isCustom: !isValidObjectId
+      skillId: validId ? skill.skillId : null,
+      name: skill.name?.trim()
     };
   };
 
+  /* ---------- FILE UPLOAD ---------- */
   let uploadedDocs = [];
-  if (req.files && req.files.length > 0) {
+
+  if (req.files?.length) {
     uploadedDocs = await Promise.all(
       req.files.map(async (file) => {
         const result = await uploadOnCloudinary(file.path);
 
-        if (!result) {
-          // ensure local file is removed if upload failed
-          await fs.promises.unlink(file.path).catch(() => { });
-          return null;
-        }
+        await fs.promises.unlink(file.path).catch(()=>{});
+
+        if (!result) return null;
 
         return {
           url: result.secure_url,
@@ -59,92 +76,100 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     uploadedDocs = uploadedDocs.filter(Boolean);
   }
 
+  /* ---------- BODY ---------- */
   const {
     businessName,
     professionalDescription,
     yearsExperience,
     contactPhone,
-    selectedSkills,
+    selectedSkill,
     pricing,
     agreedToTOS,
     consentBackgroundCheck
   } = req.body;
 
-  // If request came via multipart/form-data, fields may be JSON strings.
-  const parseIfString = (val) => {
-    if (typeof val === 'string') {
-      try {
-        return JSON.parse(val);
-      } catch (e) {
-        return val;
-      }
-    }
-    return val;
+  /* ---------- PARSE ---------- */
+  const skillParsed = parseIfString(selectedSkill);
+  const pricingParsed = parseIfString(pricing);
+
+  const skillObj = normalizeSkillEntry(skillParsed);
+  if (!skillObj)
+    throw new ApiError(400, "Skill is required");
+
+  const pricingObj = {
+    rateType: pricingParsed?.rateType || "hourly",
+    serviceRate: Number(pricingParsed?.serviceRate || 0)
   };
 
-  const selectedSkillsParsed = Array.isArray(selectedSkills)
-    ? selectedSkills.map(s => parseIfString(s))
-    : (selectedSkills ? parseIfString(selectedSkills) : []);
+  if (!pricingObj.serviceRate)
+    throw new ApiError(400, "Service rate required");
 
-  const pricingParsed = Array.isArray(pricing)
-    ? pricing.map(p => parseIfString(p))
-    : (pricing ? parseIfString(pricing) : []);
+  if (!user?.location?.lng || !user?.location?.lat)
+    throw new ApiError(400, "User location missing");
 
+  /* ---------- PAYLOAD ---------- */
   const providerPayload = {
     user: userId,
 
-    businessName: parseIfString(businessName),
-    professionalDescription: parseIfString(professionalDescription),
-    yearsExperience: Number(parseIfString(yearsExperience)) || 0,
-    contactPhone: parseIfString(contactPhone),
+    businessName: businessName?.trim(),
+    professionalDescription: professionalDescription?.trim(),
+    yearsExperience: Number(yearsExperience) || 0,
+    contactPhone,
 
-    selectedSkills: selectedSkillsParsed.map(normalizeSkillEntry),
-
-    pricing: pricingParsed.map(p => ({
-      ...p,
-      skill: normalizeSkillEntry(p.skill)
-    })),
+    selectedSkill: skillObj,
+    pricing: pricingObj,
 
     documents: uploadedDocs,
 
-    agreedToTOS: (parseIfString(agreedToTOS) === 'true' || parseIfString(agreedToTOS) === true),
-    consentBackgroundCheck: (parseIfString(consentBackgroundCheck) === 'true' || parseIfString(consentBackgroundCheck) === true),
+    agreedToTOS:
+      agreedToTOS === true ||
+      agreedToTOS === "true",
+
+    consentBackgroundCheck:
+      consentBackgroundCheck === true ||
+      consentBackgroundCheck === "true",
 
     applicationStatus: "pending",
 
     location: {
       geo: {
         type: "Point",
-        coordinates: [user.location.lng, user.location.lat]
+        coordinates: [
+          user.location.lng,
+          user.location.lat
+        ]
       }
-    }        
+    }
   };
 
-const provider = await Provider.create(providerPayload);
+  /* ---------- CREATE ---------- */
+  const provider = await Provider.create(providerPayload);
 
-await User.findByIdAndUpdate(
-  userId,
-  {
-    providerProfile: provider._id,
-    isAttampted: true
-  },
-  { new: true }
-);
+  await User.findByIdAndUpdate(
+    userId,
+    {
+      providerProfile: provider._id,
+      isAttampted: true
+    },
+    { new: true }
+  );
 
-await logActivity({
-  action: "Provider Application Received",
-  target: provider._id,
-  targetModel: "Provider",
-  description: `${user.fullName} submitted a provider application`
-});
+  await logActivity({
+    action: "Provider Application Received",
+    target: provider._id,
+    targetModel: "Provider",
+    description: `${user.fullName} submitted a provider application`
+  });
 
-res.status(201).json(
-  new ApiResponse(
-    201,
-    provider,
-    "Provider application submitted successfully"
-  )
-);
+  /* ---------- RESPONSE ---------- */
+  res.status(201).json(
+    new ApiResponse(
+      201,
+      provider,
+      "Provider application submitted successfully"
+    )
+  );
+
 });
 
 export const hireProviderId = asyncHandler(async (req, res) => {
@@ -159,17 +184,17 @@ export const hireProviderId = asyncHandler(async (req, res) => {
     email: provider.user.email,
     phone: provider.contactPhone,
     bio: provider.professionalDescription,
-    hourly_rate: provider.pricing?.[0]?.serviceRate || 0,
+    hourly_rate: provider.pricing?.serviceRate || 0,
     years_experience: provider.yearsExperience,
     avatar: provider.user.avatar || null,
     location: provider.user.location || null
   };
 
-  const skills = provider.selectedSkills.map(skill => ({
-    id: skill.skillId?.toString() || skill.name,
-    name: skill.name,
-    price: provider.pricing.find(p => p.skill.name === skill.name)?.serviceRate || 0
-  }));
+ const skills = [{
+  id: provider.selectedSkill.skillId?.toString() || provider.selectedSkill.name,
+  name: provider.selectedSkill.name,
+  price: provider.pricing?.serviceRate || 0
+}];
 
   const galleryImages = provider.documents.map(doc => doc.url);
 
@@ -190,16 +215,16 @@ export const getProviderProfile = asyncHandler(async (req, res) => {
     email: provider.user.email,
     phone: provider.contactPhone,
     bio: provider.professionalDescription,
-    hourly_rate: provider.pricing?.[0]?.serviceRate || 0,
+    hourly_rate: provider.pricing?.serviceRate || 0,
     years_experience: provider.yearsExperience,
     avatar_url: provider.user.avatar || null
   };
 
-  const skills = provider.selectedSkills.map(skill => ({
-    id: skill.skillId?.toString() || skill.name,
-    name: skill.name,
-    price: provider.pricing.find(p => p.skill.name === skill.name)?.serviceRate || 0
-  }));
+  const skills = [{
+  id: provider.selectedSkill.skillId?.toString() || provider.selectedSkill.name,
+  name: provider.selectedSkill.name,
+  price: provider.pricing?.serviceRate || 0
+}];
 
   const galleryImages = provider.documents.map(doc => doc.url);
 
@@ -235,9 +260,9 @@ export const updateProviderProfile = asyncHandler(async (req, res) => {
   provider.professionalDescription = bio || provider.professionalDescription;
   provider.yearsExperience = years_experience || provider.yearsExperience;
 
-  if (provider.pricing.length > 0) {
-    provider.pricing[0].serviceRate = hourly_rate || provider.pricing[0].serviceRate;
-  }
+ if (hourly_rate) {
+  provider.pricing.serviceRate = hourly_rate;
+}
 
   await provider.save();
 

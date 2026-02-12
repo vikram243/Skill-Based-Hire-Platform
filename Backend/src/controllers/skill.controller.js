@@ -32,9 +32,11 @@ const getAllSkillsName = asyncHandler(async (req, res) => {
         {
             $project: {
                 name: 1,
+                icon: 1,
+                popularity: 1
             },
         },
-        { $sort: { name: 1 } },
+        { $sort: { popularity: -1 } },
     ]);
 
     if (!skills || skills.length === 0) {
