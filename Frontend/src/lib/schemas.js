@@ -20,7 +20,7 @@ export const registerSchema = z.object({
   firstName: z.string().min(2, 'First name required').max(20, 'First Name must be less than 20 letters'),
   lastName: z.string().min(2, 'Last name required').max(20, 'Last Name must be less than 20 letters'),
   email: z.string('Email is required').email('Please enter a valid email').min(6, 'Email must be greater that 6 digt').max(50, 'Email must be less then 50 letters'),
-  number: z.string('Phone is required').regex(/^\+?\d{10,15}$/, 'Please enter a valid phone')
+  number: z.string().regex(/^\+?\d{10,15}$/, 'Enter valid phone number (10–15 digits)')
 });
 
 export const profileSchema = z.object({
@@ -32,7 +32,10 @@ export const profileSchema = z.object({
 
 export const providerBasicSchema = z.object({
   businessName: z.string().min(1, 'Business/Professional Name is required').max(20, 'Business Name must be less than 20 letters'),
-  professionalDescription: z.string().min(10, 'Description must be atleast 10 words').max(200, 'Please provide a short professional description'),
+  professionalDescription: z.string().refine(
+    val => val.trim().split(/\s+/).length >= 10,
+    { message: 'Description must be at least 10 words' }
+  ),
   yearsExperience: z.number().min(0).max(100),
   contactPhone: z.string().regex(/^\+?\d{10,15}$/, 'Please enter a valid phone')
 });
@@ -48,17 +51,24 @@ export const providerLocationSchema = z.object({
 });
 
 export const providerSkillsSchema = z.object({
-  selectedSkills: z.array(z.any()).min(1, 'Select at least one skill').max(3, 'You can select up to 3 skills'),
-  customSkills: z.array(z.any()).max(3)
+  selectedSkill: z.object({
+    skillId: z.any().nullable(),
+    name: z.string().min(1, 'Please select a skill'),
+    isCustom: z.boolean()
+  }).nullable().refine(v => v !== null, {
+    message: "Please select a skill"
+  })
 });
 
 export const providerPricingSchema = z.object({
-  pricing: z.array(z.object({
-    skill: z.any(),
-    rateType: z.string(),
-    serviceRate: z.number().min(0.01, 'Service rate must be greater than 0'),
-    minimumCharge: z.number().min(0)
-  }))
+  pricing: z.object({
+    skill: z.object({
+      skillId: z.any().nullable(),
+      name: z.string(),
+    }),
+    rateType: z.enum(['hourly', 'perJob', 'daily']),
+    serviceRate: z.number().min(0.01, 'Service rate must be greater than 0')
+  })
 });
 
 export const providerVerificationSchema = z.object({
@@ -71,11 +81,37 @@ export const providerFullSchema = z.object({
   professionalDescription: z.string(),
   yearsExperience: z.number(),
   contactPhone: z.string(),
-  serviceArea: z.any(),
-  selectedSkills: z.array(z.any()).min(1, 'Select at least one skill'),
-  pricing: z.array(z.any()).min(1, 'Set pricing for your skills'),
-  agreedToTOS: z.boolean(),
-  consentBackgroundCheck: z.boolean()
+
+  serviceArea: z.object({
+    city: z.string(),
+    state: z.string(),
+    pincode: z.string().optional(),
+    country: z.string(),
+    fullAddress: z.string()
+  }),
+
+  selectedSkill: z.object({
+    skillId: z.any().nullable(),
+    name: z.string(),
+    isCustom: z.boolean()
+  }),
+
+  pricing: z.object({
+    skill: z.object({
+      skillId: z.any().nullable(),
+      name: z.string(),
+    }),
+    rateType: z.enum(['hourly', 'perJob', 'daily']),
+    serviceRate: z.number().min(0.01)
+  }),
+
+  agreedToTOS: z.literal(true, {
+    errorMap: () => ({ message: 'You must agree to Terms of Service' })
+  }),
+
+  consentBackgroundCheck: z.literal(true, {
+    errorMap: () => ({ message: 'Background check consent is required' })
+  })
 });
 
 export function firstZodError(e) {

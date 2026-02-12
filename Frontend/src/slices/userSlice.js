@@ -16,9 +16,9 @@ const userSlice = createSlice({
       state.loading = false;
     },
 
-    updateIsProvider: (state) => {
+    updateIsAttampted: (state) => {
       if (state.user) {
-        state.user.isProvider = true;
+        state.user.isApplicationAttampted = true;
       }
     },
 
@@ -56,5 +56,5 @@ const userSlice = createSlice({
 });
 
 
-export const { setUser, logoutUser, setLoading, updateIsProvider, updateAvatar, updatePersonalInfo, updateLocation } = userSlice.actions;
+export const { setUser, logoutUser, setLoading, updateIsAttampted, updateAvatar, updatePersonalInfo, updateLocation } = userSlice.actions;
 export default userSlice.reducer;

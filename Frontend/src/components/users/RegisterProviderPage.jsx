@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
-import { Badge } from '../ui/badge';
-import { Checkbox } from '../ui/checkbox';
-import { Progress } from '../ui/progress';
-import Dropzone from './DropZone.jsx';
-import api from '../../lib/axiosSetup';
-import { updateIsProvider } from "../../slices/userSlice";
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Badge } from "../ui/badge";
+import { Checkbox } from "../ui/checkbox";
+import { Progress } from "../ui/progress";
+import Dropzone from "./DropZone.jsx";
+import api from "../../lib/axiosSetup";
+import { updateIsAttampted } from "../../slices/userSlice";
 import { useDispatch } from "react-redux";
 import {
   providerBasicSchema,
@@ -17,8 +23,8 @@ import {
   providerPricingSchema,
   providerVerificationSchema,
   providerFullSchema,
-  firstZodError
-} from '../../lib/schemas';
+  firstZodError,
+} from "../../lib/schemas";
 import {
   Upload,
   Plus,
@@ -28,120 +34,159 @@ import {
   MapPin,
   Briefcase,
   Clock,
-  Calendar
-} from 'lucide-react';
-import { Skills } from '../../data/mockData';
-import { useSelector } from 'react-redux';
+  Calendar,
+} from "lucide-react";
+import { useSelector } from "react-redux";
 
 export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
-  const [currentStep, setCurrentStep] = useState('basic');
+  const [currentStep, setCurrentStep] = useState("basic");
   const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useSelector(state => state.user);
-  const number = user?.number || '';
-  const fullName = user?.fullName || '';
+  const { user } = useSelector((state) => state.user);
+  const number = user?.number || "";
+  const fullName = user?.fullName || "";
+  const [skills, setSkills] = useState([]);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const res = await api.get("/api/skills/getAllSkills");
+        setSkills(res.data.data);
+      } catch (err) {
+        console.error("Failed to fetch skills:", err);
+      }
+    };
+
+    fetchSkills();
+  }, []);
 
   useEffect(() => {
     if (number) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        contactPhone: number
+        contactPhone: number,
       }));
     }
   }, [number]);
 
   useEffect(() => {
     if (fullName) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        businessName: fullName
+        businessName: fullName,
       }));
     }
   }, [fullName]);
 
   const [formData, setFormData] = useState({
     // Basic Info
-    businessName: '',
-    professionalDescription: '',
-    yearsExperience: '',
-    contactPhone: '',
+    businessName: "",
+    professionalDescription: "",
+    yearsExperience: "",
+    contactPhone: "",
     serviceArea: {
-      city: user?.location?.city || '',
-      state: user?.location?.state || '',
-      pincode: user?.location?.pin || '',
-      country: user?.location?.country || 'India',
-      fullAddress: user?.location?.address || ''
+      city: user?.location?.city || "",
+      state: user?.location?.state || "",
+      pincode: user?.location?.pin || "",
+      country: user?.location?.country || "India",
+      fullAddress: user?.location?.address || "",
     },
-    selectedSkills: [],
-    customSkills: [],
-    pricing: [],
+    selectedSkill: null,
+    pricing: {
+      rateType: "hourly",
+      serviceRate: "",
+    },
     emergencyService: false,
     documents: [],
     agreedToTOS: false,
-    consentBackgroundCheck: false
+    consentBackgroundCheck: false,
   });
-  const [formError, setFormError] = useState('');
+  const [formError, setFormError] = useState("");
 
   const getStepProgress = () => {
     switch (currentStep) {
-      case 'basic': return 14;
-      case 'location': return 28;
-      case 'skills': return 42;
-      case 'pricing': return 56;
-      case 'availability': return 70;
-      case 'verification': return 85;
-      case 'complete': return 100;
-      default: return 0;
+      case "basic":
+        return 14;
+      case "location":
+        return 28;
+      case "skills":
+        return 42;
+      case "pricing":
+        return 56;
+      case "availability":
+        return 70;
+      case "verification":
+        return 85;
+      case "complete":
+        return 100;
+      default:
+        return 0;
     }
   };
 
   const steps = [
-    { id: 'basic', title: 'Basic Information', description: 'Tell us about your professional background' },
-    { id: 'location', title: 'Service Area', description: 'Where do you provide services?' },
-    { id: 'skills', title: 'Skills & Services', description: 'What services do you offer?' },
-    { id: 'pricing', title: 'Pricing', description: 'Set your competitive rates' },
-    { id: 'verification', title: 'Verification', description: 'Final step - agree to terms' },
-    { id: 'complete', title: 'Complete', description: 'Application submitted!' }
+    {
+      id: "basic",
+      title: "Basic Information",
+      description: "Tell us about your professional background",
+    },
+    {
+      id: "location",
+      title: "Service Area",
+      description: "Where do you provide services?",
+    },
+    {
+      id: "skills",
+      title: "Skills & Services",
+      description: "What services do you offer?",
+    },
+    {
+      id: "pricing",
+      title: "Pricing",
+      description: "Set your competitive rates",
+    },
+    {
+      id: "verification",
+      title: "Verification",
+      description: "Final step - agree to terms",
+    },
+    {
+      id: "complete",
+      title: "Complete",
+      description: "Application submitted!",
+    },
   ];
 
   const handleClose = () => {
-    setCurrentStep('basic');
-    setFormData({
-      businessName: '',
-      professionalDescription: '',
-      yearsExperience: '',
-      contactPhone: '',
-      serviceArea: {
-        city: '',
-        state: '',
-        pincode: '',
-        country: 'India',
-      },
-      selectedSkills: [],
-      customSkills: [],
-      pricing: [],
-      documents: [],
-      agreedToTOS: false,
-      consentBackgroundCheck: false
-    });
+    setCurrentStep("basic");
     onClose();
   };
 
   const handleNext = async () => {
-    const stepOrder = ['basic', 'location', 'skills', 'pricing', 'verification', 'complete'];
+    const stepOrder = [
+      "basic",
+      "location",
+      "skills",
+      "pricing",
+      "verification",
+      "complete",
+    ];
     const currentIndex = stepOrder.indexOf(currentStep);
 
-    setFormError('');
+    setFormError("");
 
     // Validate current step using zod schemas and show zod messages
-    if (currentStep === 'basic') {
+    if (currentStep === "basic") {
       // normalize yearsExperience to number
-      const y = typeof formData.yearsExperience === 'number' ? formData.yearsExperience : Number(formData.yearsExperience || 0);
+      const y =
+        typeof formData.yearsExperience === "number"
+          ? formData.yearsExperience
+          : Number(formData.yearsExperience || 0);
       const parsed = providerBasicSchema.safeParse({
         businessName: formData.businessName,
         professionalDescription: formData.professionalDescription,
         yearsExperience: y,
-        contactPhone: formData.contactPhone
+        contactPhone: formData.contactPhone,
       });
       if (!parsed.success) {
         setFormError(firstZodError(parsed.error));
@@ -149,42 +194,51 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
       }
     }
 
-    if (currentStep === 'location') {
-      const parsed = providerLocationSchema.safeParse({ serviceArea: formData.serviceArea });
+    if (currentStep === "location") {
+      const parsed = providerLocationSchema.safeParse({
+        serviceArea: formData.serviceArea,
+      });
       if (!parsed.success) {
         setFormError(firstZodError(parsed.error));
         return;
       }
     }
 
-    if (currentStep === 'skills') {
-      const parsed = providerSkillsSchema.safeParse({ selectedSkills: formData.selectedSkills, customSkills: formData.customSkills });
+    if (currentStep === "skills") {
+      const parsed = providerSkillsSchema.safeParse({
+        selectedSkill: formData.selectedSkill,
+      });
       if (!parsed.success) {
         setFormError(firstZodError(parsed.error));
         return;
       }
     }
 
-    if (currentStep === 'pricing') {
+    if (currentStep === "pricing") {
+      if (!formData.selectedSkill) {
+        setFormError("Please select a skill first");
+        return;
+      }
+
       const parsed = providerPricingSchema.safeParse({
-        pricing: formData.pricing.map(p => ({
-          skill: p.skill,
-          rateType: p.rateType,
-          serviceRate: Number(p.serviceRate || 0),
-          minimumCharge: Number(p.minimumCharge || 0)
-        }))
+        pricing: {
+          skill: formData.selectedSkill,
+          rateType: formData.pricing.rateType,
+          serviceRate: Number(formData.pricing.serviceRate),
+        },
       });
+
       if (!parsed.success) {
         setFormError(firstZodError(parsed.error));
         return;
       }
     }
 
-    if (currentStep === 'verification') {
+    if (currentStep === "verification") {
       // validate verification consents
       const ver = providerVerificationSchema.safeParse({
         agreedToTOS: formData.agreedToTOS,
-        consentBackgroundCheck: formData.consentBackgroundCheck
+        consentBackgroundCheck: formData.consentBackgroundCheck,
       });
       if (!ver.success) {
         setFormError(firstZodError(ver.error));
@@ -198,10 +252,14 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
         yearsExperience: Number(formData.yearsExperience || 0),
         contactPhone: formData.contactPhone,
         serviceArea: formData.serviceArea,
-        selectedSkills: [...formData.selectedSkills, ...formData.customSkills],
-        pricing: formData.pricing,
+        selectedSkill: formData.selectedSkill,
+        pricing: {
+          skill: formData.selectedSkill,
+          rateType: formData.pricing.rateType,
+          serviceRate: Number(formData.pricing.serviceRate),
+        },
         agreedToTOS: formData.agreedToTOS,
-        consentBackgroundCheck: formData.consentBackgroundCheck
+        consentBackgroundCheck: formData.consentBackgroundCheck,
       });
       if (!full.success) {
         setFormError(firstZodError(full.error));
@@ -210,17 +268,16 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
       try {
         const data = new FormData();
         data.append("businessName", formData.businessName);
-        data.append("professionalDescription", formData.professionalDescription);
+        data.append(
+          "professionalDescription",
+          formData.professionalDescription,
+        );
         data.append("yearsExperience", formData.yearsExperience);
         data.append("contactPhone", formData.contactPhone);
-        formData.pricing.forEach((p) =>
-          data.append("pricing[]", JSON.stringify(p))
-        );
+        data.append("pricing", JSON.stringify(formData.pricing));
         data.append("agreedToTOS", formData.agreedToTOS);
         data.append("consentBackgroundCheck", formData.consentBackgroundCheck);
-        formData.selectedSkills.forEach((s) =>
-          data.append("selectedSkills[]", JSON.stringify(s))
-        );
+        data.append("selectedSkill", JSON.stringify(formData.selectedSkill));
         formData.documents.forEach((file) => {
           data.append("documents", file);
         });
@@ -233,13 +290,13 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
 
         if (resp && resp.status >= 200 && resp.status < 300) {
           setCurrentStep("complete");
-          dispatch(updateIsProvider());
+          dispatch(updateIsAttampted());
         } else {
-          setFormError('Application submission failed. Please try again.');
+          setFormError("Application submission failed. Please try again.");
         }
       } catch (error) {
         console.error(error);
-        const message = error?.response?.data?.message || 'Upload failed';
+        const message = error?.response?.data?.message || "Upload failed";
         setFormError(message);
       } finally {
         setIsSubmitting(false);
@@ -254,93 +311,44 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
   };
 
   const handlePrevious = () => {
-    const stepOrder = ['basic', 'location', 'skills', 'pricing', 'verification', 'complete'];
+    const stepOrder = [
+      "basic",
+      "location",
+      "skills",
+      "pricing",
+      "verification",
+      "complete",
+    ];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(stepOrder[currentIndex - 1]);
     }
   };
 
-  const handleSkillToggle = (skillName, skillId) => {
+  const handleSkillSelect = (skillName, skillId) => {
     const skillEntry = {
       skillId: skillId || null,
       name: skillName,
-      isCustom: false
+      isCustom: false,
     };
 
-    const exists = formData.selectedSkills.some(s => s.name === skillName);
-    const newSelected = exists ? formData.selectedSkills.filter(s => s.name !== skillName) : [...formData.selectedSkills, skillEntry];
-
-    const parsed = providerSkillsSchema.safeParse({ selectedSkills: newSelected, customSkills: formData.customSkills });
-    if (!parsed.success) {
-      setFormError(firstZodError(parsed.error));
-      setTimeout(() => setFormError(''), 3000);
-      return;
-    }
-
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      selectedSkills: newSelected
+      selectedSkill: skillEntry,
     }));
   };
 
-  const addCustomSkill = (skillName) => {
-    const candidate = { skillId: null, name: skillName.trim(), isCustom: true };
-    const newCustom = [...formData.customSkills];
-    if (skillName.trim() && !newCustom.some(s => s.name === skillName.trim())) {
-      newCustom.push(candidate);
-    }
-
-    const parsed = providerSkillsSchema.safeParse({ selectedSkills: formData.selectedSkills, customSkills: newCustom });
-    if (!parsed.success) {
-      setFormError(firstZodError(parsed.error));
-      setTimeout(() => setFormError(''), 3000);
-      return;
-    }
-
-    setFormData(prev => ({
+  const setPricing = (field, value) => {
+    setFormData((prev) => ({
       ...prev,
-      customSkills: newCustom
+      pricing: {
+        ...prev.pricing,
+        [field]: value,
+      },
     }));
   };
 
-  const removeCustomSkill = (skillName) => {
-    setFormData(prev => ({
-      ...prev,
-      customSkills: prev.customSkills.filter(s => s.name !== skillName)
-    }));
-  };
-
-  const setPricing = (skill, rateType, serviceRate, minimumCharge) => {
-    setFormData(prev => {
-      const existingIndex = prev.pricing.findIndex(p => p.skill.name === skill.name);
-      const newPricing = [...prev.pricing];
-      const pricingEntry = {
-        skill,
-        rateType,
-        serviceRate,
-        minimumCharge
-      };
-
-      if (existingIndex >= 0) {
-        newPricing[existingIndex] = pricingEntry;
-      } else {
-        newPricing.push(pricingEntry);
-      }
-
-      return { ...prev, pricing: newPricing };
-    });
-  };
-
-  const getPricingForSkill = (skillName) => {
-    return formData.pricing.find(p => p.skill.name === skillName);
-  };
-
-  const allSelectedSkills = [...formData.selectedSkills, ...formData.customSkills];
-  const allPricesSet = allSelectedSkills.length === 0 ? false : allSelectedSkills.every(skill => {
-    const p = formData.pricing.find(x => x.skill.name === skill.name);
-    return p && Number(p.serviceRate) > 0;
-  });
+  const selectedSkill = formData.selectedSkill;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -353,14 +361,14 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                 Become a Provider
               </DialogTitle>
               <DialogDescription>
-                {steps.find(s => s.id === currentStep)?.description}
+                {steps.find((s) => s.id === currentStep)?.description}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
         {/* Progress Bar */}
-        {currentStep !== 'complete' && (
+        {currentStep !== "complete" && (
           <div className="px-6 pt-4 pb-2 shrink-0">
             <Progress
               value={getStepProgress()}
@@ -368,13 +376,11 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
             />
             <div className="text-center mt-2">
               <p className="text-sm font-medium bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                {steps.find(s => s.id === currentStep)?.title}
+                {steps.find((s) => s.id === currentStep)?.title}
               </p>
             </div>
             {formError && (
-              <div className="text-red-500 text-sm rounded">
-                {formError}
-              </div>
+              <div className="text-red-500 text-sm rounded">{formError}</div>
             )}
           </div>
         )}
@@ -383,11 +389,12 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <div className="space-y-4">
             {/* Step: Basic Information */}
-            {currentStep === 'basic' && (
+            {currentStep === "basic" && (
               <div className="space-y-4">
                 <div className="bg-linear-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
                   <p className="text-sm text-muted-foreground">
-                    ✨ Start your journey as a SkillHub provider. Share your expertise with customers in your area.
+                    ✨ Start your journey as a SkillHub provider. Share your
+                    expertise with customers in your area.
                   </p>
                 </div>
 
@@ -398,7 +405,12 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                   <Input
                     placeholder="e.g., Mike's Electrical Services"
                     value={formData.businessName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, businessName: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        businessName: e.target.value,
+                      }))
+                    }
                   />
                 </div>
 
@@ -409,7 +421,12 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                   <Textarea
                     placeholder="Describe your experience, qualifications, and what makes you unique..."
                     value={formData.professionalDescription}
-                    onChange={(e) => setFormData(prev => ({ ...prev, professionalDescription: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        professionalDescription: e.target.value,
+                      }))
+                    }
                     rows={4}
                   />
                 </div>
@@ -427,11 +444,17 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                       value={formData.yearsExperience}
                       onChange={(e) => {
                         const val = e.target.value;
-                        if (val === '') {
-                          setFormData(prev => ({ ...prev, yearsExperience: '' }));
+                        if (val === "") {
+                          setFormData((prev) => ({
+                            ...prev,
+                            yearsExperience: "",
+                          }));
                         } else {
                           const n = Math.min(Number(val), 49);
-                          setFormData(prev => ({ ...prev, yearsExperience: n }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            yearsExperience: n,
+                          }));
                         }
                       }}
                     />
@@ -445,7 +468,12 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                       placeholder="+91 98765 43210"
                       maxLength={15}
                       value={formData.contactPhone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, contactPhone: e.target.value.slice(0, 15) }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          contactPhone: e.target.value.slice(0, 15),
+                        }))
+                      }
                     />
                   </div>
                 </div>
@@ -453,11 +481,12 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
             )}
 
             {/* Step: Service Area */}
-            {currentStep === 'location' && (
+            {currentStep === "location" && (
               <div className="space-y-4">
                 <div className="bg-linear-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
                   <p className="text-sm text-muted-foreground">
-                    📍 Define your service area to help customers find you easily.
+                    📍 Define your service area to help customers find you
+                    easily.
                   </p>
                 </div>
 
@@ -503,11 +532,10 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                       Country
                     </label>
                     <Input
-                      placeholder='India'
+                      placeholder="India"
                       value={formData.serviceArea.country}
                       disabled
-                    >
-                    </Input>
+                    ></Input>
                   </div>
                 </div>
                 <div>
@@ -515,10 +543,10 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                     Full Address
                   </label>
                   <Input
-                    placeholder='Bhopal, Madhya Pradesh, India'
+                    placeholder="Bhopal, Madhya Pradesh, India"
                     value={formData.serviceArea.fullAddress}
-                    disabled                    >
-                  </Input>
+                    disabled
+                  ></Input>
                 </div>
 
                 <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -526,100 +554,57 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                     💡 Location Tip
                   </h5>
                   <p className="text-sm text-muted-foreground">
-                    We'll use this information to show you to customers in your service area. You can adjust your location anytime from location picker option.
+                    We'll use this information to show you to customers in your
+                    service area. You can adjust your location anytime from
+                    location picker option.
                   </p>
                 </div>
               </div>
             )}
 
             {/* Step: Skills */}
-            {currentStep === 'skills' && (
+            {currentStep === "skills" && (
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-3">Select Your Skills</h4>
                   <div className="grid grid-cols-2 gap-3 overflow-y-auto pr-2">
-                    {Skills.map((skill) => (
+                    {skills?.map((skill) => (
                       <div
-                        key={skill.id}
-                        className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${formData.selectedSkills.some(s => s.name === skill.name)
-                          ? 'border-purple-500 bg-linear-to-br from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50 shadow-md'
-                          : 'border-border hover:border-purple-300 dark:hover:border-purple-700'
+                        key={skill?._id}
+                        className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${formData.selectedSkill?.name === skill?.name
+                            ? "border-purple-500 bg-linear-to-br from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50 shadow-md"
+                            : "border-border hover:border-purple-300 dark:hover:border-purple-700"
                           }`}
-                        onClick={() => handleSkillToggle(skill.name, skill.id)}
+                        onClick={() => handleSkillSelect(skill?.name, skill?._id)}
                       >
-                        <div className="text-xl mb-1">{skill.icon}</div>
-                        <div className="font-medium text-sm">{skill.name}</div>
+                        <div className="text-xl mb-1">{skill?.icon}</div>
+                        <div className="font-medium text-sm">{skill?.name}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="font-medium mb-3">Add Custom Skills</h4>
-                  <div className="flex gap-2 mb-3">
-                    <Input
-                      placeholder="Enter a custom skill"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          addCustomSkill(e.currentTarget.value);
-                          e.currentTarget.value = '';
-                        }
-                      }}
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        const input = e.currentTarget.parentElement?.querySelector('input');
-                        if (input) {
-                          addCustomSkill(input.value);
-                          input.value = '';
-                        }
-                      }}
-                      className="border-purple-300 dark:border-purple-700"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  {formData.customSkills.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {formData.customSkills.map((skill) => (
-                        <Badge
-                          key={skill.name}
-                          variant="secondary"
-                          className="cursor-pointer bg-purple-100 dark:bg-purple-900 hover:bg-purple-200 dark:hover:bg-purple-800"
-                          onClick={() => removeCustomSkill(skill.name)}
-                        >
-                          {skill.name}
-                          <X className="w-3 h-3 ml-1" />
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 <div className="bg-linear-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
                   <h5 className="font-medium mb-2 text-purple-900 dark:text-purple-100">
-                    Selected Skills ({allSelectedSkills.length})
+                    Selected Skill
                   </h5>
-                  {allSelectedSkills.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {allSelectedSkills.map((skill) => (
-                        <Badge key={skill.name} className="bg-linear-to-r from-purple-600 to-indigo-600 text-white">
-                          {skill.name} {skill.isCustom && '(Custom)'}
-                        </Badge>
-                      ))}
-                    </div>
+                  {selectedSkill ? (
+                    <Badge className="bg-linear-to-r from-purple-600 to-indigo-600 text-white">
+                      {selectedSkill.name}
+                    </Badge>
                   ) : (
-                    <p className="text-muted-foreground text-sm">No skills selected yet</p>
+                    <p className="text-muted-foreground text-sm">
+                      No skill selected yet
+                    </p>
                   )}
                 </div>
               </div>
             )}
 
             {/* Step: Pricing */}
-            {currentStep === 'pricing' && (
+            {currentStep === "pricing" && (
               <div className="space-y-4">
+                {/* Tips */}
                 <div className="bg-linear-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
                   <h5 className="font-medium mb-2">💡 Pricing Tips</h5>
                   <ul className="text-sm text-muted-foreground space-y-1">
@@ -629,98 +614,86 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                   </ul>
                 </div>
 
-                {allSelectedSkills.length > 0 ? (
-                  <div className="space-y-3 overflow-y-auto pr-2">
-                    {allSelectedSkills.map((skill) => {
-                      const pricing = getPricingForSkill(skill.name);
-                      return (
-                        <div key={skill.name} className="p-4 border-2 border-purple-200 dark:border-purple-800 rounded-lg bg-linear-to-r from-white to-purple-50/50 dark:from-card dark:to-purple-950/20">
-                          <div className="mb-3">
-                            <h4 className="font-medium">{skill.name}</h4>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3 mb-3">
-                            <div>
-                              <label className="block text-xs font-medium mb-1 text-muted-foreground">
-                                Rate Type
-                              </label>
-                              <select
-                                value={pricing?.rateType || 'hourly'}
-                                onChange={(e) => setPricing(
-                                  skill,
-                                  e.target.value,
-                                  pricing?.serviceRate || 0,
-                                  pricing?.minimumCharge || 0
-                                )}
-                                className="w-full p-2 border border-purple-300 dark:border-purple-700 rounded-md bg-background text-sm"
-                              >
-                                <option value="hourly">Hourly</option>
-                                <option value="perJob">Per Job</option>
-                                <option value="daily">Daily</option>
-                              </select>
-                            </div>
-
-                            <div>
-                              <label className="block text-xs font-medium mb-1 text-muted-foreground">
-                                Service Rate
-                              </label>
-                              <div className="flex items-center gap-2">
-                                <DollarSign className="w-4 h-4 text-purple-600" />
-                                <Input
-                                  type="number"
-                                  placeholder="0"
-                                  value={pricing?.serviceRate || ''}
-                                  onChange={(e) => setPricing(
-                                    skill,
-                                    pricing?.rateType || 'hourly',
-                                    Number(e.target.value),
-                                    pricing?.minimumCharge || 0
-                                  )}
-                                  className="text-right border-purple-300 dark:border-purple-700"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-medium mb-1 text-muted-foreground">
-                              Minimum Charge
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <DollarSign className="w-4 h-4 text-purple-600" />
-                              <Input
-                                type="number"
-                                placeholder="0"
-                                value={pricing?.minimumCharge || ''}
-                                onChange={(e) => setPricing(
-                                  skill,
-                                  pricing?.rateType || 'hourly',
-                                  pricing?.serviceRate || 0,
-                                  Number(e.target.value)
-                                )}
-                                className="text-right border-purple-300 dark:border-purple-700"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                {/* Pricing Card */}
+                {!selectedSkill ? (
+                  <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+                    Please select a skill first.
                   </div>
                 ) : (
-                  <div className="text-center text-muted-foreground py-8">
-                    Please select skills in the previous step to set pricing.
+                  <div
+                    className="p-5 border-2 border-purple-200 dark:border-purple-800 rounded-xl
+        bg-linear-to-r from-white to-purple-50/60
+        dark:from-card dark:to-purple-950/20
+        shadow-md transition-all duration-300"
+                  >
+                    {/* Skill Header */}
+                    <div className="mb-4 flex items-center justify-between">
+                      <h4 className="font-semibold text-lg text-purple-700 dark:text-purple-300">
+                        {selectedSkill.name}
+                      </h4>
+
+                      <Badge className="bg-linear-to-r from-purple-600 to-indigo-600 text-white">
+                        Selected
+                      </Badge>
+                    </div>
+
+                    {/* Rate Type + Price */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Rate Type */}
+                      <div>
+                        <label className="block text-xs font-medium mb-1 text-muted-foreground">
+                          Rate Type
+                        </label>
+
+                        <select
+                          value={formData.pricing.rateType}
+                          onChange={(e) =>
+                            setPricing("rateType", e.target.value)
+                          }
+                          className="w-full p-2 border border-purple-300 dark:border-purple-700
+              rounded-md bg-background text-sm
+              focus:ring-2 focus:ring-purple-500 outline-none"
+                        >
+                          <option value="hourly">Hourly</option>
+                          <option value="perJob">Per Job</option>
+                          <option value="daily">Daily</option>
+                        </select>
+                      </div>
+
+                      {/* Price */}
+                      <div>
+                        <label className="block text-xs font-medium mb-1 text-muted-foreground">
+                          Service Rate
+                        </label>
+
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-purple-600" />
+
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={formData.pricing.serviceRate}
+                            onChange={(e) =>
+                              setPricing("serviceRate", e.target.value)
+                            }
+                            className="text-right border-purple-300 dark:border-purple-700 focus-visible:ring-purple-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             )}
 
             {/* Step: Verification */}
-            {currentStep === 'verification' && (
+            {currentStep === "verification" && (
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-3">Upload Documents</h4>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Upload certifications, licenses, or other relevant documents to build trust.
+                    Upload certifications, licenses, or other relevant documents
+                    to build trust.
                   </p>
                   <Dropzone setFormData={setFormData} formData={formData} />
                 </div>
@@ -731,13 +704,32 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                       id="terms"
                       checked={formData.agreedToTOS}
                       onCheckedChange={(checked) =>
-                        setFormData(prev => ({ ...prev, agreedToTOS: !!checked }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          agreedToTOS: !!checked,
+                        }))
                       }
                       className="border-purple-400 data-[state=checked]:bg-purple-600"
                     />
-                    <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-                      I agree to the <a href="#" className="text-purple-600 dark:text-purple-400 underline font-medium">Terms of Service</a> and
-                      <a href="#" className="text-purple-600 dark:text-purple-400 underline font-medium"> Privacy Policy</a>
+                    <label
+                      htmlFor="terms"
+                      className="text-sm leading-relaxed cursor-pointer"
+                    >
+                      I agree to the{" "}
+                      <a
+                        href="#"
+                        className="text-purple-600 dark:text-purple-400 underline font-medium"
+                      >
+                        Terms of Service
+                      </a>{" "}
+                      and
+                      <a
+                        href="#"
+                        className="text-purple-600 dark:text-purple-400 underline font-medium"
+                      >
+                        {" "}
+                        Privacy Policy
+                      </a>
                     </label>
                   </div>
 
@@ -746,12 +738,19 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                       id="background"
                       checked={formData.consentBackgroundCheck}
                       onCheckedChange={(checked) =>
-                        setFormData(prev => ({ ...prev, consentBackgroundCheck: !!checked }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          consentBackgroundCheck: !!checked,
+                        }))
                       }
                       className="border-purple-400 data-[state=checked]:bg-purple-600"
                     />
-                    <label htmlFor="background" className="text-sm leading-relaxed cursor-pointer">
-                      I consent to a background check (required for all providers)
+                    <label
+                      htmlFor="background"
+                      className="text-sm leading-relaxed cursor-pointer"
+                    >
+                      I consent to a background check (required for all
+                      providers)
                     </label>
                   </div>
                 </div>
@@ -759,15 +758,16 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                 <div className="bg-linear-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
                   <h5 className="font-medium mb-2">🛡️ Safety & Trust</h5>
                   <p className="text-sm text-muted-foreground">
-                    All providers go through verification including background checks, identity verification,
-                    and skill validation to ensure customer safety.
+                    All providers go through verification including background
+                    checks, identity verification, and skill validation to
+                    ensure customer safety.
                   </p>
                 </div>
               </div>
             )}
 
             {/* Step: Complete */}
-            {currentStep === 'complete' && (
+            {currentStep === "complete" && (
               <div className="text-center py-6">
                 <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-linear-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg">
                   <CheckCircle className="w-12 h-12 text-white" />
@@ -776,12 +776,15 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                   Application Submitted!
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Thank you for applying to become a SkillHub provider. We'll review your application
-                  and get back to you within 2-3 business days.
+                  Thank you for applying to become a SkillHub provider. We'll
+                  review your application and get back to you within 2-3
+                  business days.
                 </p>
 
                 <div className="bg-linear-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-lg p-4 mb-6 border border-purple-200 dark:border-purple-800">
-                  <h4 className="font-medium mb-3 text-purple-900 dark:text-purple-100">What's Next?</h4>
+                  <h4 className="font-medium mb-3 text-purple-900 dark:text-purple-100">
+                    What's Next?
+                  </h4>
                   <ul className="text-sm text-muted-foreground text-left space-y-2">
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
@@ -818,12 +821,12 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* Navigation Buttons */}
-        {currentStep !== 'complete' && (
+        {currentStep !== "complete" && (
           <div className="flex justify-between px-6 py-4 border-t border-purple-200 dark:border-purple-800 shrink-0">
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 'basic'}
+              disabled={currentStep === "basic"}
               className="border-purple-300 dark:border-purple-700"
             >
               Previous
@@ -831,12 +834,15 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
             <Button
               onClick={handleNext}
               disabled={
-                isSubmitting || // 🔥 loading ke time disabled
-                (currentStep === 'basic' && !formData.businessName) ||
-                (currentStep === 'location' && (!formData.serviceArea.city || !formData.serviceArea.state)) ||
-                (currentStep === 'skills' && allSelectedSkills.length === 0) ||
-                (currentStep === 'pricing' && !allPricesSet) ||
-                (currentStep === 'verification' && (!formData.agreedToTOS || !formData.consentBackgroundCheck))
+                isSubmitting ||
+                (currentStep === "basic" && !formData.businessName) ||
+                (currentStep === "location" &&
+                  (!formData.serviceArea.city ||
+                    !formData.serviceArea.state)) ||
+                (currentStep === "skills" && !selectedSkill) ||
+                (currentStep === 'pricing' && Number(formData.pricing.serviceRate) <= 0) ||
+                (currentStep === "verification" &&
+                  (!formData.agreedToTOS || !formData.consentBackgroundCheck))
               }
               className="bg-linear-to-r from-purple-600 via-indigo-600 to-purple-700 text-white shadow-md flex items-center gap-2"
             >
@@ -864,11 +870,12 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
                   </svg>
                   Submitting...
                 </>
+              ) : currentStep === "verification" ? (
+                "Submit Application"
               ) : (
-                currentStep === 'verification' ? 'Submit Application' : 'Next'
+                "Next"
               )}
             </Button>
-
           </div>
         )}
       </DialogContent>

@@ -99,15 +99,11 @@ export default function Navigation({
         address: data.city ? `${data.city}, ${data.regionName || ''}`.replace(/, $/, '') : data.query || 'Unknown',
         city: data.city || '',
         state: data.regionName || data.state || '',
-        lat: data.lat ?? data.lon ?? null,
-        lon: data.lon ?? data.lat ?? null,
+        lat: data.lat ?? data.lng ?? null,
+        lng: data.lng ?? data.lat ?? null,
       };
 
       try { dispatch(updateLocation(loc)); } catch (e) { /* ignore */ }
-
-      try {
-        await api.put('/api/users/update-profile', { location: loc });
-      } catch (e) {/* ignore */ }
     } catch (err) {
       console.error('IP location failed', err);
     }

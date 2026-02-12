@@ -5,35 +5,10 @@ const SkillEntrySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Skill',
     default: null,
-    minlength: 3, maxlength: 100,
   },
   name: { type: String, required: true, minlength: 3, maxlength: 20, },
-  isCustom: { type: Boolean, default: false }
 }, { _id: false });
 
-const PricingSchema = new mongoose.Schema({
-  skill: SkillEntrySchema,
-
-  rateType: {
-    type: String,
-    enum: ['hourly', 'perJob', 'daily'],
-    default: 'hourly'
-  },
-
-  serviceRate: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 100000
-  },
-
-  minimumCharge: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 100000
-  }
-}, { _id: false });
 
 const DocumentSchema = new mongoose.Schema({
   url: { type: String, required: true },
@@ -80,14 +55,23 @@ const ProviderSchema = new mongoose.Schema({
     maxlength: 15,
   },
 
-  selectedSkills: {
-    type: [SkillEntrySchema],
-    default: []
+  selectedSkill: {
+    type: SkillEntrySchema,
+    required: true
   },
 
   pricing: {
-    type: [PricingSchema],
-    default: []
+    rateType: {
+      type: String,
+      enum: ['hourly', 'perJob', 'daily'],
+      default: 'hourly'
+    },
+    serviceRate: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100000
+    }
   },
 
   documents: {
