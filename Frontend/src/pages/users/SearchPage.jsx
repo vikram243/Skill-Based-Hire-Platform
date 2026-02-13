@@ -32,7 +32,6 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
   const [locationFilter, setLocationFilter] = useState('all');
   const { providerId } = useParams();
   const navigate = useNavigate();
-
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const [openToggle, setOpenToggle] = useState('category');
   const [showFilters, setShowFilters] = useState(false);
