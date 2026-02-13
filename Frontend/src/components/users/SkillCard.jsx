@@ -47,13 +47,12 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
                     }`} />
                   )}
               </div>
-              <p className={`text-muted-foreground truncate max-w-45 ${isCompact ? 'text-xs' : 'text-sm'}`}>
+              <p className={`text-muted-foreground truncate max-w-50 ${isCompact ? 'text-xs' : 'text-sm'}`}>
                 {provider.location}
               </p>
             </div>
           </div>
           
-          {/* Availability Status */}
           <div className="flex flex-col items-end space-y-1">
             {!isCompact && (
               <p className="text-xs text-muted-foreground flex items-center">
@@ -97,7 +96,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
         {/* Stats */}
         <div>
         <div className={`flex items-center justify-between ${isCompact ? 'mb-3' : 'mb-4'}`}>
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col space-x-3">
             <div className="flex items-center space-x-1">
               <Star className={`text-yellow-500 fill-current ${isCompact ? 'w-3 h-3' : 'w-4 h-4'}`} />
               <span className={`font-medium ${isCompact ? 'text-xs' : 'text-sm'}`}>

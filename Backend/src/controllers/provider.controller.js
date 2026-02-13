@@ -1,16 +1,15 @@
-import Provider from '../models/provider.model.js';
-import User from '../models/user.model.js';
-import Order from '../models/order.model.js';
-import Review from '../models/review.model.js';
-import mongoose from 'mongoose';
-import fs from 'fs';
-import { asyncHandler } from '../utils/async.handeller.js';
-import { ApiError, ApiResponse } from '../utils/api.handeller.js';
-import { uploadOnCloudinary } from '../config/cloudinary.config.js';
-import { logActivity } from '../utils/activity.handeller.js';
+import Provider from "../models/provider.model.js";
+import User from "../models/user.model.js";
+import Order from "../models/order.model.js";
+import Review from "../models/review.model.js";
+import mongoose from "mongoose";
+import fs from "fs";
+import { asyncHandler } from "../utils/async.handeller.js";
+import { ApiError, ApiResponse } from "../utils/api.handeller.js";
+import { uploadOnCloudinary } from "../config/cloudinary.config.js";
+import { logActivity } from "../utils/activity.handeller.js";
 
 export const becomeProvider = asyncHandler(async (req, res) => {
-
   const userId = req.user.id;
 
   const user = await User.findById(userId);
@@ -20,7 +19,7 @@ export const becomeProvider = asyncHandler(async (req, res) => {
   if (existingProvider) {
     if (req.files?.length) {
       await Promise.all(
-        req.files.map(f => fs.promises.unlink(f.path).catch(()=>{}))
+        req.files.map((f) => fs.promises.unlink(f.path).catch(() => {})),
       );
     }
     throw new ApiError(400, "Provider profile already exists");
@@ -44,12 +43,11 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     if (!skill) return null;
 
     const validId =
-      skill.skillId &&
-      mongoose.Types.ObjectId.isValid(skill.skillId);
+      skill.skillId && mongoose.Types.ObjectId.isValid(skill.skillId);
 
     return {
       skillId: validId ? skill.skillId : null,
-      name: skill.name?.trim()
+      name: skill.name?.trim(),
     };
   };
 
@@ -61,16 +59,16 @@ export const becomeProvider = asyncHandler(async (req, res) => {
       req.files.map(async (file) => {
         const result = await uploadOnCloudinary(file.path);
 
-        await fs.promises.unlink(file.path).catch(()=>{});
+        await fs.promises.unlink(file.path).catch(() => {});
 
         if (!result) return null;
 
         return {
           url: result.secure_url,
           filename: result.original_filename,
-          mimetype: file.mimetype
+          mimetype: file.mimetype,
         };
-      })
+      }),
     );
 
     uploadedDocs = uploadedDocs.filter(Boolean);
@@ -85,7 +83,7 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     selectedSkill,
     pricing,
     agreedToTOS,
-    consentBackgroundCheck
+    consentBackgroundCheck,
   } = req.body;
 
   /* ---------- PARSE ---------- */
@@ -93,16 +91,14 @@ export const becomeProvider = asyncHandler(async (req, res) => {
   const pricingParsed = parseIfString(pricing);
 
   const skillObj = normalizeSkillEntry(skillParsed);
-  if (!skillObj)
-    throw new ApiError(400, "Skill is required");
+  if (!skillObj) throw new ApiError(400, "Skill is required");
 
   const pricingObj = {
     rateType: pricingParsed?.rateType || "hourly",
-    serviceRate: Number(pricingParsed?.serviceRate || 0)
+    serviceRate: Number(pricingParsed?.serviceRate || 0),
   };
 
-  if (!pricingObj.serviceRate)
-    throw new ApiError(400, "Service rate required");
+  if (!pricingObj.serviceRate) throw new ApiError(400, "Service rate required");
 
   if (!user?.location?.lng || !user?.location?.lat)
     throw new ApiError(400, "User location missing");
@@ -121,25 +117,19 @@ export const becomeProvider = asyncHandler(async (req, res) => {
 
     documents: uploadedDocs,
 
-    agreedToTOS:
-      agreedToTOS === true ||
-      agreedToTOS === "true",
+    agreedToTOS: agreedToTOS === true || agreedToTOS === "true",
 
     consentBackgroundCheck:
-      consentBackgroundCheck === true ||
-      consentBackgroundCheck === "true",
+      consentBackgroundCheck === true || consentBackgroundCheck === "true",
 
     applicationStatus: "pending",
 
     location: {
       geo: {
         type: "Point",
-        coordinates: [
-          user.location.lng,
-          user.location.lat
-        ]
-      }
-    }
+        coordinates: [user.location.lng, user.location.lat],
+      },
+    },
   };
 
   /* ---------- CREATE ---------- */
@@ -149,34 +139,38 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     userId,
     {
       providerProfile: provider._id,
-      isAttampted: true
+      isAttampted: true,
     },
-    { new: true }
+    { new: true },
   );
 
   await logActivity({
     action: "Provider Application Received",
     target: provider._id,
     targetModel: "Provider",
-    description: `${user.fullName} submitted a provider application`
+    description: `${user.fullName} submitted a provider application`,
   });
 
   /* ---------- RESPONSE ---------- */
-  res.status(201).json(
-    new ApiResponse(
-      201,
-      provider,
-      "Provider application submitted successfully"
-    )
-  );
-
+  res
+    .status(201)
+    .json(
+      new ApiResponse(
+        201,
+        provider,
+        "Provider application submitted successfully",
+      ),
+    );
 });
 
 export const hireProviderId = asyncHandler(async (req, res) => {
   const { providerId } = req.params;
   if (!providerId) throw new ApiError(403, "Provider id is required");
 
-  const provider = await Provider.findById(providerId).populate("user", "avatar email location");
+  const provider = await Provider.findById(providerId).populate(
+    "user",
+    "avatar email location",
+  );
   if (!provider) throw new ApiError(404, "Provider not found");
 
   const profile = {
@@ -187,27 +181,38 @@ export const hireProviderId = asyncHandler(async (req, res) => {
     hourly_rate: provider.pricing?.serviceRate || 0,
     years_experience: provider.yearsExperience,
     avatar: provider.user.avatar || null,
-    location: provider.user.location || null
+    location: provider.user.location || null,
+    skill: {
+      id: provider.selectedSkill.skillId,
+      name: provider.selectedSkill.name
+    },
+    price: {
+      rate: provider.pricing.serviceRate,
+      type: provider.pricing.rateType
+    }
   };
 
- const skills = [{
-  id: provider.selectedSkill.skillId?.toString() || provider.selectedSkill.name,
-  name: provider.selectedSkill.name,
-  price: provider.pricing?.serviceRate || 0
-}];
+  const galleryImages = provider.documents.map((doc) => doc.url);
 
-  const galleryImages = provider.documents.map(doc => doc.url);
-
-  return res.status(200).json(
-    new ApiResponse(200, { profile, skills, galleryImages }, "Provider profile fetched")
-  );
-})
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { profile, skills, galleryImages },
+        "Provider profile fetched",
+      ),
+    );
+});
 
 export const getProviderProfile = asyncHandler(async (req, res) => {
   const providerId = req.user?.providerProfile;
   if (!providerId) throw new ApiError(403, "Provider profile not linked");
 
-  const provider = await Provider.findById(providerId).populate("user", "fullName email number");
+  const provider = await Provider.findById(providerId).populate(
+    "user",
+    "fullName email number",
+  );
   if (!provider) throw new ApiError(404, "Provider not found");
 
   const profile = {
@@ -217,34 +222,38 @@ export const getProviderProfile = asyncHandler(async (req, res) => {
     bio: provider.professionalDescription,
     hourly_rate: provider.pricing?.serviceRate || 0,
     years_experience: provider.yearsExperience,
-    avatar_url: provider.user.avatar || null
+    avatar_url: provider.user.avatar || null,
   };
 
-  const skills = [{
-  id: provider.selectedSkill.skillId?.toString() || provider.selectedSkill.name,
-  name: provider.selectedSkill.name,
-  price: provider.pricing?.serviceRate || 0
-}];
+  const skills = [
+    {
+      id:
+        provider.selectedSkill.skillId?.toString() ||
+        provider.selectedSkill.name,
+      name: provider.selectedSkill.name,
+      price: provider.pricing?.serviceRate || 0,
+    },
+  ];
 
-  const galleryImages = provider.documents.map(doc => doc.url);
+  const galleryImages = provider.documents.map((doc) => doc.url);
 
-  return res.status(200).json(
-    new ApiResponse(200, { profile, skills, galleryImages }, "Provider profile fetched")
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { profile, skills, galleryImages },
+        "Provider profile fetched",
+      ),
+    );
 });
 
 export const updateProviderProfile = asyncHandler(async (req, res) => {
   const providerId = req.user?.providerProfile;
   if (!providerId) throw new ApiError(403, "Provider profile not linked");
 
-  const {
-    full_name,
-    phone,
-    location,
-    bio,
-    hourly_rate,
-    years_experience
-  } = req.body;
+  const { full_name, phone, location, bio, hourly_rate, years_experience } =
+    req.body;
 
   const provider = await Provider.findById(providerId);
   if (!provider) throw new ApiError(404, "Provider not found");
@@ -260,15 +269,15 @@ export const updateProviderProfile = asyncHandler(async (req, res) => {
   provider.professionalDescription = bio || provider.professionalDescription;
   provider.yearsExperience = years_experience || provider.yearsExperience;
 
- if (hourly_rate) {
-  provider.pricing.serviceRate = hourly_rate;
-}
+  if (hourly_rate) {
+    provider.pricing.serviceRate = hourly_rate;
+  }
 
   await provider.save();
 
-  return res.status(200).json(
-    new ApiResponse(200, null, "Provider profile updated successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Provider profile updated successfully"));
 });
 
 export const getProviderDashboard = asyncHandler(async (req, res) => {
@@ -284,34 +293,35 @@ export const getProviderDashboard = asyncHandler(async (req, res) => {
     {
       $facet: {
         totalEarnings: [
-          { $match: { status: { $in: ['completed'] } } },
-          { $group: { _id: null, total: { $sum: "$pricing.total" } } }
+          { $match: { status: { $in: ["completed"] } } },
+          { $group: { _id: null, total: { $sum: "$pricing.total" } } },
         ],
         thisMonthEarnings: [
           {
             $match: {
-              status: { $in: ['completed'] },
+              status: { $in: ["completed"] },
               createdAt: {
-                $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-              }
-            }
+                $gte: new Date(
+                  new Date().getFullYear(),
+                  new Date().getMonth(),
+                  1,
+                ),
+              },
+            },
           },
-          { $group: { _id: null, total: { $sum: "$pricing.total" } } }
+          { $group: { _id: null, total: { $sum: "$pricing.total" } } },
         ],
         activeOrders: [
-          { $match: { status: { $in: ['pending', 'in_progress'] } } },
-          { $count: "count" }
+          { $match: { status: { $in: ["pending", "in_progress"] } } },
+          { $count: "count" },
         ],
         completedOrders: [
           { $match: { status: "completed" } },
-          { $count: "count" }
+          { $count: "count" },
         ],
-        pendingOrders: [
-          { $match: { status: "pending" } },
-          { $count: "count" }
-        ]
-      }
-    }
+        pendingOrders: [{ $match: { status: "pending" } }, { $count: "count" }],
+      },
+    },
   ]);
 
   const stats = {
@@ -320,7 +330,7 @@ export const getProviderDashboard = asyncHandler(async (req, res) => {
     activeOrders: statsAgg[0]?.activeOrders[0]?.count || 0,
     completedOrders: statsAgg[0]?.completedOrders[0]?.count || 0,
     pendingOrders: statsAgg[0]?.pendingOrders[0]?.count || 0,
-    averageRating: 0 // You can plug in review aggregation later
+    averageRating: 0, // You can plug in review aggregation later
   };
 
   // Fetch upcoming orders
@@ -328,24 +338,24 @@ export const getProviderDashboard = asyncHandler(async (req, res) => {
     {
       $match: {
         provider: providerId,
-        status: "pending"
-      }
+        status: "pending",
+      },
     },
     {
       $lookup: {
         from: "users",
         localField: "customer",
         foreignField: "_id",
-        as: "customer"
-      }
+        as: "customer",
+      },
     },
     {
       $lookup: {
         from: "skills",
         localField: "skill",
         foreignField: "_id",
-        as: "skill"
-      }
+        as: "skill",
+      },
     },
     { $unwind: "$customer" },
     { $unwind: "$skill" },
@@ -358,15 +368,21 @@ export const getProviderDashboard = asyncHandler(async (req, res) => {
         urgency: 1,
         price: "$pricing.total",
         created_at: "$createdAt",
-        notes: "$description"
-      }
+        notes: "$description",
+      },
     },
-    { $sort: { urgency: 1, created_at: -1 } }
+    { $sort: { urgency: 1, created_at: -1 } },
   ]);
 
-  return res.status(200).json(
-    new ApiResponse(200, { stats, upcomingOrders }, "Provider dashboard data fetched")
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { stats, upcomingOrders },
+        "Provider dashboard data fetched",
+      ),
+    );
 });
 
 export const getProviderOrders = asyncHandler(async (req, res) => {
@@ -377,7 +393,7 @@ export const getProviderOrders = asyncHandler(async (req, res) => {
 
   const matchStage = {
     provider: providerId,
-    status: { $ne: "pending" }
+    status: { $ne: "pending" },
   };
 
   if (status && status !== "all") {
@@ -391,16 +407,16 @@ export const getProviderOrders = asyncHandler(async (req, res) => {
         from: "users",
         localField: "customer",
         foreignField: "_id",
-        as: "customer"
-      }
+        as: "customer",
+      },
     },
     {
       $lookup: {
         from: "skills",
         localField: "skill",
         foreignField: "_id",
-        as: "skill"
-      }
+        as: "skill",
+      },
     },
     { $unwind: "$customer" },
     { $unwind: "$skill" },
@@ -416,15 +432,21 @@ export const getProviderOrders = asyncHandler(async (req, res) => {
         price: "$pricing.total",
         created_at: "$createdAt",
         scheduled_date: "$schedule.preferredDate",
-        notes: "$description"
-      }
+        notes: "$description",
+      },
     },
-    { $sort: { created_at: -1 } }
+    { $sort: { created_at: -1 } },
   ]);
 
-  return res.status(200).json(
-    new ApiResponse(200, { orders, count: orders.length }, "Provider orders fetched")
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { orders, count: orders.length },
+        "Provider orders fetched",
+      ),
+    );
 });
 
 export const updateProviderOrderStatus = asyncHandler(async (req, res) => {
@@ -444,39 +466,39 @@ export const updateProviderOrderStatus = asyncHandler(async (req, res) => {
 
   await order.save();
 
-  return res.status(200).json(
-    new ApiResponse(200, order, "Order status updated successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, order, "Order status updated successfully"));
 });
 
 export const getProviderHistory = asyncHandler(async (req, res) => {
   const providerId = req.user?.providerProfile;
-  const { status = 'all', date = 'all' } = req.query;
+  const { status = "all", date = "all" } = req.query;
 
   if (!providerId) throw new ApiError(403, "Provider profile not linked");
 
   // Build match stage
   const matchStage = {
     provider: providerId,
-    status: { $in: ['completed', 'cancelled'] }
+    status: { $in: ["completed", "cancelled"] },
   };
 
-  if (status !== 'all') {
+  if (status !== "all") {
     matchStage.status = status;
   }
 
-  if (date !== 'all') {
+  if (date !== "all") {
     const now = new Date();
     let filterDate = new Date();
 
     switch (date) {
-      case 'week':
+      case "week":
         filterDate.setDate(now.getDate() - 7);
         break;
-      case 'month':
+      case "month":
         filterDate.setMonth(now.getMonth() - 1);
         break;
-      case 'year':
+      case "year":
         filterDate.setFullYear(now.getFullYear() - 1);
         break;
     }
@@ -491,16 +513,16 @@ export const getProviderHistory = asyncHandler(async (req, res) => {
         from: "users",
         localField: "customer",
         foreignField: "_id",
-        as: "customer"
-      }
+        as: "customer",
+      },
     },
     {
       $lookup: {
         from: "skills",
         localField: "skill",
         foreignField: "_id",
-        as: "skill"
-      }
+        as: "skill",
+      },
     },
     {
       $lookup: {
@@ -512,14 +534,14 @@ export const getProviderHistory = asyncHandler(async (req, res) => {
               $expr: {
                 $and: [
                   { $eq: ["$provider", "$$providerId"] },
-                  { $eq: ["$order", "$$orderId"] }
-                ]
-              }
-            }
-          }
+                  { $eq: ["$order", "$$orderId"] },
+                ],
+              },
+            },
+          },
         ],
-        as: "review"
-      }
+        as: "review",
+      },
     },
     { $unwind: "$customer" },
     { $unwind: "$skill" },
@@ -533,29 +555,40 @@ export const getProviderHistory = asyncHandler(async (req, res) => {
         created_at: "$createdAt",
         completed_at: "$updatedAt",
         rating: { $arrayElemAt: ["$review.rating", 0] },
-        review: { $arrayElemAt: ["$review.comment", 0] }
-      }
+        review: { $arrayElemAt: ["$review.comment", 0] },
+      },
     },
-    { $sort: { created_at: -1 } }
+    { $sort: { created_at: -1 } },
   ]);
 
   // Stats
-  const completedOrders = orders.filter(o => o.status === 'completed');
-  const cancelledOrders = orders.filter(o => o.status === 'cancelled');
+  const completedOrders = orders.filter((o) => o.status === "completed");
+  const cancelledOrders = orders.filter((o) => o.status === "cancelled");
   const totalEarnings = completedOrders.reduce((sum, o) => sum + o.price, 0);
-  const ratings = completedOrders.map(o => o.rating).filter(r => r !== undefined);
-  const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+  const ratings = completedOrders
+    .map((o) => o.rating)
+    .filter((r) => r !== undefined);
+  const averageRating =
+    ratings.length > 0
+      ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+      : 0;
 
   const stats = {
     totalCompleted: completedOrders.length,
     totalCancelled: cancelledOrders.length,
     totalEarnings,
-    averageRating: parseFloat(averageRating.toFixed(1))
+    averageRating: parseFloat(averageRating.toFixed(1)),
   };
 
-  return res.status(200).json(
-    new ApiResponse(200, { stats, orders }, "Provider history fetched successfully")
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { stats, orders },
+        "Provider history fetched successfully",
+      ),
+    );
 });
 
 export const getProviderAnalytics = asyncHandler(async (req, res) => {
@@ -567,16 +600,16 @@ export const getProviderAnalytics = asyncHandler(async (req, res) => {
   const currentYear = now.getFullYear();
 
   const orders = await Order.aggregate([
-    { $match: { provider: providerId, status: { $in: ['completed'] } } },
+    { $match: { provider: providerId, status: { $in: ["completed"] } } },
     {
       $project: {
         price: "$pricing.total",
         skill: 1,
         createdAt: 1,
         month: { $month: "$createdAt" },
-        year: { $year: "$createdAt" }
-      }
-    }
+        year: { $year: "$createdAt" },
+      },
+    },
   ]);
 
   const totalEarnings = orders.reduce((sum, o) => sum + o.price, 0);
@@ -584,15 +617,15 @@ export const getProviderAnalytics = asyncHandler(async (req, res) => {
   const averageOrderValue = totalOrders > 0 ? totalEarnings / totalOrders : 0;
 
   const thisMonthEarnings = orders
-    .filter(o => o.month === currentMonth + 1 && o.year === currentYear)
+    .filter((o) => o.month === currentMonth + 1 && o.year === currentYear)
     .reduce((sum, o) => sum + o.price, 0);
 
   const lastMonthEarnings = orders
-    .filter(o => o.month === currentMonth && o.year === currentYear)
+    .filter((o) => o.month === currentMonth && o.year === currentYear)
     .reduce((sum, o) => sum + o.price, 0);
 
   const monthlyDataMap = new Map();
-  orders.forEach(o => {
+  orders.forEach((o) => {
     const key = `${o.year}-${o.month}`;
     if (!monthlyDataMap.has(key)) {
       monthlyDataMap.set(key, { earnings: 0, orders: 0 });
@@ -605,11 +638,13 @@ export const getProviderAnalytics = asyncHandler(async (req, res) => {
   const monthlyData = Array.from(monthlyDataMap.entries())
     .map(([key, value]) => {
       const [year, month] = key.split("-");
-      const monthName = new Date(year, month - 1).toLocaleString("default", { month: "long" });
+      const monthName = new Date(year, month - 1).toLocaleString("default", {
+        month: "long",
+      });
       return {
         month: `${monthName} ${year}`,
         earnings: value.earnings,
-        orders: value.orders
+        orders: value.orders,
       };
     })
     .sort((a, b) => new Date(a.month) - new Date(b.month));
@@ -620,27 +655,27 @@ export const getProviderAnalytics = asyncHandler(async (req, res) => {
       $group: {
         _id: "$skill",
         count: { $sum: 1 },
-        revenue: { $sum: "$pricing.total" }
-      }
+        revenue: { $sum: "$pricing.total" },
+      },
     },
     {
       $lookup: {
         from: "skills",
         localField: "_id",
         foreignField: "_id",
-        as: "skill"
-      }
+        as: "skill",
+      },
     },
     { $unwind: "$skill" },
     {
       $project: {
         name: "$skill.name",
         count: 1,
-        revenue: 1
-      }
+        revenue: 1,
+      },
     },
     { $sort: { revenue: -1 } },
-    { $limit: 10 }
+    { $limit: 10 },
   ]);
 
   const analytics = {
@@ -651,10 +686,12 @@ export const getProviderAnalytics = asyncHandler(async (req, res) => {
     completedOrders: totalOrders,
     averageOrderValue: parseFloat(averageOrderValue.toFixed(2)),
     monthlyData,
-    topServices: topServicesAgg
+    topServices: topServicesAgg,
   };
 
-  return res.status(200).json(new ApiResponse(200, analytics, "Provider analytics fetched"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, analytics, "Provider analytics fetched"));
 });
 
 export const getProviderReviews = asyncHandler(async (req, res) => {
@@ -675,16 +712,16 @@ export const getProviderReviews = asyncHandler(async (req, res) => {
         from: "users",
         localField: "user",
         foreignField: "_id",
-        as: "customer"
-      }
+        as: "customer",
+      },
     },
     {
       $lookup: {
         from: "skills",
         localField: "skill",
         foreignField: "_id",
-        as: "skill"
-      }
+        as: "skill",
+      },
     },
     { $unwind: "$customer" },
     { $unwind: "$skill" },
@@ -695,33 +732,40 @@ export const getProviderReviews = asyncHandler(async (req, res) => {
         skill_name: "$skill.name",
         rating: 1,
         comment: 1,
-        created_at: "$createdAt"
-      }
+        created_at: "$createdAt",
+      },
     },
-    { $sort: { created_at: -1 } }
+    { $sort: { created_at: -1 } },
   ]);
 
   // Stats calculation
   const totalReviews = reviews.length;
-  const averageRating = totalReviews > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-    : 0;
+  const averageRating =
+    totalReviews > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+      : 0;
 
   const ratingCounts = {
-    fiveStars: reviews.filter(r => r.rating === 5).length,
-    fourStars: reviews.filter(r => r.rating === 4).length,
-    threeStars: reviews.filter(r => r.rating === 3).length,
-    twoStars: reviews.filter(r => r.rating === 2).length,
-    oneStars: reviews.filter(r => r.rating === 1).length
+    fiveStars: reviews.filter((r) => r.rating === 5).length,
+    fourStars: reviews.filter((r) => r.rating === 4).length,
+    threeStars: reviews.filter((r) => r.rating === 3).length,
+    twoStars: reviews.filter((r) => r.rating === 2).length,
+    oneStars: reviews.filter((r) => r.rating === 1).length,
   };
 
   const stats = {
     averageRating: parseFloat(averageRating.toFixed(1)),
     totalReviews,
-    ...ratingCounts
+    ...ratingCounts,
   };
 
-  return res.status(200).json(
-    new ApiResponse(200, { reviews, stats }, "Provider reviews fetched successfully")
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { reviews, stats },
+        "Provider reviews fetched successfully",
+      ),
+    );
 });

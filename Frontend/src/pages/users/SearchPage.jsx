@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import SkillCard from '../../components/users/SkillCard';
-import SkillDetailPage from './SkillDetailPage';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import SkillCard from "../../components/users/SkillCard";
+import SkillDetailPage from "./SkillDetailPage";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import useDebounce from "../../hooks/Debounce";
 import {
   Filter,
   X,
@@ -15,114 +16,157 @@ import {
   TrendingUp,
   MapPin,
   CheckCircle2,
-  ChevronDown
-} from 'lucide-react';
-import api from '../../lib/axiosSetup';
+  ChevronDown,
+} from "lucide-react";
+import api from "../../lib/axiosSetup";
 // eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from 'motion/react';
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogClose } from '../../components/ui/dialog';
-import { useSelector } from 'react-redux';
+import { motion, AnimatePresence } from "motion/react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+} from "../../components/ui/dialog";
+import { useSelector } from "react-redux";
 
-export default function SearchPage({ searchQuery = '', setSearchQuery }) {
+export default function SearchPage({ searchQuery = "", setSearchQuery }) {
   const [filteredProviders, setFilteredProviders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [priceRange, setPriceRange] = useState('all');
+  const [priceRange, setPriceRange] = useState("all");
   const [ratingFilter, setRatingFilter] = useState(0);
-  const [sortBy, setSortBy] = useState('relevance');
-  const [locationFilter, setLocationFilter] = useState('all');
+  const [sortBy, setSortBy] = useState("relevance");
+  const [locationFilter, setLocationFilter] = useState("all");
   const { providerId } = useParams();
   const navigate = useNavigate();
+  const [, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
   const { user, isAuthenticated } = useSelector((state) => state.user);
-  const [openToggle, setOpenToggle] = useState('category');
+  const [openToggle, setOpenToggle] = useState("category");
   const [showFilters, setShowFilters] = useState(false);
+  const [lastFetchedPage, setLastFetchedPage] = useState(0);
+  const previousLengthRef = React.useRef(0);
 
   useEffect(() => {
-    const controller = new AbortController();
-    const fetchProviders = async () => {
-      try {
-        setIsLoading(true);
-        const params = {
-          q: searchQuery || undefined,
-          priceRange: priceRange !== 'all' ? priceRange : undefined,
-          rating: ratingFilter > 0 ? ratingFilter : undefined,
-          sortBy: sortBy !== 'relevance' ? sortBy : undefined,
-          locationFilter: locationFilter !== 'all' ? locationFilter : undefined,
-          page: 1,
-          limit: 20,
-        };
+    previousLengthRef.current = filteredProviders.length;
+  }, [filteredProviders.length]);
 
-        // include lat/lng if available on user
-        if (user?.location?.lat && user?.location?.lng) {
-          params.lat = user.location.lat;
-          params.lng = user.location.lng;
-        }
+  const fetchProviders = async (pageToLoad = 1, reset = false) => {
+    try {
+      if (pageToLoad === lastFetchedPage) return;
+      setLastFetchedPage(pageToLoad);
 
-        const { data } = await api.get('/api/providers/filter', {
-          params,
-          signal: controller.signal,
-        });
+      if (pageToLoad === 1) setIsLoading(true);
+      else setLoadingMore(true);
 
-        const raw = data?.data?.providers || [];
+      const params = {
+        q: debouncedSearch || undefined,
+        priceRange: priceRange !== "all" ? priceRange : undefined,
+        rating: ratingFilter > 0 ? ratingFilter : undefined,
+        sortBy: sortBy !== "relevance" ? sortBy : undefined,
+        locationFilter: locationFilter !== "all" ? locationFilter : undefined,
+        page: pageToLoad,
+        limit: 10,
+      };
 
-        const normalized = raw.map((p) => {
-          const id = p._id || p.id;
-          const name = p.name;
-          const avatar = p.avatar || '';
-          const skills = p.skills;
-          const hourlyRate = p.price;
-          const rating = p.rating;
-          const reviewCount = p.reviewCount ?? 0;
-          const distance = p.distanceText;
-          const bio = p.bio || '';
-          const isVerified = p.isVerified || false;
-          const completedJobs = p.completedJobs || 0;
-          const estimatedTime = p.estimatedTimeText;
-          const location = p.location;
-          const rateType = p.rateType;
-
-          return {
-            id,
-            _id: id,
-            name,
-            avatar,
-            skills,
-            hourlyRate,
-            rating,
-            reviewCount,
-            distance,
-            bio,
-            isVerified,
-            completedJobs,
-            estimatedTime,
-            location,
-            rateType
-          };
-        });
-
-        setFilteredProviders(normalized);
-      } catch (err) {
-        if (err.name === 'CanceledError' || err.name === 'AbortError') return;
-        setFilteredProviders([]);
-      } finally {
-        setIsLoading(false);
+      if (user?.location?.lat && user?.location?.lng) {
+        params.lat = user.location.lat;
+        params.lng = user.location.lng;
       }
-    };
 
-    fetchProviders();
+      const { data } = await api.get("/api/providers/filter", { params });
 
-    return () => controller.abort();
+      const raw = data?.data?.providers || [];
+      const total = data?.data?.total || 0;
+
+      const normalized = raw.map((p) => ({
+        id: p._id,
+        name: p.name,
+        avatar: p.avatar || "",
+        skills: p.skills,
+        hourlyRate: p.price,
+        rating: p.rating,
+        reviewCount: p.reviewCount ?? 0,
+        distance: p.distanceText,
+        bio: p.bio || "",
+        isVerified: p.isVerified || false,
+        completedJobs: p.completedJobs || 0,
+        estimatedTime: p.estimatedTimeText,
+        location: p.location,
+        rateType: p.rateType,
+      }));
+
+      setFilteredProviders((prev) => {
+        if (reset) return normalized;
+
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newUnique = normalized.filter((p) => !existingIds.has(p.id));
+
+        return [...prev, ...newUnique];
+      });
+
+      const loadedCount = (pageToLoad - 1) * 10 + normalized.length;
+      setHasMore(loadedCount < total);
+      if (loadedCount >= total && observer.current) {
+        observer.current.disconnect();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    setLastFetchedPage(0);
+    setFilteredProviders([]);
+    fetchProviders(1, true);
   }, [
-    searchQuery,
+    debouncedSearch,
     priceRange,
     ratingFilter,
     sortBy,
     locationFilter,
     user?.location?.lat,
-    user?.location?.lng
+    user?.location?.lng,
   ]);
 
+  const observer = React.useRef();
+  const lastProviderRef = React.useCallback(
+    (node) => {
+      if (loadingMore || !hasMore) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore && !loadingMore) {
+            setPage((prev) => {
+              const next = prev + 1;
+              fetchProviders(next);
+              return next;
+            });
+          }
+        },
+        {
+          root: null,
+          rootMargin: "0px 0px -400px 0px",
+          threshold: 0,
+        },
+      );
+
+      if (node) observer.current.observe(node);
+    },
+    [loadingMore, hasMore],
+  );
+
   const selectedProvider = providerId
-    ? filteredProviders.find(p => String(p.id || p._id) === providerId)
+    ? filteredProviders.find((p) => String(p.id || p._id) === providerId)
     : null;
 
   const handleSkillCardClick = (id) => {
@@ -130,34 +174,35 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
   };
 
   const clearAllFilters = () => {
-    setSearchQuery('');
-    setPriceRange('all');
+    setSearchQuery("");
+    setPriceRange("all");
     setRatingFilter(0);
-    setSortBy('relevance');
-    setLocationFilter('all');
+    setSortBy("relevance");
+    setLocationFilter("all");
   };
 
   const activeFiltersCount =
-    (priceRange !== 'all' ? 1 : 0) +
+    (priceRange !== "all" ? 1 : 0) +
     (ratingFilter > 0 ? 1 : 0) +
-    (sortBy !== 'relevance' ? 1 : 0) +
-    (locationFilter !== 'all' ? 1 : 0);
+    (sortBy !== "relevance" ? 1 : 0) +
+    (locationFilter !== "all" ? 1 : 0);
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 40, opacity: 0, scale: 0.95 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: "spring", stiffness: 100 }
-    }
+      scale: 1,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
   };
 
   const toggleFilter = (name) => {
@@ -165,7 +210,7 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
   };
 
   const FilterSection = ({ isMobile = false }) => (
-    <div className={`space-y-8 ${isMobile ? '' : 'sticky top-27'}`}>
+    <div className={`space-y-8 ${isMobile ? "" : "sticky top-27"}`}>
       {!isMobile && (
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-black text-xl flex items-center gap-2">
@@ -192,8 +237,9 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
             Distance
           </h4>
           <ChevronDown
-            className={`w-4 h-4 transition-transform ${openToggle === "location" ? "rotate-180" : ""
-              }`}
+            className={`w-4 h-4 transition-transform ${
+              openToggle === "location" ? "rotate-180" : ""
+            }`}
           />
         </button>
 
@@ -203,17 +249,18 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
               { value: "all", label: "All Locations" },
               { value: "close-to-far", label: "Close to Far" },
               { value: "far-to-close", label: "Far to Close" },
-            ].map(option => (
+            ].map((option) => (
               <button
                 key={option.value}
                 onClick={() => {
                   setLocationFilter(option.value);
                   setOpenToggle(null);
                 }}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold border-2 ${locationFilter === option.value
-                  ? "border-blue-600 bg-blue-50/50 text-blue-600"
-                  : "border-transparent bg-secondary/30 text-muted-foreground"
-                  }`}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold border-2 ${
+                  locationFilter === option.value
+                    ? "border-blue-600 bg-blue-50/50 text-blue-600"
+                    : "border-transparent bg-secondary/30 text-muted-foreground"
+                }`}
               >
                 {option.label}
                 {locationFilter === option.value && (
@@ -235,8 +282,9 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
             Price Range
           </h4>
           <ChevronDown
-            className={`w-4 h-4 transition-transform ${openToggle === "price" ? "rotate-180" : ""
-              }`}
+            className={`w-4 h-4 transition-transform ${
+              openToggle === "price" ? "rotate-180" : ""
+            }`}
           />
         </button>
 
@@ -254,10 +302,11 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                   setPriceRange(option.value);
                   setOpenToggle(null); // 🔥 auto close
                 }}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold border-2 ${priceRange === option.value
-                  ? "border-blue-600 bg-blue-50/50 text-blue-600"
-                  : "border-transparent bg-secondary/30 text-muted-foreground"
-                  }`}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold border-2 ${
+                  priceRange === option.value
+                    ? "border-blue-600 bg-blue-50/50 text-blue-600"
+                    : "border-transparent bg-secondary/30 text-muted-foreground"
+                }`}
               >
                 {option.label}
                 {priceRange === option.value && (
@@ -279,8 +328,9 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
             Sort By
           </h4>
           <ChevronDown
-            className={`w-4 h-4 transition-transform ${openToggle === "sort" ? "rotate-180" : ""
-              }`}
+            className={`w-4 h-4 transition-transform ${
+              openToggle === "sort" ? "rotate-180" : ""
+            }`}
           />
         </button>
 
@@ -294,10 +344,18 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
               }}
               className="w-full bg-secondary/30 border-2 border-transparent focus:border-blue-600 rounded-2xl p-4 font-bold outline-none appearance-none cursor-pointer group-hover:bg-secondary/50 transition-colors"
             >
-              <option value="relevance" className='bg-secondary'>Recommended</option>
-              <option value="rating" className='bg-secondary'>Top Rated</option>
-              <option value="price-low" className='bg-secondary'>Price: Low to High</option>
-              <option value="price-high" className='bg-secondary'>Price: High to Low</option>
+              <option value="relevance" className="bg-secondary">
+                Recommended
+              </option>
+              <option value="rating" className="bg-secondary">
+                Top Rated
+              </option>
+              <option value="price-low" className="bg-secondary">
+                Price: Low to High
+              </option>
+              <option value="price-high" className="bg-secondary">
+                Price: High to Low
+              </option>
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none group-hover:text-foreground transition-colors" />
           </div>
@@ -319,7 +377,10 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
   return (
     <div className="min-h-screen bg-background mb-15">
       {selectedProvider ? (
-        <SkillDetailPage provider={selectedProvider} onClose={() => navigate('/search')} />
+        <SkillDetailPage
+          provider={selectedProvider}
+          onClose={() => navigate("/search")}
+        />
       ) : (
         <main className="container mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
@@ -340,7 +401,9 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                           placeholder="Search skills or services"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") e.preventDefault();
+                          }}
                           className="pl-10 bg-input-background"
                         />
                       </div>
@@ -350,11 +413,11 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                 <Dialog open={showFilters} onOpenChange={setShowFilters}>
                   <DialogTrigger asChild>
                     <Button
-                      className={`flex-1 rounded-2xl border-2 font-bold transition-all ${showFilters ? 'bg-blue-600 border-blue-600 text-white' : 'border-border/60'}`}
-                      variant={showFilters ? 'default' : 'outline'}
+                      className={`flex-1 rounded-2xl border-2 font-bold transition-all ${showFilters ? "bg-blue-600 border-blue-600 text-white" : "border-border/60"}`}
+                      variant={showFilters ? "default" : "outline"}
                     >
                       <SlidersHorizontal className="w-5 h-5" />
-                      {showFilters ? 'Hide Filters' : 'Show Filters'}
+                      {showFilters ? "Hide Filters" : "Show Filters"}
                       {activeFiltersCount > 0 && (
                         <span className="text-blue-500 rounded-full text-xs flex items-center justify-center">
                           {activeFiltersCount}
@@ -364,7 +427,9 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                   </DialogTrigger>
 
                   <DialogContent className="max-w-lg w-[90%] p-4">
-                    <DialogTitle className="text-lg font-black mb-4">Filters</DialogTitle>
+                    <DialogTitle className="text-lg font-black mb-4">
+                      Filters
+                    </DialogTitle>
                     <div className="overflow-auto max-h-[70vh]">
                       <FilterSection isMobile />
                     </div>
@@ -376,7 +441,9 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                         Apply Filters
                       </Button>
                       <DialogClose asChild>
-                        <Button variant="outline" className="h-12 rounded-xl">Close</Button>
+                        <Button variant="outline" className="h-12 rounded-xl">
+                          Close
+                        </Button>
                       </DialogClose>
                     </div>
                   </DialogContent>
@@ -389,12 +456,16 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                     {filteredProviders.length} Providers Found
                   </h2>
                   {searchQuery && (
-                    <p className="text-muted-foreground text-sm mt-1">Showing results for "{searchQuery}"</p>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      Showing results for "{searchQuery}"
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium bg-secondary/30 px-2 py-2 rounded-full border border-border/40">
                   <MapPin className="w-4 h-4 text-blue-500" />
-                  <p className='truncate max-w-30'>{user?.location?.city || 'Everywhere'}</p>
+                  <p className="truncate max-w-30">
+                    {user?.location?.city || "Everywhere"}
+                  </p>
                 </div>
               </div>
 
@@ -405,7 +476,9 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                     <div className="flex justify-center mb-6">
                       <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
                     </div>
-                    <p className="text-muted-foreground font-medium">Loading providers...</p>
+                    <p className="text-muted-foreground font-medium">
+                      Loading providers...
+                    </p>
                   </div>
                 ) : filteredProviders.length === 0 ? (
                   <motion.div
@@ -416,9 +489,13 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                     <div className="w-24 h-24 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-6">
                       <Search className="w-10 h-10 text-muted-foreground" />
                     </div>
-                    <h3 className="text-3xl font-black mb-4">No experts found</h3>
+                    <h3 className="text-3xl font-black mb-4">
+                      No experts found
+                    </h3>
                     <p className="text-xl text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
-                      We couldn't find any providers matching your specific filters. Try expanding your search criteria or resetting filters.
+                      We couldn't find any providers matching your specific
+                      filters. Try expanding your search criteria or resetting
+                      filters.
                     </p>
                     <Button
                       onClick={clearAllFilters}
@@ -431,27 +508,66 @@ export default function SearchPage({ searchQuery = '', setSearchQuery }) {
                 ) : (
                   <motion.div
                     variants={containerVariants}
-                    initial="hidden"
+                    initial={false}
                     animate="visible"
-                    key={`providers-${filteredProviders.length}`}
                     className="grid gap-8 md:grid-cols-2"
                   >
-                    {filteredProviders.map((provider) => (
-                      <motion.div
-                        key={provider.id || provider._id}
-                        variants={itemVariants}
-                        layout
-                      >
+                    {filteredProviders.map((provider, index) => {
+                      const isNew = index >= previousLengthRef.current;
+
+                      const card = (
                         <SkillCard
                           provider={provider}
-                          onClick={() => handleSkillCardClick(provider.id || provider._id)}
-                          variant="default"
+                          onClick={() => handleSkillCardClick(provider.id)}
                         />
-                      </motion.div>
-                    ))}
+                      );
+
+                      if (index === filteredProviders.length - 1) {
+                        return (
+                          <motion.div
+                            ref={lastProviderRef}
+                            key={provider.id}
+                            variants={itemVariants}
+                            initial={isNew ? "hidden" : false}
+                            animate="visible"
+                            layout
+                          >
+                            {card}
+                          </motion.div>
+                        );
+                      }
+
+                      return (
+                        <motion.div
+                          key={provider.id}
+                          variants={itemVariants}
+                          initial={isNew ? "hidden" : false}
+                          animate="visible"
+                          layout
+                        >
+                          {card}
+                        </motion.div>
+                      );
+                    })}
                   </motion.div>
                 )}
               </AnimatePresence>
+              {loadingMore && (
+                <div className="py-24 text-center">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-8 h-8 border-2 border-blue-600 border-t-blue-200 rounded-full animate-spin"></div>
+                  </div>
+                  <p className="text-muted-foreground font-medium">
+                    Loading more providers...
+                  </p>
+                </div>
+              )}
+
+              {!hasMore && !isLoading && (
+                <div className="py-10 text-center text-muted-foreground font-semibold">
+                  No more providers
+                </div>
+              )}
             </div>
           </div>
         </main>
