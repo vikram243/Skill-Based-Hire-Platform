@@ -24,6 +24,7 @@ export default function HireFlow() {
   const [provider, setProvider] = useState();
   const { providerId } = useParams();
   const navigate = useNavigate()
+  console.log(providerId)
 
   useEffect(() => {
     const fetchProvider = async () => {

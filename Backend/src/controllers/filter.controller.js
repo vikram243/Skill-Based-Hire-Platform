@@ -140,15 +140,15 @@ export const filterProviders = asyncHandler(async (req, res) => {
   const providers = results.map((p) => {
 
     const distanceKm = Number((p.distance / 1000).toFixed(2));
-    const estimatedTimeMin = Math.ceil((distanceKm / 30) * 60);
+    const estimatedTimeMin = Math.ceil((distanceKm / 25) * 60);
 
     return {
       _id: p._id,
       name: p.businessName || "Unknown",
       avatar: p.user?.avatar || null,
       skills: (p.selectedSkills || []).map(s => s.name),
-      price: p.pricing?.[0]?.serviceRate || 0,
-      rateType: p.pricing?.[0].rateType,
+      price: p.pricing?.serviceRate || 0,
+      rateType: p.pricing?.rateType,
       rating: p.meta?.avgRating || 0,
       reviewCount: p.meta?.totalReviews || 0,
       completedJobs: p.meta?.completedJobs || 0,
