@@ -101,7 +101,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                 animate={{ opacity: 1, y: 0 }}
                 className="text-blue-600 font-bold mb-4 tracking-wider uppercase text-sm"
               >
-                Welcome back, {user?.fullName?.split(' ')[0]}!
+                Welcome, {user?.fullName?.split(' ')[0]}!
               </motion.p>
             )}
             <h1 className="text-6xl md:text-8xl font-black mb-8 bg-linear-to-r from-[#3B82F6] via-blue-500 to-[#1E40AF] bg-clip-text text-transparent leading-[1.1] tracking-tight">
@@ -315,11 +315,11 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                   Join our community of over 45,000 professional providers and grow your business today.
                   Get paid weekly and choose your own hours.
                 </p>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap justify-start gap-4">
                   <Button
                     onClick={() => isAuthenticated ? navigate('/profile') : setIsAuthPanelOpen(true)}
                     size="lg"
-                    className="h-16 px-10 bg-white text-indigo-900 hover:bg-indigo-50 font-black rounded-2xl text-lg shadow-xl"
+                    className="h-16 md:px-10 px-5 bg-white text-indigo-900 hover:bg-indigo-50 font-black rounded-2xl text-lg shadow-xl"
                   >
                     Become a Provider
                   </Button>
@@ -327,7 +327,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                     onClick={() => navigate('/success-stories')}
                     variant="ghost"
                     size="lg"
-                    className="h-16 px-10 text-white hover:bg-white/10 font-bold rounded-2xl text-lg"
+                    className="h-16 md:px-10 px-5 text-white hover:bg-white/10 font-bold rounded-2xl text-lg"
                   >
                     Read Success Stories
                   </Button>
