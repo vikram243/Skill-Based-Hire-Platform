@@ -295,7 +295,7 @@ export function LocationPickerPanel({
                 )}
               </Button>
 
-              <div className="space-y-3">
+              <div className="space-y-3 hidden md:block">
                 <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 px-1">
                   <Globe className="w-4 h-4" />
                   Popular Cities
@@ -324,7 +324,7 @@ export function LocationPickerPanel({
           ) : (
             <div className="space-y-4 animate-in zoom-in-95 fade-in duration-500">
               {/* Map UI untouched */}
-              <div className="relative h-64 w-full rounded-2xl overflow-hidden border-2 border-blue-200/50 dark:border-blue-800/50 shadow-inner bg-slate-100 dark:bg-slate-900">
+              <div className="relative hidden md:block h-64 w-full rounded-2xl overflow-hidden border-2 border-blue-200/50 dark:border-blue-800/50 shadow-inner bg-slate-100 dark:bg-slate-900">
                 <div
                   className="absolute inset-0 opacity-20"
                   style={{
@@ -350,16 +350,16 @@ export function LocationPickerPanel({
                 </div>
               </div>
 
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border--800 flex items-center justify-between">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border--800 flex flex-col gap-4 items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/30">
+                  <div className="p-2 rounded-full hidden md:block bg-blue-600 text-white shadow-lg shadow-blue-500/30">
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-semibold uppercase">
                       Detected Location
                     </p>
-                    <p className="font-bold text-blue-900 dark:text-blue-100">
+                    <p className="font-bold text-xs md:text-sm text-blue-900 dark:text-blue-100">
                       {currentLocation}
                     </p>
                   </div>

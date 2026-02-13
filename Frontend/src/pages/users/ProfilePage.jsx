@@ -42,6 +42,24 @@ import {
 import { Switch } from "../../components/ui/switch";
 
 function ProfilePage() {
+  const statusColorMap = {
+    pending: "bg-yellow-500",
+    accepted: "bg-blue-500",
+    ongoing: "bg-purple-500",
+    completed: "bg-green-600",
+    cancelled: "bg-red-500",
+    rejected: "bg-gray-500",
+  };
+
+  const statusTextMap = {
+    pending: "Service request pending",
+    accepted: "Service accepted",
+    ongoing: "Service in progress",
+    completed: "Service completed",
+    cancelled: "Service cancelled",
+    rejected: "Service rejected",
+  };
+
   const avatarControls = useAnimation();
   const pageVariants = {
     hidden: { opacity: 0 },
@@ -649,11 +667,10 @@ function ProfilePage() {
                           >
                             {(!orderStats?.recentOrders ||
                               orderStats.recentOrders.length === 0) && (
-                                <div className="text-sm text-muted-foreground text-center pb-10">
-                                  No recent activity
-                                </div>
-                              )}
-
+                              <div className="text-sm text-muted-foreground text-center pb-10">
+                                No recent activity
+                              </div>
+                            )}
                             {orderStats?.recentOrders?.map(
                               (activity, index) => (
                                 <motion.div
@@ -663,19 +680,18 @@ function ProfilePage() {
                                 >
                                   <div className="flex items-center gap-3">
                                     <div
-                                      className={`w-2 h-2 rounded-full ${activity?.orderStatus === "completed"
-                                          ? "bg-success"
-                                          : "bg-(--primary-gradient-start)"
-                                        }`}
+                                      className={`w-2 h-2 rounded-full ${
+                                        statusColorMap[activity?.orderStatus] ||
+                                        "bg-gray-400"
+                                      }`}
                                     />
                                     <div>
                                       <p className="font-medium">
                                         {activity?.skill?.name}
                                       </p>
                                       <p className="text-sm text-muted-foreground">
-                                        {activity?.orderStatus === "completed"
-                                          ? "Service completed"
-                                          : "Service hired"}{" "}
+                                        {statusTextMap[activity?.orderStatus] ||
+                                          "Service updated"}{" "}
                                         • {timeAgo(activity?.createdAt)}
                                       </p>
                                     </div>
