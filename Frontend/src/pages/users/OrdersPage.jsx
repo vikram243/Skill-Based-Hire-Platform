@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
+import ReviewDialog from "../../components/users/ReviewPanel";
 import {
   Tabs,
   TabsContent,
@@ -33,6 +34,9 @@ export default function OrdersPage() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
+  const [reviewProviderId, setReviewProviderId] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const pageFade = {
     hidden: { opacity: 0 },
@@ -248,6 +252,7 @@ export default function OrdersPage() {
                       size="sm"
                       variant="outline"
                       whileTap={{ scale: 0.96 }}
+                      onClick={() => {setIsReviewPanelOpen(true), setReviewProviderId(order.provider?._id),setSelectedOrderId(order._id)}}
                     >
                       <Star className="w-4 h-4 mr-2" />
                       Review
@@ -417,6 +422,13 @@ export default function OrdersPage() {
             </TabsContent>
           </AnimatePresence>
         </Tabs>
+        <ReviewDialog 
+        isOpen={isReviewPanelOpen}
+        reviewProviderId={reviewProviderId}
+        orderId={selectedOrderId}
+        onClose={() => setIsReviewPanelOpen(false)}
+
+        />
       </div>
     </motion.div>
   );

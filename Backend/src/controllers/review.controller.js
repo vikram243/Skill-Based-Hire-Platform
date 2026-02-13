@@ -5,26 +5,25 @@ import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import { asyncHandler } from '../utils/async.handeller.js';
 
 export const createReview = asyncHandler(async (req, res) => {
-    const { provider, rating, comment } = req.body;
+    const { provider, orderId, rating, comment } = req.body;
     const userId = req.user._id;
     const completedOrder = await Order.findOne({
-        customer: userId,
-        provider,
-        status: "completed"
+        _id: orderId,
     })
     if (!completedOrder) throw new ApiError(400, "you can review only after completing an order")
 
-    const exitingReview = await Review.findOne({ user: userId, provider })
+    const exitingReview = await Review.findOne({ user: userId, order: orderId })
     if (exitingReview) throw new ApiError(400, "you already rate this order")
 
     const review = await Review.create({
         user: userId,
         provider,
+        order: orderId,
         comment,
         rating
     })
 
-    const stats = await Review.Provider([
+    const stats = await Review.aggregate([
         { $match: { provider: review.provider, status: "approved" } },
         {
             $group: {
