@@ -124,7 +124,7 @@ export default function Navigation({
   return (
     <>
       {/* Desktop Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/40">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/50 backdrop-blur-2xl supports-backdrop-filter:bg-background/40">
         <div className="container flex h-18 items-center justify-between px-4 mx-auto py-3">
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer group" onClick={() => handleNavigate('home')}>
@@ -254,29 +254,11 @@ export default function Navigation({
             </button>
           </div>
         </div>
-
-        {/* Mobile Search */}
-        {/* {isAuthenticated && (
-          <div className="md:hidden px-6 pb-4">
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search skills or services"
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange?.(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && onSearch?.()}
-                  className="pl-10 bg-input-background"
-                />
-              </div>
-            </div>
-          </div>
-        )} */}
       </header>
 
       {/* Mobile Bottom Navigation */}
       {isAuthenticated && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/40 backdrop-blur-xl border-t border-border">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-2xl border-t border-border">
           <div className="flex justify-around items-center py-2">
             {navItems.map((item) => {
               const Icon = item.icon;
