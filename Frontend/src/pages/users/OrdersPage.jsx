@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
+import ReviewDialog from "../../components/users/ReviewPanel";
 import {
   Tabs,
   TabsContent,
@@ -33,6 +34,9 @@ export default function OrdersPage() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
+  const [reviewProviderId, setReviewProviderId] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const pageFade = {
     hidden: { opacity: 0 },
@@ -109,7 +113,7 @@ export default function OrdersPage() {
 
   const OrderCard = ({ order }) => (
     <MotionCard variants={listItem} className="mb-4" initial={false}>
-      <CardContent className="p-6">
+      <CardContent className="p-6 min-h-85">
         {(() => {
           const providerName =
             order.provider?.businessName ||
@@ -124,23 +128,29 @@ export default function OrdersPage() {
             .toUpperCase();
 
           return (
-            <Avatar className="w-12 h-12 mb-2">
-              <AvatarImage src={providerAvatar} alt={providerName} />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
+            <div className="flex justify-between">
+              <Avatar className="w-12 h-12 mb-4">
+                <AvatarImage src={providerAvatar} alt={providerName} />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+
+              <p className="text-xs -mt-2">
+                Order Id: <span className="text-muted-foreground uppercase">{order?._id}</span>
+              </p>
+            </div>
           );
         })()}
 
         <div className="flex items-start gap-4">
           <div className="flex-1">
-            <div className="flex items-start justify-between mb-2">
+            <div className="flex items-start justify-between mb-5">
               <div>
-                <h3 className="font-semibold">
+                <h3 className="font-semibold truncate max-w-45">
                   {order.provider?.businessName ||
                     order.provider?.user?.fullName ||
                     "Unknown"}
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground truncate max-w-50">
                   {order.skill?.name || order.skill || ""}
                 </p>
               </div>
@@ -150,10 +160,10 @@ export default function OrdersPage() {
               </Badge>
             </div>
 
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="space-y-2 mb-12">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground ">
                 <MapPin className="w-4 h-4" />
-                <span>{order.address?.full || ""}</span>
+                <span className="truncate max-w-50">{order.address?.full || ""}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
@@ -165,18 +175,18 @@ export default function OrdersPage() {
                 </span>
               </div>
 
-              {order.note && (
-                <div className="text-sm text-muted-foreground">
+              {order?.description && (
+                <div className="text-sm text-muted-foreground mt-6 leading-relaxed line-clamp-4">
                   <span className="font-medium">Note: </span>
-                  {order.note}
+                  {order?.description}
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="text-lg font-bold">
+            <div className="flex items-center justify-between -mb-5">
+              <div className="text-lg font-bold text-emerald-400">
                 ₹
-                {order.price ||
+                {order?.price ||
                   order.pricing?.total ||
                   order.pricing?.serviceRate ||
                   ""}
@@ -248,6 +258,7 @@ export default function OrdersPage() {
                       size="sm"
                       variant="outline"
                       whileTap={{ scale: 0.96 }}
+                      onClick={() => {setIsReviewPanelOpen(true), setReviewProviderId(order.provider?._id),setSelectedOrderId(order._id)}}
                     >
                       <Star className="w-4 h-4 mr-2" />
                       Review
@@ -290,7 +301,7 @@ export default function OrdersPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 1 }}
-          transition={{type: "spring", stiffness: 150}}
+          transition={{ type: "spring", stiffness: 150 }}
           className="flex items-center justify-between mb-6"
         >
           <h1 className="text-2xl! font-bold!">My Orders</h1>
@@ -417,6 +428,13 @@ export default function OrdersPage() {
             </TabsContent>
           </AnimatePresence>
         </Tabs>
+        <ReviewDialog 
+        isOpen={isReviewPanelOpen}
+        reviewProviderId={reviewProviderId}
+        orderId={selectedOrderId}
+        onClose={() => setIsReviewPanelOpen(false)}
+
+        />
       </div>
     </motion.div>
   );

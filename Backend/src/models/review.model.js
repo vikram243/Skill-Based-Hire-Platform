@@ -5,6 +5,11 @@ const reviewSchema = new mongoose.Schema({
   provider: { type: mongoose.Schema.Types.ObjectId, ref: "Provider", required: true },
   rating: { type: Number, min: 1, max: 5, required: true },
   comment: { type: String, trim: true },
+  order: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Order",
+    required: true
+  },
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
@@ -14,6 +19,6 @@ const reviewSchema = new mongoose.Schema({
   isFlagged: { type: Boolean, default: false },
 }, { timestamps: true });
 
-const Review =  mongoose.model("Review", reviewSchema);
+const Review = mongoose.model("Review", reviewSchema);
 
 export default Review;
