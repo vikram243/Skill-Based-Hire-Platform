@@ -11,6 +11,7 @@ import { Separator } from "../../components/ui/separator";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
+import ReviewDialog from "../../components/users/ReviewPanel";
 import {
   Tabs,
   TabsContent,
@@ -42,6 +43,27 @@ import {
 import { Switch } from "../../components/ui/switch";
 
 function ProfilePage() {
+  const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
+  const [reviewProviderId, setReviewProviderId] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const { user } = useSelector((state) => state.user);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
+  const [isApplicationStatusOpen, setIsApplicationStatusOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const dispatch = useDispatch();
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    fistName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    location: stringify(user?.location) || "",
+    bio: user?.bio || "",
+  });
+  const [orderStats, setOrderStats] = useState(null);
+  const [profileError, setProfileError] = useState("");
+  const navigate = useNavigate();
+
   const statusColorMap = {
     pending: "bg-yellow-500",
     accepted: "bg-blue-500",
@@ -113,7 +135,6 @@ function ProfilePage() {
     },
   };
 
-  const MotionInput = motion.create(Input);
   const MotionTextarea = motion.create(Textarea);
   const MotionButton = motion.create(Button);
 
@@ -133,24 +154,6 @@ function ProfilePage() {
     }
     return String(val);
   };
-
-  const { user } = useSelector((state) => state.user);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
-  const [isApplicationStatusOpen, setIsApplicationStatusOpen] = useState(false);
-  const fileInputRef = useRef(null);
-  const dispatch = useDispatch();
-  const [avatarLoading, setAvatarLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    fistName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    location: stringify(user?.location) || "",
-    bio: user?.bio || "",
-  });
-  const [orderStats, setOrderStats] = useState(null);
-  const [profileError, setProfileError] = useState("");
-  const navigate = useNavigate();
 
   const displayStats = [
     {
@@ -667,10 +670,10 @@ function ProfilePage() {
                           >
                             {(!orderStats?.recentOrders ||
                               orderStats.recentOrders.length === 0) && (
-                              <div className="text-sm text-muted-foreground text-center pb-10">
-                                No recent activity
-                              </div>
-                            )}
+                                <div className="text-sm text-muted-foreground text-center pb-10">
+                                  No recent activity
+                                </div>
+                              )}
                             {orderStats?.recentOrders?.map(
                               (activity, index) => (
                                 <motion.div
@@ -680,10 +683,9 @@ function ProfilePage() {
                                 >
                                   <div className="flex items-center gap-3">
                                     <div
-                                      className={`w-2 h-2 rounded-full ${
-                                        statusColorMap[activity?.orderStatus] ||
+                                      className={`w-2 h-2 rounded-full ${statusColorMap[activity?.orderStatus] ||
                                         "bg-gray-400"
-                                      }`}
+                                        }`}
                                     />
                                     <div>
                                       <p className="font-medium">
@@ -698,7 +700,16 @@ function ProfilePage() {
                                   </div>
 
                                   <div className="flex items-center gap-1">
-                                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                    <Star
+                                      className="w-4 h-4 cursor-pointer fill-yellow-400 text-yellow-400"
+                                      onClick={() => {
+                                        (setIsReviewPanelOpen(true),
+                                          setReviewProviderId(
+                                            activity?.provider,
+                                          ),
+                                          setSelectedOrderId(activity?._id));
+                                      }}
+                                    />
                                   </div>
                                 </motion.div>
                               ),
@@ -787,6 +798,13 @@ function ProfilePage() {
         <ApplicationStatusPanel
           isOpen={isApplicationStatusOpen}
           onClose={() => setIsApplicationStatusOpen(false)}
+        />
+
+        <ReviewDialog
+          isOpen={isReviewPanelOpen}
+          reviewProviderId={reviewProviderId}
+          orderId={selectedOrderId}
+          onClose={() => setIsReviewPanelOpen(false)}
         />
       </div>
     </AnimatePresence>

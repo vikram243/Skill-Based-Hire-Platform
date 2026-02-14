@@ -61,7 +61,6 @@ export default function OrdersPage() {
 
   const MotionCard = motion.create(Card);
   const MotionButton = motion.create(Button);
-  const MotionTabsContent = motion.create(TabsContent);
 
   const fetchOrders = async (status) => {
     try {
@@ -258,7 +257,7 @@ export default function OrdersPage() {
                       size="sm"
                       variant="outline"
                       whileTap={{ scale: 0.96 }}
-                      onClick={() => {setIsReviewPanelOpen(true), setReviewProviderId(order.provider?._id),setSelectedOrderId(order._id)}}
+                      onClick={() => {setIsReviewPanelOpen(true), setReviewProviderId(order.provider?._id), setSelectedOrderId(order._id)}}
                     >
                       <Star className="w-4 h-4 mr-2" />
                       Review
@@ -433,7 +432,6 @@ export default function OrdersPage() {
         reviewProviderId={reviewProviderId}
         orderId={selectedOrderId}
         onClose={() => setIsReviewPanelOpen(false)}
-
         />
       </div>
     </motion.div>

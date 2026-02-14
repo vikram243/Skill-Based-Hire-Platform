@@ -110,7 +110,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
               <div className="flex items-center space-x-1 text-muted-foreground text-sm">
                 <MapPin className="w-3 h-3" />
                 <span>{provider.distance}</span>
-                <span className='ml-2'>{provider.estimatedTime} away</span>
+                <span>({provider.estimatedTime} away)</span>
               </div>
             )}
           </div>
@@ -123,7 +123,7 @@ export default function SkillCard({ provider, onClick, variant = 'default' }) {
             </p>
             {!isCompact && (
               <p className="text-xs text-muted-foreground">
-                ( {provider.completedJobs} jobs completed )
+                ( {provider.completedJobs} jobs )
               </p>
             )}
           </div>

@@ -272,6 +272,7 @@ export const getOrderStats = asyncHandler(async (req, res) => {
   {
     $project: {
       _id: 1,
+      provider: 1,
       orderStatus: "$status",
       createdAt: 1,
       skill: {
