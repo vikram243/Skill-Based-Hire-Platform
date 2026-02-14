@@ -174,11 +174,10 @@ export const hireProviderId = asyncHandler(async (req, res) => {
   if (!provider) throw new ApiError(404, "Provider not found");
 
   const profile = {
-    full_name: provider.fullName,
+    full_name: provider.businessName,
     email: provider.user.email,
     phone: provider.contactPhone,
     bio: provider.professionalDescription,
-    hourly_rate: provider.pricing?.serviceRate || 0,
     years_experience: provider.yearsExperience,
     avatar: provider.user.avatar || null,
     location: provider.user.location || null,
@@ -189,7 +188,10 @@ export const hireProviderId = asyncHandler(async (req, res) => {
     price: {
       rate: provider.pricing.serviceRate,
       type: provider.pricing.rateType
-    }
+    },
+    rating: provider.meta.avgRating,
+    reviewCount: provider.meta.totalReviews
+
   };
 
   const galleryImages = provider.documents.map((doc) => doc.url);
@@ -199,7 +201,7 @@ export const hireProviderId = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { profile, skills, galleryImages },
+        { profile, galleryImages },
         "Provider profile fetched",
       ),
     );

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../middlewares/auth.middleware.js'
 import { validate } from '../middlewares/validation.middleware.js'
-import { createReview, getProviderReviews } from '../controllers/review.controller.js'
+import { createReview, getProviderReviews, getReviewByOrder } from '../controllers/review.controller.js'
 import { createReviewSchema, getProviderReviewsSchema } from '../validators/review.validator.js'
 
 const router = Router();
@@ -16,6 +16,11 @@ router.route("/provider/:id").get(
     isAuthenticated,
     validate(getProviderReviewsSchema),
     getProviderReviews
+)
+
+router.route("/order/:orderId").get(
+    isAuthenticated,
+    getReviewByOrder
 )
 
 export default router;

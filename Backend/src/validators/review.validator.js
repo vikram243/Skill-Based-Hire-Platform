@@ -7,7 +7,7 @@ export const createReviewSchema = z.object({
     order: z.string().regex(objectIdRegex),
     provider: z.string().regex(objectIdRegex),
     rating: z.number().min(1).max(5),
-    comment: z.string().min(1).optional()
+    comment: z.string().min(1, 'Please describe your rating in comment').optional()
   }),
   params: z.object({}).optional(),
   query: z.object({}).optional()

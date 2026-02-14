@@ -10,13 +10,6 @@ const reviewSchema = new mongoose.Schema({
     ref: "Order",
     required: true
   },
-  status: {
-    type: String,
-    enum: ["pending", "approved", "rejected"],
-    default: "pending"
-  },
-  isHidden: { type: Boolean, default: false },
-  isFlagged: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const Review = mongoose.model("Review", reviewSchema);

@@ -161,7 +161,7 @@ export default function SkillDetailPage({ provider }) {
                 <div className="flex items-center space-x-4">
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <h1 className="text-2xl font-bold truncate max-w-64 md:max-w-100">{provider.name}</h1>
+                      <h1 className="text-2xl font-bold truncate max-w-54 md:max-w-100">{provider.name}</h1>
                       {provider.isVerified && (
                         <CheckCircle className="w-6 h-6 text-(--primary-gradient-start)" />
                       )}
@@ -169,11 +169,11 @@ export default function SkillDetailPage({ provider }) {
                     <div className="flex items-center justify-between space-x-4 text-muted-foreground mb-2">
                       <div className="flex items-center space-x-1">
                         <MapPin className="w-4 h-4" />
-                        <span className='truncate max-w-40 md:max-w-70'>{provider.location}</span>
+                        <span className='truncate max-w-35 md:max-w-70'>{provider.location}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="w-4 h-4" />
-                        <span className='truncate max-w-20 md:max-w-40'>{provider.responseTime || 'N/A'} response time</span>
+                        <span className='truncate max-w-16 md:max-w-40'>{provider.responseTime || 'N/A'} response time</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
@@ -350,7 +350,7 @@ export default function SkillDetailPage({ provider }) {
             <MotionCard initial={false} className="p-6 bg-card border-2 border-border/40 shadow-lg sticky top-20">
               <div className="text-center mb-6">
                 <p className="text-3xl font-bold text-(--primary-gradient-start) mb-1">
-                  ₹{provider.hourlyRate}/hr
+                  ₹{provider.hourlyRate}/{provider.rateType === "hourly" ? "hr" : provider.rateType === "perday" ? "day" : "job"}
                 </p>
                 <p className="text-muted-foreground">Starting rate</p>
               </div>
