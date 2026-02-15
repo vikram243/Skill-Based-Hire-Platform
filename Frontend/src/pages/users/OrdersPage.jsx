@@ -472,8 +472,8 @@ export default function OrdersPage() {
                     )}
 
                     {!hasMore && !loading && (
-                      <div className="py-10 text-center text-muted-foreground font-semibold">
-                        No more providers
+                      <div className="py-5 text-center text-muted-foreground font-semibold">
+                        No more orders to load
                       </div>
                     )}
                   </motion.div>
