@@ -57,7 +57,7 @@ function ProfilePage() {
   const [formData, setFormData] = useState({
     fistName: user?.firstName || "",
     lastName: user?.lastName || "",
-    location: stringify(user?.location) || "",
+    location: user?.location?.address || "",
     bio: user?.bio || "",
   });
   const [orderStats, setOrderStats] = useState(null);
@@ -305,134 +305,143 @@ function ProfilePage() {
               {/* Profile Card */}
               <motion.div variants={cardVariants} className="lg:col-span-1">
                 <Card className="p-6 text-center bg-linear-to-br from-card to-(--surface) border-2 border-border/40 shadow-(--shadow-mid)">
-                  <div className="relative inline-block mb-4">
-                    <motion.div
-                      animate={avatarControls}
-                      variants={avatarVariants}
-                    >
-                      <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
-                        <AvatarImage src={user?.avatar} alt={user?.firstName} />
-                        <AvatarFallback className="text-xl bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
-                          {user?.fullName
-                            ?.split?.(" ")
-                            ?.map((n) => n[0])
-                            .join("") || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                    </motion.div>
-                    <MotionButton
-                      size="sm"
-                      disabled={avatarLoading}
-                      onMouseEnter={() => avatarControls.start("hover")}
-                      onMouseLeave={() => avatarControls.start("rest")}
-                      className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-accent hover:bg-accent/90 cursor-pointer"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      {avatarLoading ? (
-                        <svg
-                          className="animate-spin w-4 h-4"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
+                  <div>
+                    <div className="relative inline-block mb-4">
+                      <motion.div
+                        animate={avatarControls}
+                        variants={avatarVariants}
+                      >
+                        <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
+                          <AvatarImage
+                            src={user?.avatar}
+                            alt={user?.firstName}
                           />
-                        </svg>
-                      ) : (
-                        <Camera className="w-4 h-4" />
-                      )}
-                    </MotionButton>
-                  </div>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) updateProfilePicture(file);
-                    }}
-                  />
-
-                  <h2 className="text-xl font-bold mb-1 truncate max-w-70">
-                    {user?.fullName}
-                  </h2>
-                  <p className="text-muted-foreground mb-2 truncate max-w-70">
-                    {user?.email}
-                  </p>
-
-                  <Badge variant="secondary" className="mb-4">
-                    {user?.isProvider ? "Service Provider" : "Customer"}
-                  </Badge>
-
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center justify-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm truncate max-w-30">
-                        {stringify(user?.location)}
-                      </span>
+                          <AvatarFallback className="text-xl bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white">
+                            {user?.fullName
+                              ?.split?.(" ")
+                              ?.map((n) => n[0])
+                              .join("") || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      </motion.div>
+                      <MotionButton
+                        size="sm"
+                        disabled={avatarLoading}
+                        onMouseEnter={() => avatarControls.start("hover")}
+                        onMouseLeave={() => avatarControls.start("rest")}
+                        className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-accent hover:bg-accent/90 cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {avatarLoading ? (
+                          <svg
+                            className="animate-spin w-4 h-4"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                          </svg>
+                        ) : (
+                          <Camera className="w-4 h-4" />
+                        )}
+                      </MotionButton>
                     </div>
-                    <div className="flex items-center justify-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      <span className="text-sm truncate max-w-30">
-                        +91 {user?.number}
-                      </span>
-                    </div>
-                  </div>
 
-                  <Separator className="my-6" />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {displayStats.slice(0, 2).map((stat, i) => (
-                      <div key={i}>
-                        <div className="font-bold text-lg text-(--primary-gradient-start)">
-                          {stat.value}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {stat.label}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-6 space-y-2">
-                    <MotionButton
-                      variant="outline"
-                      className="w-full mt-3 bg-linear-to-r cursor-pointer from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
-                      onClick={() => {
-                        if (user?.isProvider) {
-                          navigate("/provider-dashboard");
-                        } else if (user?.isApplicationAttampted) {
-                          setIsApplicationStatusOpen(true);
-                        } else {
-                          setIsRegisterProviderOpen(true);
-                        }
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) updateProfilePicture(file);
                       }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      {user?.isProvider
-                        ? "Go to Provider Dashboard"
-                        : user?.isApplicationAttampted
-                          ? "Check Application Status"
-                          : "Become Provider"}
-                    </MotionButton>
+                    />
 
-                    <MotionButton
-                      variant="outline"
-                      className="w-full cursor-pointer text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={onLogout}
-                      whileTap={{ scale: 0.96 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </MotionButton>
+                    <div className="flex flex-col items-center justify-center">
+                    <h2 className="text-xl font-bold mb-1 truncate max-w-60">
+                      {user?.fullName}
+                    </h2>
+                    <p className="text-muted-foreground mb-2 truncate max-w-60">
+                      {user?.email}
+                    </p>
+
+                    <Badge variant="secondary" className="mb-4">
+                      {user?.isProvider ? "Service Provider" : "Customer"}
+                    </Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center justify-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        <span className="text-sm truncate max-w-60">
+                          {stringify(user?.location)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        <span className="text-sm truncate max-w-40">
+                          +91 {user?.number}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {displayStats.slice(0, 2).map((stat, i) => (
+                        <div key={i}>
+                          <div className="font-bold text-lg text-(--primary-gradient-start)">
+                            {stat.value}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {stat.label}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-6 space-y-2">
+                      <MotionButton
+                        variant="outline"
+                        className="w-full mt-3 bg-linear-to-r cursor-pointer from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
+                        onClick={() => {
+                          if (user?.isProvider) {
+                            navigate("/provider-dashboard");
+                          } else if (user?.isApplicationAttampted) {
+                            setIsApplicationStatusOpen(true);
+                          } else {
+                            setIsRegisterProviderOpen(true);
+                          }
+                        }}
+                        whileTap={{ scale: 0.96 }}
+                        transition={{ duration: 0.1 }}
+                      >
+                        {user?.isProvider
+                          ? "Go to Provider Dashboard"
+                          : user?.isApplicationAttampted
+                            ? "Check Application Status"
+                            : "Become Provider"}
+                      </MotionButton>
+
+                      <MotionButton
+                        variant="outline"
+                        className="w-full cursor-pointer text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={onLogout}
+                        whileTap={{ scale: 0.96 }}
+                        transition={{ duration: 0.1 }}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
+                      </MotionButton>
+                    </div>
                   </div>
                 </Card>
               </motion.div>
@@ -670,10 +679,10 @@ function ProfilePage() {
                           >
                             {(!orderStats?.recentOrders ||
                               orderStats.recentOrders.length === 0) && (
-                                <div className="text-sm text-muted-foreground text-center pb-10">
-                                  No recent activity
-                                </div>
-                              )}
+                              <div className="text-sm text-muted-foreground text-center pb-10">
+                                No recent activity
+                              </div>
+                            )}
                             {orderStats?.recentOrders?.map(
                               (activity, index) => (
                                 <motion.div
@@ -683,9 +692,10 @@ function ProfilePage() {
                                 >
                                   <div className="flex items-center gap-3">
                                     <div
-                                      className={`w-2 h-2 rounded-full ${statusColorMap[activity?.orderStatus] ||
+                                      className={`w-2 h-2 rounded-full ${
+                                        statusColorMap[activity?.orderStatus] ||
                                         "bg-gray-400"
-                                        }`}
+                                      }`}
                                     />
                                     <div>
                                       <p className="font-medium">

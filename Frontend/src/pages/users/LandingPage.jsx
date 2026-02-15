@@ -68,7 +68,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative pt-12 pb-20 px-6 overflow-hidden">
+      <section className="relative pt-6 pb-20 px-6 overflow-hidden">
         {/* Animated Background blobs */}
         <motion.div
           animate={{

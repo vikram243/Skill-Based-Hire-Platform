@@ -127,15 +127,14 @@ export default function OrdersPage() {
             .toUpperCase();
 
           return (
-            <div className="flex justify-between">
+            <div className="flex flex-col gap-4">
+              <p className="text-xs -mt-2">
+                Order Id: <span className="text-muted-foreground uppercase">{order?._id}</span>
+              </p>
               <Avatar className="w-12 h-12 mb-4">
                 <AvatarImage src={providerAvatar} alt={providerName} />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-
-              <p className="text-xs -mt-2">
-                Order Id: <span className="text-muted-foreground uppercase">{order?._id}</span>
-              </p>
             </div>
           );
         })()}
@@ -296,7 +295,7 @@ export default function OrdersPage() {
       animate="show"
       className="min-h-screen bg-background pb-20 md:pb-0"
     >
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 pt-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 1 }}
@@ -314,7 +313,7 @@ export default function OrdersPage() {
         </motion.div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="w-full grid-cols md:grid-cols-5 mb-6">
+          <TabsList className="w-full grid-cols md:grid-cols-5 mb-12">
             <TabsTrigger value="pending">
               <span className="text-xs sm:text-sm">Pending</span>
             </TabsTrigger>
@@ -360,7 +359,7 @@ export default function OrdersPage() {
                   </div>
                 ) : orders.orders.length === 0 ? (
                   <Card className="p-8">
-                    <div className="text-muted-foreground mb-4 min-h-65 md:min-h-95 flex items-center justify-center">
+                    <div className="text-muted-foreground mb-4 min-h-58 flex items-center justify-center">
                       {selectedTab === "pending" && "No pending Orders"}
                       {selectedTab === "accepted" && "No accepted Orders"}
                       {selectedTab === "ongoing" && "No ongoing Orders"}
