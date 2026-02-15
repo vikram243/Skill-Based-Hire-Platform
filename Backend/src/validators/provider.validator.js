@@ -113,9 +113,14 @@ export const updateOrderStatusSchema = z.object({
     status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
     notes: z.string().optional(),
   }),
+  params: z.object({ orderId: z.string().regex(objectIdRegex) }),
 
+  query: z.object({}).optional(),
+});
+
+export const hireProviderByIdSchema = z.object({
   params: z.object({
-    orderId: z.string().regex(objectIdRegex),
+    providerId: z.string().regex(objectIdRegex, "Provider id is invalid"),
   }),
 
   query: z.object({}).optional(),

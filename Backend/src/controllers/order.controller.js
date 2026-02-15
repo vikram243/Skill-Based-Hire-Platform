@@ -114,28 +114,34 @@ export const getOrders = asyncHandler(async (req, res) => {
 });
 
 export const getOrdersByStatus = asyncHandler(async (req, res) => {
-  const { status } = req.params;
-  const userId = req.user?._id;
 
-  const completed = await Order.countDocuments({ customer: userId, status: "completed" });
-  const pending = await Order.countDocuments({ customer: userId, status: "pending" });
+  const { status } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+  const userId = req.user?._id;
 
   if (!status) {
     throw new ApiError(400, "Order status is required");
   }
 
+  const pageNum = Math.max(1, Number(page));
+  const limitNum = Math.max(1, Number(limit));
+  const skip = (pageNum - 1) * limitNum;
+
+  // counts
+  const completed = await Order.countDocuments({ customer: userId, status: "completed" });
+  const pending = await Order.countDocuments({ customer: userId, status: "pending" });
+
+  // total spent
   const spentAgg = await Order.aggregate([
-    { $match: { customer: userId, status: { $in: ["completed", "ongoing", "pending"] } } },
-    { $group: { _id: null, total: { $sum: "$pricing.total" } } },
+    { $match: { customer: userId, status: { $in: ["completed","ongoing","pending"] } } },
+    { $group: { _id: null, total: { $sum: "$pricing.total" } } }
   ]);
 
-  const orders = await Order.aggregate([
-    {
-      $match: {
-        customer: userId,
-        status
-      }
-    },
+  // MAIN PIPELINE WITH PAGINATION
+  const pipeline = [
+
+    { $match: { customer: userId, status } },
+
     {
       $lookup: {
         from: "providers",
@@ -144,14 +150,16 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
         as: "provider"
       }
     },
+
     {
-    $lookup: {
-      from: "users",
-      localField: "provider.user",
-      foreignField: "_id",
-      as: "providerUser"
-    }
-  },
+      $lookup: {
+        from: "users",
+        localField: "provider.user",
+        foreignField: "_id",
+        as: "providerUser"
+      }
+    },
+
     {
       $lookup: {
         from: "skills",
@@ -160,9 +168,11 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
         as: "skill"
       }
     },
+
     { $unwind: { path: "$provider", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$skill", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$providerUser", preserveNullAndEmptyArrays: true } },
+
     {
       $project: {
         _id: 1,
@@ -184,28 +194,47 @@ export const getOrdersByStatus = asyncHandler(async (req, res) => {
             email: "$providerUser.email"
           }
         },
-        skill: {
-          name: "$skill.name",
-        }
+        skill: { name: "$skill.name" }
       }
     },
-    { $sort: { createdAt: -1 } }
-  ]);
 
-  const message = (orders && orders.length > 0)
-    ? `${status} orders fetched successfully`
-    : `No ${status} orders found`;
+    { $sort: { createdAt: -1 } },
 
-    const data = {
-    orders : orders || [],
+    // PAGINATION + TOTAL
+    {
+      $facet: {
+        results: [
+          { $skip: skip },
+          { $limit: limitNum }
+        ],
+        totalCount: [
+          { $count: "count" }
+        ]
+      }
+    }
+  ];
+
+  const agg = await Order.aggregate(pipeline);
+
+  const results = agg[0]?.results || [];
+  const total = agg[0]?.totalCount?.[0]?.count || 0;
+
+  const message =
+    results.length > 0
+      ? `${status} orders fetched successfully`
+      : `No ${status} orders found`;
+
+  return res.status(200).json(new ApiResponse(200, {
+    total,
+    page: pageNum,
+    pages: Math.ceil(total / limitNum),
     completed,
     pending,
-    totalSpent: spentAgg[0]?.total || 0
-    }
+    totalSpent: spentAgg[0]?.total || 0,
+    orders: results,
+    message
+  }));
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, data, message));
 });
 
 export const updateOrderStatus = asyncHandler(async (req, res) => {
