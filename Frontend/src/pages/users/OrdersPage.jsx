@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import ReviewDialog from "../../components/users/ReviewPanel";
@@ -32,11 +32,20 @@ import {
 export default function OrdersPage() {
   const [selectedTab, setSelectedTab] = useState("pending");
   const navigate = useNavigate();
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState({
+    orders: [],
+    completed: 0,
+    pending: 0,
+    totalSpent: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
   const [reviewProviderId, setReviewProviderId] = useState(null);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const observer = React.useRef();
 
   const pageFade = {
     hidden: { opacity: 0 },
@@ -62,19 +71,69 @@ export default function OrdersPage() {
   const MotionCard = motion.create(Card);
   const MotionButton = motion.create(Button);
 
-  const fetchOrders = async (status) => {
+  const fetchOrders = async (status, pageToLoad = 1, reset = false) => {
     try {
-      const res = await api.get(`/api/orders/status/${status}`);
-      setOrders(res.data?.data || []);
-      setLoading(false);
+      if (pageToLoad === 1) setLoading(true);
+      else setLoadingMore(true);
+
+      const res = await api.get(
+        `/api/orders/status/${status}?page=${pageToLoad}&limit=10`,
+      );
+
+      const data = res.data?.data || {};
+      const newOrders = data.orders || [];
+
+      setOrders((prev) => {
+        if (reset) return data;
+
+        return {
+          ...data,
+          orders: [...(prev.orders || []), ...newOrders],
+        };
+      });
+
+      const loadedCount = (pageToLoad - 1) * 10 + newOrders.length;
+      setHasMore(loadedCount < data.total);
     } catch (err) {
       console.error("Error fetching orders:", err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
   };
 
-  React.useEffect(() => {
-    fetchOrders(selectedTab);
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    setOrders({ orders: [] });
+    fetchOrders(selectedTab, 1, true);
   }, [selectedTab]);
+
+  const lastOrderRef = React.useCallback(
+    (node) => {
+      if (loading || loadingMore || !hasMore) return;
+
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((prev) => {
+            const next = prev + 1;
+            fetchOrders(selectedTab, next);
+            return next;
+          });
+        }
+      },{
+        root:null,
+        rootMargin:"0px 0px -300px 0px",
+        threshold:0
+      }
+    );
+
+      if (node) observer.current.observe(node);
+    },
+    [loading, loadingMore, hasMore, selectedTab],
+  );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -111,7 +170,7 @@ export default function OrdersPage() {
   };
 
   const OrderCard = ({ order }) => (
-    <MotionCard variants={listItem} className="mb-4" initial={false}>
+    <MotionCard variants={listItem} className="mb-6" initial={false}>
       <CardContent className="p-6 min-h-85">
         {(() => {
           const providerName =
@@ -129,7 +188,10 @@ export default function OrdersPage() {
           return (
             <div className="flex flex-col gap-4">
               <p className="text-xs -mt-2">
-                Order Id: <span className="text-muted-foreground uppercase">{order?._id}</span>
+                Order Id:{" "}
+                <span className="text-muted-foreground uppercase">
+                  {order?._id}
+                </span>
               </p>
               <Avatar className="w-12 h-12 mb-4">
                 <AvatarImage src={providerAvatar} alt={providerName} />
@@ -161,7 +223,9 @@ export default function OrdersPage() {
             <div className="space-y-2 mb-12">
               <div className="flex items-center gap-2 text-sm text-muted-foreground ">
                 <MapPin className="w-4 h-4" />
-                <span className="truncate max-w-50">{order.address?.full || ""}</span>
+                <span className="truncate max-w-50">
+                  {order.address?.full || ""}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
@@ -256,7 +320,11 @@ export default function OrdersPage() {
                       size="sm"
                       variant="outline"
                       whileTap={{ scale: 0.96 }}
-                      onClick={() => {setIsReviewPanelOpen(true), setReviewProviderId(order.provider?._id), setSelectedOrderId(order._id)}}
+                      onClick={() => {
+                        (setIsReviewPanelOpen(true),
+                          setReviewProviderId(order.provider?._id),
+                          setSelectedOrderId(order._id));
+                      }}
                     >
                       <Star className="w-4 h-4 mr-2" />
                       Review
@@ -346,7 +414,7 @@ export default function OrdersPage() {
                 initial="hidden"
                 animate="show"
                 exit="exit"
-                className="space-y-4 w-full"
+                className="space-y-4 w-full max-h-[calc(100vh-290px)] overflow-y-auto rounded-2xl border border-border bg-background/40 backdrop-blur-2xl p-2 pt-3 shadow-inner shadow-gray-300 dark:shadow-gray-800 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 show-scrollbar"
               >
                 {loading ? (
                   <div className="py-24 text-center">
@@ -381,9 +449,33 @@ export default function OrdersPage() {
                     animate="show"
                     className="space-y-4 w-full"
                   >
-                    {orders.orders.map((order) => (
-                      <OrderCard key={order._id || order.id} order={order} />
-                    ))}
+                    {orders.orders.map((order, index) => {
+                      if (index === orders.orders.length - 1) {
+                        return (
+                          <div ref={lastOrderRef} key={order._id}>
+                            <OrderCard order={order} />
+                          </div>
+                        );
+                      }
+
+                      return <OrderCard key={order._id} order={order} />;
+                    })}
+                    {loadingMore && (
+                      <div className="py-24 text-center">
+                        <div className="flex justify-center mb-6">
+                          <div className="w-8 h-8 border-2 border-blue-600 border-t-blue-200 rounded-full animate-spin"></div>
+                        </div>
+                        <p className="text-muted-foreground font-medium">
+                          Loading more providers...
+                        </p>
+                      </div>
+                    )}
+
+                    {!hasMore && !loading && (
+                      <div className="py-10 text-center text-muted-foreground font-semibold">
+                        No more providers
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </motion.div>
@@ -426,11 +518,11 @@ export default function OrdersPage() {
             </TabsContent>
           </AnimatePresence>
         </Tabs>
-        <ReviewDialog 
-        isOpen={isReviewPanelOpen}
-        reviewProviderId={reviewProviderId}
-        orderId={selectedOrderId}
-        onClose={() => setIsReviewPanelOpen(false)}
+        <ReviewDialog
+          isOpen={isReviewPanelOpen}
+          reviewProviderId={reviewProviderId}
+          orderId={selectedOrderId}
+          onClose={() => setIsReviewPanelOpen(false)}
         />
       </div>
     </motion.div>
