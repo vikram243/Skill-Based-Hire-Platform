@@ -25,6 +25,7 @@ export default function HireFlow() {
   const [isProviderLoading, setIsProviderLoading] = useState(true);
   const { providerId } = useParams();
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState("");
   const number = user?.number || "";
   const service = provider?.data?.profile?.skill?.name || "";
 
@@ -32,10 +33,18 @@ export default function HireFlow() {
     const fetchProvider = async () => {
       try {
         setIsProviderLoading(true);
+        setErrorMessage("");
+
         const res = await api.post(`/api/providers/${providerId}`);
         setProvider(res.data);
       } catch (error) {
         console.error("Error fetching provider:", error);
+
+        const message =
+          error.response?.data?.message ||
+          "Something went wrong. Please try again.";
+
+        setErrorMessage(message);
         setProvider(null);
       } finally {
         setIsProviderLoading(false);
@@ -102,18 +111,57 @@ export default function HireFlow() {
         </div>
       );
     }
-  }
 
-  if (!provider) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-surface/30 to-background authenticated-page">
-        <div className="container mx-auto px-4 py-8">
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">Provider not found</p>
-            <Button className="text-blue-500" onClick={() => navigate(-1)}>
+      <div className="min-h-100 flex items-center justify-center bg-linear-to-br from-background via-surface/30 to-background authenticated-page px-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          {/* Icon Circle */}
+          <div className="flex justify-center">
+            <div className="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border border-red-200 shadow-md">
+              <svg
+                className="w-10 h-10 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Heading */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">
+              Oops! Something went wrong
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              {errorMessage ||
+                "The provider you are trying to reach is not available right now."}
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-4 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="px-6"
+            >
               Go Back
             </Button>
-          </Card>
+
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white px-6"
+            >
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -380,7 +428,7 @@ export default function HireFlow() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Provider Card */}
-              <Card className="p-6 bg-card border-2 border-border/40 shadow-lg sticky top-6">
+              <Card className="p-6 bg-card border-2 border-border/40 shadow-lg sticky top-22">
                 <div className="flex items-center space-x-3 ">
                   <Avatar className="h-12 w-12">
                     <AvatarImage

@@ -37,7 +37,7 @@ export const validate = (schema) => (req, res, next) => {
       if (first) {
         const rawPath = first.path.join('.');
         const path = rawPath.startsWith('body.') ? rawPath.slice(5) : rawPath;
-        const message = `${path} - ${first.message}`;
+        const message = `${first.message}`;
         throw new ApiError(400, message);
       }
       throw new ApiError(400, 'Invalid request');

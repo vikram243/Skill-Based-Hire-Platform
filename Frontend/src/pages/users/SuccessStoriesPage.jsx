@@ -222,7 +222,7 @@ export default function SuccessStoriesPage({ setIsAuthPanelOpen }) {
                   transition={{ delay: i * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="overflow-hidden h-full flex flex-col justify-between group hover:shadow-2xl transition-all border bg-slate-50 dark:bg-slate-900/40 rounded-[40px]">
+                  <Card className="overflow-hidden h-full flex flex-col justify-between group hover:shadow-2xl shadow-blue-300 dark:shadow-blue-950 transition-all border bg-slate-50 dark:bg-slate-900/40 rounded-[40px]">
                     <>
                       <div className="aspect-4/5 overflow-hidden relative">
                         <div className="absolute top-6 left-6 flex flex-wrap gap-2">

@@ -16,7 +16,7 @@ import { filterProviders } from '../controllers/filter.controller.js';
 import { upload } from '../middlewares/upload.middleware.js';
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
-import { becomeProviderSchema, updateProviderSchema, updateOrderStatusSchema } from '../validators/provider.validator.js';
+import { becomeProviderSchema, updateProviderSchema, updateOrderStatusSchema, hireProviderByIdSchema } from '../validators/provider.validator.js';
 
 const router = Router();
 
@@ -29,6 +29,7 @@ router.route('/onboardProvider').post(
 
 router.route('/:providerId').post(
     isAuthenticated,
+    validate(hireProviderByIdSchema),
     hireProviderId
 )
 

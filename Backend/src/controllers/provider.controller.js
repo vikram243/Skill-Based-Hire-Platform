@@ -169,9 +169,17 @@ export const hireProviderId = asyncHandler(async (req, res) => {
 
   const provider = await Provider.findById(providerId).populate(
     "user",
-    "avatar email location",
+    "avatar email location"
   );
+
   if (!provider) throw new ApiError(404, "Provider not found");
+
+  if (!provider.isOnline || !provider.isAvailable) {
+    throw new ApiError(
+      409,
+      "The provider you are trying to reach is not available right now"
+    );
+  }
 
   const profile = {
     full_name: provider.businessName,
@@ -183,28 +191,27 @@ export const hireProviderId = asyncHandler(async (req, res) => {
     location: provider.user.location || null,
     skill: {
       id: provider.selectedSkill.skillId,
-      name: provider.selectedSkill.name
+      name: provider.selectedSkill.name,
     },
     price: {
       rate: provider.pricing.serviceRate,
-      type: provider.pricing.rateType
+      type: provider.pricing.rateType,
     },
     rating: provider.meta.avgRating,
-    reviewCount: provider.meta.totalReviews
-
+    reviewCount: provider.meta.totalReviews,
+    isOnline: provider.isOnline,
+    isAvailable: provider.isAvailable,
   };
 
   const galleryImages = provider.documents.map((doc) => doc.url);
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { profile, galleryImages },
-        "Provider profile fetched",
-      ),
-    );
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { profile, galleryImages },
+      "Provider profile fetched"
+    )
+  );
 });
 
 export const getProviderProfile = asyncHandler(async (req, res) => {
