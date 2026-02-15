@@ -193,7 +193,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
             {Skills.slice(0, 8).map((skill) => (
               <motion.div key={skill.id} variants={itemVariants}>
                 <Card
-                  className="group h-full p-8 cursor-pointer hover:shadow-2xl transition-all duration-500 bg-card border border-border/80 hover:border-blue-500/50 relative overflow-hidden rounded-3xl"
+                  className="group h-full p-8 cursor-pointer hover:shadow-lg shadow-blue-200 dark:shadow-blue-950 transition-all duration-500 bg-card border border-border/80 hover:border-blue-500/50 relative overflow-hidden rounded-3xl"
                   onClick={() => {
                     if (isAuthenticated) {
                       setSearchQuery(skill.name);

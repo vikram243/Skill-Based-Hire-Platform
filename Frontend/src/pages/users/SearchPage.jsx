@@ -495,7 +495,7 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
                     <p className="text-xl text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
                       We couldn't find any providers matching your specific
                       filters. Try expanding your search criteria or resetting
-                      filters.
+                      filters or refresh page.
                     </p>
                     <Button
                       onClick={clearAllFilters}
