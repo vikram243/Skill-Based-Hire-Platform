@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "motion/react";
 import { Card } from "../../components/ui/card";
@@ -17,6 +17,9 @@ import {
 import { useNavigate } from "react-router-dom";
 
 export default function CommunityGuidelinesPage() {
+  useEffect(() => {
+    document.title = "Community | SkillHub";
+  }, []);
   const navigate = useNavigate();
   const guidelines = [
     {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   ChevronDown,
@@ -57,6 +57,10 @@ const QUICK_LINKS = [
 export default function HelpCenterPage() {
   const [openIndex, setOpenIndex] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = "Help Center | SkillHub";
+  }, []);
 
   const toggleAccordion = (index) => {
     setOpenIndex(openIndex === index ? null : index);

@@ -30,6 +30,12 @@ export default function HireFlow() {
   const service = provider?.data?.profile?.skill?.name || "";
 
   useEffect(() => {
+    if (provider?.name) {
+      document.title = `${provider.name} | SkillHub`;
+    }
+  }, [provider]);
+
+  useEffect(() => {
     const fetchProvider = async () => {
       try {
         setIsProviderLoading(true);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import {
@@ -23,6 +23,10 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 export default function SuccessStoriesPage({ setIsAuthPanelOpen }) {
+  useEffect(() => {
+    document.title = "Success Story | SkillHub";
+  }, []);
+
   const stats = [
     {
       label: "Providers",

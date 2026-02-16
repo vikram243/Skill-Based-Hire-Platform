@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Award,
   ShieldCheck,
@@ -13,6 +14,10 @@ import { Button } from "../../components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export default function GuaranteePage() {
+  useEffect(() => {
+    document.title = "Guarantee | SkillHub";
+  }, []);
+
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background">

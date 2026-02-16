@@ -1,21 +1,39 @@
-import React from 'react';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card } from '../../components/ui/card';
-import { Search, MapPin, Clock, CheckCircle, Bell, User, ArrowRight, Users, Shield, Zap } from 'lucide-react';
-import { Skills } from '../../data/mockData';
-import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import {useEffect} from "react";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Card } from "../../components/ui/card";
+import {
+  Search,
+  MapPin,
+  Clock,
+  CheckCircle,
+  Bell,
+  User,
+  ArrowRight,
+  Users,
+  Shield,
+  Zap,
+} from "lucide-react";
+import { Skills } from "../../data/mockData";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 // eslint-disable-next-line no-unused-vars
-import { motion } from 'motion/react';
+import { motion } from "motion/react";
 
-export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearchQuery }) {
+export default function LandingPage({
+  setIsAuthPanelOpen,
+  searchQuery,
+  setSearchQuery,
+}) {
+  useEffect(() => {
+    document.title = "SkillHub";
+  }, []);
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useSelector(state => state.user);
+  const { user, isAuthenticated } = useSelector((state) => state.user);
 
   const handleSearch = () => {
     if (isAuthenticated) {
-      navigate('/search');
+      navigate("/search");
     } else {
       setIsAuthPanelOpen(true);
     }
@@ -25,23 +43,27 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
     {
       icon: <Users className="w-8 h-8 text-blue-600" />,
       title: "Trusted Community",
-      description: "Connect with verified local service providers who are background-checked and highly rated."
+      description:
+        "Connect with verified local service providers who are background-checked and highly rated.",
     },
     {
       icon: <Shield className="w-8 h-8 text-blue-600" />,
       title: "Secure Payments",
-      description: "Safe and secure payment processing with buyer protection and satisfaction guarantee."
+      description:
+        "Safe and secure payment processing with buyer protection and satisfaction guarantee.",
     },
     {
       icon: <Clock className="w-8 h-8 text-blue-600" />,
       title: "Quick Response",
-      description: "Get responses within minutes and book services that fit your schedule."
+      description:
+        "Get responses within minutes and book services that fit your schedule.",
     },
     {
       icon: <Zap className="w-8 h-8 text-blue-600" />,
       title: "Instant Booking",
-      description: "Book services instantly with real-time availability and automated scheduling."
-    }
+      description:
+        "Book services instantly with real-time availability and automated scheduling.",
+    },
   ];
 
   const containerVariants = {
@@ -50,9 +72,9 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.1
-      }
-    }
+        delayChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -61,8 +83,8 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
       y: 0,
       opacity: 1,
       scale: 1,
-      transition: { type: "spring", stiffness: 100, damping: 15 }
-    }
+      transition: { type: "spring", stiffness: 100, damping: 15 },
+    },
   };
 
   return (
@@ -74,7 +96,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
           animate={{
             scale: [1, 1.6, 1],
             rotate: [0, 90, 0],
-            x: [0, 30, 0]
+            x: [0, 30, 0],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="absolute top-10 right-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl z-0"
@@ -83,7 +105,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
           animate={{
             scale: [1.5, 1, 1.5],
             rotate: [0, -90, 0],
-            y: [0, -30, 0]
+            y: [0, -30, 0],
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
           className="absolute bottom-20 left-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl z-0"
@@ -101,11 +123,12 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                 animate={{ opacity: 1, y: 0 }}
                 className="text-blue-600 font-bold mb-4 tracking-wider uppercase text-sm"
               >
-                Welcome, {user?.fullName?.split(' ')[0]}!
+                Welcome, {user?.fullName?.split(" ")[0]}!
               </motion.p>
             )}
             <h1 className="text-6xl md:text-8xl font-black mb-8 bg-linear-to-r from-[#3B82F6] via-blue-500 to-[#1E40AF] bg-clip-text text-transparent leading-[1.1] tracking-tight">
-              Hire skills near you,<br /> <span className="text-foreground">anytime!</span>
+              Hire skills near you,
+              <br /> <span className="text-foreground">anytime!</span>
             </h1>
           </motion.div>
 
@@ -115,8 +138,8 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
             transition={{ delay: 0.3 }}
             className="text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
           >
-            Connect with skilled professionals in your area for any service you need.
-            Fast, reliable, and trusted by thousands.
+            Connect with skilled professionals in your area for any service you
+            need. Fast, reliable, and trusted by thousands.
           </motion.p>
 
           <motion.div
@@ -131,7 +154,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                 placeholder="What skill are you looking for?"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="pl-14 h-16 text-lg bg-card/50 backdrop-blur-sm border-2 border-border/60 shadow-xl focus:shadow-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 rounded-2xl"
               />
             </div>
@@ -151,9 +174,18 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
             className="flex flex-wrap justify-center items-center gap-8 text-muted-foreground"
           >
             {[
-              { icon: <CheckCircle className="w-5 h-5 text-emerald-500" />, text: "10k+ Customers" },
-              { icon: <Clock className="w-5 h-5 text-amber-500" />, text: "24/7 Support" },
-              { icon: <MapPin className="w-5 h-5 text-blue-500" />, text: "50+ Cities" }
+              {
+                icon: <CheckCircle className="w-5 h-5 text-emerald-500" />,
+                text: "10k+ Customers",
+              },
+              {
+                icon: <Clock className="w-5 h-5 text-amber-500" />,
+                text: "24/7 Support",
+              },
+              {
+                icon: <MapPin className="w-5 h-5 text-blue-500" />,
+                text: "50+ Cities",
+              },
             ].map((item, idx) => (
               <motion.div
                 key={idx}
@@ -197,7 +229,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                   onClick={() => {
                     if (isAuthenticated) {
                       setSearchQuery(skill.name);
-                      navigate('/search');
+                      navigate("/search");
                     } else {
                       setIsAuthPanelOpen(true);
                     }
@@ -205,9 +237,13 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                 >
                   <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative z-10">
-                    <div className="text-5xl mb-6 group-hover:scale-125 group-hover:rotate-6 transition-transform duration-500 origin-left">{skill.icon}</div>
+                    <div className="text-5xl mb-6 group-hover:scale-125 group-hover:rotate-6 transition-transform duration-500 origin-left">
+                      {skill.icon}
+                    </div>
                     <h3 className="font-bold mb-3 text-xl">{skill.name}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{skill.description}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {skill.description}
+                    </p>
                     <div className="mt-6 flex items-center text-blue-600 font-bold text-sm opacity-0 group-hover:opacity-100 transform -translate-x-2.5 group-hover:translate-x-0 transition-all duration-300">
                       Browse Providers <ArrowRight className="ml-2 w-4 h-4" />
                     </div>
@@ -224,7 +260,9 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
           >
             <Button
               variant="outline"
-              onClick={() => isAuthenticated ? navigate('/search') : setIsAuthPanelOpen(true)}
+              onClick={() =>
+                isAuthenticated ? navigate("/search") : setIsAuthPanelOpen(true)
+              }
               className="px-12 h-14 text-lg border-2 border-blue-500/20 hover:border-blue-500 hover:bg-blue-500/5 transition-all duration-300 rounded-2xl font-bold"
             >
               View All Skills
@@ -244,7 +282,7 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
               { label: "Active Users", value: "250K+" },
               { label: "Providers", value: "45K+" },
               { label: "Cities Covered", value: "120+" },
-              { label: "Average Rating", value: "4.9/5" }
+              { label: "Average Rating", value: "4.9/5" },
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -253,7 +291,9 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <div className="text-4xl md:text-5xl font-black mb-2">{stat.value}</div>
+                <div className="text-4xl md:text-5xl font-black mb-2">
+                  {stat.value}
+                </div>
                 <div className="text-blue-100 font-medium">{stat.label}</div>
               </motion.div>
             ))}
@@ -289,8 +329,12 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
                   <div className="mb-8 p-4 rounded-3xl bg-secondary/50 inline-block group-hover:scale-110 group-hover:bg-blue-500/10 transition-all duration-500">
                     {feature.icon}
                   </div>
-                  <h3 className="font-bold text-2xl mb-4 tracking-tight">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <h3 className="font-bold text-2xl mb-4 tracking-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {feature.description}
+                  </p>
                 </Card>
               </motion.div>
             ))}
@@ -310,21 +354,28 @@ export default function LandingPage({ setIsAuthPanelOpen, searchQuery, setSearch
               <div className="absolute top-0 right-0 w-1/2 h-full bg-white/5 skew-x-[-20deg] translate-x-1/2" />
 
               <div className="relative z-10 max-w-3xl">
-                <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">Ready to earn by sharing your skills?</h2>
+                <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
+                  Ready to earn by sharing your skills?
+                </h2>
                 <p className="text-xl text-indigo-100/80 mb-12 leading-relaxed">
-                  Join our community of over 45,000 professional providers and grow your business today.
-                  Get paid weekly and choose your own hours.
+                  Join our community of over 45,000 professional providers and
+                  grow your business today. Get paid weekly and choose your own
+                  hours.
                 </p>
                 <div className="flex flex-wrap justify-start gap-4">
                   <Button
-                    onClick={() => isAuthenticated ? navigate('/profile') : setIsAuthPanelOpen(true)}
+                    onClick={() =>
+                      isAuthenticated
+                        ? navigate("/profile")
+                        : setIsAuthPanelOpen(true)
+                    }
                     size="lg"
                     className="h-16 md:px-10 px-5 bg-white text-indigo-900 hover:bg-indigo-50 font-black rounded-2xl text-lg shadow-xl"
                   >
                     Become a Provider
                   </Button>
                   <Button
-                    onClick={() => navigate('/success-stories')}
+                    onClick={() => navigate("/success-stories")}
                     variant="ghost"
                     size="lg"
                     className="h-16 md:px-10 px-5 text-white hover:bg-white/10 font-bold rounded-2xl text-lg"

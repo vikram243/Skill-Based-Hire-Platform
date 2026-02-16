@@ -51,6 +51,10 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
   const previousLengthRef = React.useRef(0);
 
   useEffect(() => {
+    document.title = "Search | SkillHub";
+  }, []);
+
+  useEffect(() => {
     previousLengthRef.current = filteredProviders.length;
   }, [filteredProviders.length]);
 

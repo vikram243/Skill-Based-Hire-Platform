@@ -47,6 +47,10 @@ export default function OrdersPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const observer = React.useRef();
 
+  useEffect(() => {
+    document.title = "Orders | SkillHub";
+  }, []);
+
   const pageFade = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { duration: 0.4 } },
@@ -77,7 +81,7 @@ export default function OrdersPage() {
       else setLoadingMore(true);
 
       const res = await api.get(
-        `/api/orders/status/${status}?page=${pageToLoad}&limit=10`,
+        `/api/orders/status/${status}?page=${pageToLoad}&limit=5`,
       );
 
       const data = res.data?.data || {};
@@ -115,20 +119,22 @@ export default function OrdersPage() {
 
       if (observer.current) observer.current.disconnect();
 
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          setPage((prev) => {
-            const next = prev + 1;
-            fetchOrders(selectedTab, next);
-            return next;
-          });
-        }
-      },{
-        root:null,
-        rootMargin:"0px 0px -300px 0px",
-        threshold:0
-      }
-    );
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            setPage((prev) => {
+              const next = prev + 1;
+              fetchOrders(selectedTab, next);
+              return next;
+            });
+          }
+        },
+        {
+          root: null,
+          rootMargin: "0px 0px -300px 0px",
+          threshold: 0,
+        },
+      );
 
       if (node) observer.current.observe(node);
     },
@@ -205,7 +211,7 @@ export default function OrdersPage() {
           <div className="flex-1">
             <div className="flex items-start justify-between mb-5">
               <div>
-                <h3 className="font-semibold truncate max-w-45">
+                <h3 className="font-semibold truncate max-w-38 md:max-w-50">
                   {order.provider?.businessName ||
                     order.provider?.user?.fullName ||
                     "Unknown"}
@@ -381,7 +387,7 @@ export default function OrdersPage() {
         </motion.div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="w-full grid-cols md:grid-cols-5 mb-12">
+          <TabsList className="w-full grid-cols md:grid-cols-5 mb-6">
             <TabsTrigger value="pending">
               <span className="text-xs sm:text-sm">Pending</span>
             </TabsTrigger>

@@ -10,6 +10,7 @@ import { setRefreshToken, getRefreshToken, deleteRefreshToken, setSessionId, get
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { uploadOnCloudinary } from '../config/cloudinary.config.js';
+import { getAvatarUrl } from "../utils/cloudinaryUrl.js";
 
 
 const sendOtpToUser = asyncHandler(async (req, res) => {
@@ -180,7 +181,7 @@ const updateProfile = asyncHandler(async (req, res) => {
   const updates = {};
   const responseData = {};
 
-  const { firstName, lastName, bio } = req.body;
+  const { firstName, lastName, bio, number } = req.body;
 
   const { location } = req.body;
 
@@ -199,6 +200,17 @@ const updateProfile = asyncHandler(async (req, res) => {
     responseData.bio = bio;
   }
 
+  if (number) {
+    if(number !== safeUser.number) {
+      const existingUser = await User.findOne({ number });
+      if (existingUser) {
+        throw new ApiError(409, "Another user already exists with this phone number");
+      }
+    }
+    updates.number = number;
+    responseData.number = number;
+  }
+
   if (firstName || lastName) {
     const finalFirstName = firstName ?? safeUser.firstName;
     const finalLastName = lastName ?? safeUser.lastName;
@@ -208,14 +220,26 @@ const updateProfile = asyncHandler(async (req, res) => {
   }
 
   if (req.file) {
-    const uploadResult = await uploadOnCloudinary(req.file.path);
-    if (!uploadResult?.secure_url) {
-      throw new ApiError(500, "Avatar upload failed");
-    }
 
-    updates.avatar = uploadResult.secure_url;
-    responseData.avatar = uploadResult.secure_url;
+  if (user.avatar) {
+    try {
+      await cloudinary.uploader.destroy(user.avatar);
+    } catch (err) {
+      console.log("Old avatar delete failed:", err.message);
+    }
   }
+
+  const uploadResult = await uploadOnCloudinary(req.file.path);
+
+  if (!uploadResult?.public_id) {
+    throw new ApiError(500, "Avatar upload failed");
+  }
+
+  updates.avatar = uploadResult.public_id;
+
+  responseData.avatar = getAvatarUrl(uploadResult.public_id, 300);
+}
+
 
   if (location) {
     if (typeof location === 'string') {
@@ -240,7 +264,7 @@ const updateProfile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "No valid fields provided");
   }
 
-  await User.findByIdAndUpdate(userId, updates);
+  await User.findByIdAndUpdate(userId, updates,{ new: true });
 
   return res.status(200).json(
     new ApiResponse(

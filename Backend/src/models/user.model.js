@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from "../config/config.js";
+import { getAvatarUrl } from "../utils/cloudinaryUrl.js";
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -89,6 +90,9 @@ const userSchema = new mongoose.Schema({
 }
 );
 
+userSchema.set("toJSON", { virtuals: true });
+userSchema.set("toObject", { virtuals: true });
+
 userSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { email: { $type: 'string' } } });
 userSchema.index({ number: 1 }, { unique: true, partialFilterExpression: { number: { $type: 'string' } } });
 
@@ -116,6 +120,9 @@ userSchema.methods.generateRefreshToken = function () {
     }
   )
 }
-
+userSchema.virtual("avatarUrl").get(function () {
+  if (!this.avatar) return null;
+  return getAvatarUrl(this.avatar, 300);
+});
 const User = mongoose.model('User', userSchema);
 export default User;

@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import {
   ShieldCheck,
   Umbrella,
@@ -17,6 +17,9 @@ import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 
 export default function InsurancePage() {
+  useEffect(() => {
+    document.title = "Insurance | SkillHub";
+  }, []);
   const coverageItems = [
     {
       icon: <Building className="w-6 h-6" />,
