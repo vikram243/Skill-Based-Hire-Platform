@@ -180,7 +180,7 @@ const updateProfile = asyncHandler(async (req, res) => {
   const updates = {};
   const responseData = {};
 
-  const { firstName, lastName, bio } = req.body;
+  const { firstName, lastName, bio, number } = req.body;
 
   const { location } = req.body;
 
@@ -197,6 +197,17 @@ const updateProfile = asyncHandler(async (req, res) => {
   if (bio) {
     updates.bio = bio;
     responseData.bio = bio;
+  }
+
+  if (number) {
+    if(number !== safeUser.number) {
+      const existingUser = await User.findOne({ number });
+      if (existingUser) {
+        throw new ApiError(409, "Another user already exists with this phone number");
+      }
+    }
+    updates.number = number;
+    responseData.number = number;
   }
 
   if (firstName || lastName) {

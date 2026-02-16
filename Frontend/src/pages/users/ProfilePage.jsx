@@ -41,6 +41,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { Switch } from "../../components/ui/switch";
+import { number } from "zod";
 
 function ProfilePage() {
   const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
@@ -57,6 +58,7 @@ function ProfilePage() {
   const [formData, setFormData] = useState({
     fistName: user?.firstName || "",
     lastName: user?.lastName || "",
+    number: user?.number || "",
     location: user?.location?.address || "",
     bio: user?.bio || "",
   });
@@ -218,6 +220,7 @@ function ProfilePage() {
       const res = await api.put("/api/users/update-profile", {
         firstName: formData.fistName,
         lastName: formData.lastName,
+        number: formData.number,
         bio: formData.bio,
       });
 
@@ -227,6 +230,7 @@ function ProfilePage() {
             firstName: res?.data?.data?.firstName,
             lastName: res?.data?.data?.lastName,
             fullName: res?.data?.data?.fullName,
+            number: res?.data?.data?.number,
             bio: res?.data?.data?.bio,
           }),
         );
@@ -591,14 +595,14 @@ function ProfilePage() {
                                 <Label>Phone</Label>
                                 <Input
                                   id="phone"
-                                  value={user?.number}
+                                  value={formData.number}
                                   onChange={(e) =>
                                     setFormData((prev) => ({
                                       ...prev,
-                                      phone: e.target.value,
+                                      number: e.target.value,
                                     }))
                                   }
-                                  disabled
+                                  disabled={!isEditing}
                                 />
                               </div>
                               <div className="flex gap-1 flex-col">
