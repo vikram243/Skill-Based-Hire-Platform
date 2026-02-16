@@ -7,7 +7,7 @@ export const getSafeUser = (user) => ({
   number: user.number,
   isActive: user.isActive,
   isProvider: user.isProvider,
-  avatar: user.avatar,
+  avatar: user.avatarUrl,
   location: user.location,
   bio: user.bio,
   providerStatus: user.providerProfile?.applicationStatus ?? null,
