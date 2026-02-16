@@ -64,6 +64,12 @@ function ProfilePage() {
   const [profileError, setProfileError] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (user?.firstName) {
+      document.title = `${user.firstName} | SkillHub`;
+    }
+  }, [user?.firstName]);
+
   const statusColorMap = {
     pending: "bg-yellow-500",
     accepted: "bg-blue-500",
@@ -364,16 +370,16 @@ function ProfilePage() {
                     />
 
                     <div className="flex flex-col items-center justify-center">
-                    <h2 className="text-xl font-bold mb-1 truncate max-w-60">
-                      {user?.fullName}
-                    </h2>
-                    <p className="text-muted-foreground mb-2 truncate max-w-60">
-                      {user?.email}
-                    </p>
+                      <h2 className="text-xl font-bold mb-1 truncate max-w-60">
+                        {user?.fullName}
+                      </h2>
+                      <p className="text-muted-foreground mb-2 truncate max-w-60">
+                        {user?.email}
+                      </p>
 
-                    <Badge variant="secondary" className="mb-4">
-                      {user?.isProvider ? "Service Provider" : "Customer"}
-                    </Badge>
+                      <Badge variant="secondary" className="mb-4">
+                        {user?.isProvider ? "Service Provider" : "Customer"}
+                      </Badge>
                     </div>
                   </div>
 

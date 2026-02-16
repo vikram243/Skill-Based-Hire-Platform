@@ -1,4 +1,4 @@
-import React from "react";
+import {useEffect} from "react";
 import { Eye, Shield, Lock, Info, CheckCircle2 } from "lucide-react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "motion/react";
@@ -6,6 +6,9 @@ import { Card } from "../../components/ui/card";
 import { useNavigate } from "react-router-dom";
 
 export default function PrivacyPage() {
+  useEffect(() => {
+    document.title = "Privacy | SkillHub";
+  }, []);
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background">

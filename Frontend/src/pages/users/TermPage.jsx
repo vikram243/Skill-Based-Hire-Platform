@@ -1,10 +1,19 @@
-import React from 'react';
-import { Scale, FileText, ShieldAlert, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useEffect } from "react";
+import {
+  Scale,
+  FileText,
+  ShieldAlert,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 // eslint-disable-next-line no-unused-vars
-import { motion } from 'motion/react';
-import { Card } from '../../components/ui/card';
+import { motion } from "motion/react";
+import { Card } from "../../components/ui/card";
 
 export default function TermsPage() {
+  useEffect(() => {
+    document.title = "Term & Conditions | SkillHub";
+  }, []);
   return (
     <div className="min-h-screen bg-background">
       <main className="pb-24">
@@ -19,8 +28,12 @@ export default function TermsPage() {
                 <Scale className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tight">Terms of Service</h1>
-                <p className="text-muted-foreground mt-2">Effective Date: February 6, 2026</p>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight">
+                  Terms of Service
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  Effective Date: February 6, 2026
+                </p>
               </div>
             </div>
 
@@ -28,7 +41,9 @@ export default function TermsPage() {
               <div className="flex gap-4">
                 <AlertCircle className="w-6 h-6 text-orange-600 shrink-0" />
                 <p className="text-orange-800 dark:text-orange-300 font-medium">
-                  Please read these Terms of Service carefully before using SkillHub. By accessing our platform, you agree to be bound by these terms and all applicable laws.
+                  Please read these Terms of Service carefully before using
+                  SkillHub. By accessing our platform, you agree to be bound by
+                  these terms and all applicable laws.
                 </p>
               </div>
             </Card>
@@ -40,7 +55,10 @@ export default function TermsPage() {
                   1. Service Overview
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  SkillHub is a platform that facilitates connections between independent service providers and customers. SkillHub is not an employer of providers and does not provide the services directly.
+                  SkillHub is a platform that facilitates connections between
+                  independent service providers and customers. SkillHub is not
+                  an employer of providers and does not provide the services
+                  directly.
                 </p>
               </section>
 
@@ -51,11 +69,16 @@ export default function TermsPage() {
                     "You must be at least 18 years old to create an account.",
                     "You are responsible for maintaining the security of your account credentials.",
                     "All information provided must be accurate and truthful.",
-                    "You agree not to bypass the platform for payments."
+                    "You agree not to bypass the platform for payments.",
                   ].map((rule, i) => (
-                    <div key={i} className="flex gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
+                    <div
+                      key={i}
+                      className="flex gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800"
+                    >
                       <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                      <span className="text-muted-foreground font-medium">{rule}</span>
+                      <span className="text-muted-foreground font-medium">
+                        {rule}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -64,7 +87,11 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-bold">3. Payment Terms</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Customers agree to pay for services booked through SkillHub using the designated payment methods. Providers agree to a service fee deduction as specified in the provider agreement. All payments are held in escrow until service completion is confirmed.
+                  Customers agree to pay for services booked through SkillHub
+                  using the designated payment methods. Providers agree to a
+                  service fee deduction as specified in the provider agreement.
+                  All payments are held in escrow until service completion is
+                  confirmed.
                 </p>
               </section>
 
@@ -74,7 +101,10 @@ export default function TermsPage() {
                   Liability & Termination
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  SkillHub reserves the right to suspend or terminate accounts that violate these terms. We are not liable for the quality of work performed by independent providers, beyond our SkillHub Guarantee policy.
+                  SkillHub reserves the right to suspend or terminate accounts
+                  that violate these terms. We are not liable for the quality of
+                  work performed by independent providers, beyond our SkillHub
+                  Guarantee policy.
                 </p>
               </section>
             </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Shield,
   Lock,
@@ -39,6 +39,9 @@ const itemVariants = {
 };
 
 export default function SafetyPage({ setIsAuthPanelOpen }) {
+  useEffect(() => {
+    document.title = "Safety | SkillHub";
+  }, []);
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.user);
   return (

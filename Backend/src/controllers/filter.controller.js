@@ -146,7 +146,7 @@ export const filterProviders = asyncHandler(async (req, res) => {
       _id: p._id,
       name: p.businessName || "Unknown",
       avatar: p.user?.avatar || null,
-      skills: (p.selectedSkills || []).map(s => s.name),
+      skills: p.selectedSkill || "Unknown",
       price: p.pricing?.serviceRate || 0,
       rateType: p.pricing?.rateType,
       rating: p.meta?.avgRating || 0,
