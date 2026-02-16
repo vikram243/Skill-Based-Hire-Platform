@@ -41,7 +41,6 @@ import {
   Briefcase,
 } from "lucide-react";
 import { Switch } from "../../components/ui/switch";
-import { number } from "zod";
 
 function ProfilePage() {
   const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
