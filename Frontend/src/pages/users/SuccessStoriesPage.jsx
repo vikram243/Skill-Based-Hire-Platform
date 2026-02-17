@@ -21,8 +21,10 @@ import {
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useUI } from "../../contexts/ui-context";
 
-export default function SuccessStoriesPage({ setIsAuthPanelOpen }) {
+export default function SuccessStoriesPage() {
+  const { setIsAuthPanelOpen } = useUI();
   useEffect(() => {
     document.title = "Success Story | SkillHub";
   }, []);

@@ -1,4 +1,3 @@
-import {useEffect} from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card } from "../../components/ui/card";
@@ -19,73 +18,78 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "motion/react";
+import { useCallback, useMemo } from "react";
+import { useUI } from "../../contexts/ui-context";
 
-export default function LandingPage({
-  setIsAuthPanelOpen,
-  searchQuery,
-  setSearchQuery,
-}) {
-  useEffect(() => {
-    document.title = "SkillHub";
-  }, []);
+export default function LandingPage() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.user);
+  const { setIsAuthPanelOpen, searchQuery, setSearchQuery } = useUI();
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     if (isAuthenticated) {
       navigate("/search");
     } else {
       setIsAuthPanelOpen(true);
     }
-  };
+  }, [isAuthenticated, navigate, setIsAuthPanelOpen]);
 
-  const features = [
-    {
-      icon: <Users className="w-8 h-8 text-blue-600" />,
-      title: "Trusted Community",
-      description:
-        "Connect with verified local service providers who are background-checked and highly rated.",
-    },
-    {
-      icon: <Shield className="w-8 h-8 text-blue-600" />,
-      title: "Secure Payments",
-      description:
-        "Safe and secure payment processing with buyer protection and satisfaction guarantee.",
-    },
-    {
-      icon: <Clock className="w-8 h-8 text-blue-600" />,
-      title: "Quick Response",
-      description:
-        "Get responses within minutes and book services that fit your schedule.",
-    },
-    {
-      icon: <Zap className="w-8 h-8 text-blue-600" />,
-      title: "Instant Booking",
-      description:
-        "Book services instantly with real-time availability and automated scheduling.",
-    },
-  ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1,
+  const features = useMemo(
+    () => [
+      {
+        icon: <Users className="w-8 h-8 text-blue-600" />,
+        title: "Trusted Community",
+        description:
+          "Connect with verified local service providers who are background-checked and highly rated.",
       },
-    },
-  };
+      {
+        icon: <Shield className="w-8 h-8 text-blue-600" />,
+        title: "Secure Payments",
+        description:
+          "Safe and secure payment processing with buyer protection and satisfaction guarantee.",
+      },
+      {
+        icon: <Clock className="w-8 h-8 text-blue-600" />,
+        title: "Quick Response",
+        description:
+          "Get responses within minutes and book services that fit your schedule.",
+      },
+      {
+        icon: <Zap className="w-8 h-8 text-blue-600" />,
+        title: "Instant Booking",
+        description:
+          "Book services instantly with real-time availability and automated scheduling.",
+      },
+    ],
+    [],
+  );
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0, scale: 0.95 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      scale: 1,
-      transition: { type: "spring", stiffness: 100, damping: 15 },
-    },
-  };
+  const containerVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          staggerChildren: 0.1,
+          delayChildren: 0.1,
+        },
+      },
+    }),
+    [],
+  );
+
+  const itemVariants = useMemo(
+    () => ({
+      hidden: { y: 20, opacity: 0, scale: 0.95 },
+      visible: {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        transition: { type: "spring", stiffness: 100, damping: 15 },
+      },
+    }),
+    [],
+  );
 
   return (
     <div className="min-h-screen bg-background">

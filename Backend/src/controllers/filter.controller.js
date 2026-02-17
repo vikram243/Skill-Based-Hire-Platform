@@ -51,7 +51,7 @@ export const filterProviders = asyncHandler(async (req, res) => {
     const searchTerm = q || skill;
     matchFilter.$or = [
       { businessName: { $regex: searchTerm, $options: "i" } },
-      { "selectedSkills.name": { $regex: searchTerm, $options: "i" } }
+      { "selectedSkill.name": { $regex: searchTerm, $options: "i" } }
     ];
   }
 
@@ -89,6 +89,7 @@ export const filterProviders = asyncHandler(async (req, res) => {
         distanceField: "distance",
         maxDistance: RADIUS_METERS,
         spherical: true,
+        key: "location.geo",
         query: matchFilter
       }
     },
@@ -112,14 +113,17 @@ export const filterProviders = asyncHandler(async (req, res) => {
   // 🔄 Sorting
   let sortStage = { distance: 1 };
 
+  if (sortBy === "distance-far")
+    sortStage = { distance: -1 };
+
   if (sortBy === "rating")
     sortStage = { "meta.avgRating": -1 };
 
   if (sortBy === "price-low")
-    sortStage = { "pricing.0.serviceRate": 1 };
+    sortStage = { "pricing.serviceRate": 1 };
 
   if (sortBy === "price-high")
-    sortStage = { "pricing.0.serviceRate": -1 };
+    sortStage = { "pricing.serviceRate": -1 };
 
   pipeline.push({ $sort: sortStage });
 

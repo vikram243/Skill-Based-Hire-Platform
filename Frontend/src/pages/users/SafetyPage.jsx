@@ -22,6 +22,7 @@ import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useUI } from "../../contexts/ui-context";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,7 +39,8 @@ const itemVariants = {
   visible: { y: 0, opacity: 1 },
 };
 
-export default function SafetyPage({ setIsAuthPanelOpen }) {
+export default function SafetyPage() {
+  const { setIsAuthPanelOpen } = useUI();
   useEffect(() => {
     document.title = "Safety | SkillHub";
   }, []);

@@ -1,15 +1,21 @@
 import { Outlet, ScrollRestoration } from "react-router-dom";
+import React, { Suspense, lazy } from "react";
 import Navigation from "./components/users/Navigation";
 import Footer from "./components/users/Footer";
-import AuthPanel from "./components/users/AuthPanel";
+import { useUI } from "./contexts/ui-context";
 
-const Layout = ({
-  setIsAuthPanelOpen,
-  isDarkMode,
-  toggleDarkMode,
-  isAuthPanelOpen
-  , searchQuery, setSearchQuery
-}) => {
+const AuthPanel = lazy(() => import("./components/users/AuthPanel"));
+
+const Layout = () => {
+  const {
+    setIsAuthPanelOpen,
+    isDarkMode,
+    toggleDarkMode,
+    isAuthPanelOpen,
+    searchQuery,
+    setSearchQuery,
+  } = useUI();
+
   return (
     <>
       <ScrollRestoration />
@@ -23,12 +29,16 @@ const Layout = ({
 
       <Outlet />
 
-      <Footer setIsAuthPanelOpen={setIsAuthPanelOpen} />
+      <Footer />
 
-      <AuthPanel
-        isOpen={isAuthPanelOpen}
-        onClose={() => setIsAuthPanelOpen(false)}
-      />
+      <Suspense fallback={null}>
+        {isAuthPanelOpen && (
+          <AuthPanel
+            isOpen={isAuthPanelOpen}
+            onClose={() => setIsAuthPanelOpen(false)}
+          />
+        )}
+      </Suspense>
     </>
   );
 };

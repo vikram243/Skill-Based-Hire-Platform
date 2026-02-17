@@ -17,8 +17,10 @@ import {
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useUI } from "../../contexts/ui-context";
 
-export default function HowItWorksPage({ setIsAuthPanelOpen }) {
+export default function HowItWorksPage() {
+  const { setIsAuthPanelOpen } = useUI();
   useEffect(() => {
     document.title = "How it works | SkillHub";
   }, []);
