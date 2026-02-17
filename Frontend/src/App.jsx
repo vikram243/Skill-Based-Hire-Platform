@@ -1,41 +1,16 @@
 /* eslint-disable no-unused-vars */
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, logoutUser, setLoading } from "./slices/userSlice";
 import api from "./lib/axiosSetup";
 import FullPageLoader from "./components/ui/full-page-loader";
+import { UIProvider } from "./contexts/ui-context";
 
 const App = () => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.user);
-
-  const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const getInitialTheme = () => {
-    try {
-      const savedTheme = localStorage.getItem("darkMode");
-      if (savedTheme !== null) {
-        return JSON.parse(savedTheme);
-      }
-      return window.matchMedia("(prefers-color-scheme: dark)").matches;
-    } catch {
-      return false;
-    }
-  };
-
-  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDarkMode);
-    localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(prev => !prev);
-  };
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -72,16 +47,9 @@ const App = () => {
   }
 
   return (
-    <RouterProvider
-      router={router({
-        setIsAuthPanelOpen,
-        isDarkMode,
-        toggleDarkMode,
-        isAuthPanelOpen,
-        searchQuery,
-        setSearchQuery,
-      })}
-    />
+    <UIProvider>
+      <RouterProvider router={router} />
+    </UIProvider>
   );
 };
 

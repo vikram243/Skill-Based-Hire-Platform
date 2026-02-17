@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import SkillCard from "../../components/users/SkillCard";
-import SkillDetailPage from "./SkillDetailPage";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -29,8 +28,12 @@ import {
   DialogClose,
 } from "../../components/ui/dialog";
 import { useSelector } from "react-redux";
+import { useUI } from "../../contexts/ui-context";
 
-export default function SearchPage({ searchQuery = "", setSearchQuery }) {
+const SkillDetailPage = lazy(() => import("./SkillDetailPage"));
+
+export default function SearchPage() {
+  const { searchQuery, setSearchQuery } = useUI();
   const [filteredProviders, setFilteredProviders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [priceRange, setPriceRange] = useState("all");
@@ -47,7 +50,8 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const [openToggle, setOpenToggle] = useState("category");
   const [showFilters, setShowFilters] = useState(false);
-  const [lastFetchedPage, setLastFetchedPage] = useState(0);
+  const lastFetchedPageRef = React.useRef(0);
+  const queryKeyRef = React.useRef("");
   const previousLengthRef = React.useRef(0);
 
   useEffect(() => {
@@ -58,10 +62,11 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
     previousLengthRef.current = filteredProviders.length;
   }, [filteredProviders.length]);
 
-  const fetchProviders = async (pageToLoad = 1, reset = false) => {
+  const fetchProviders = React.useCallback(async (pageToLoad = 1, reset = false, queryKey) => {
     try {
-      if (pageToLoad === lastFetchedPage) return;
-      setLastFetchedPage(pageToLoad);
+      if (!reset && pageToLoad === lastFetchedPageRef.current) return;
+
+      const keyAtCall = queryKey ?? queryKeyRef.current;
 
       if (pageToLoad === 1) setIsLoading(true);
       else setLoadingMore(true);
@@ -70,18 +75,23 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
         q: debouncedSearch || undefined,
         priceRange: priceRange !== "all" ? priceRange : undefined,
         rating: ratingFilter > 0 ? ratingFilter : undefined,
-        sortBy: sortBy !== "relevance" ? sortBy : undefined,
-        locationFilter: locationFilter !== "all" ? locationFilter : undefined,
+        sortBy:
+          locationFilter !== "all"
+            ? locationFilter === "far-to-close"
+              ? "distance-far"
+              : "nearest"
+            : sortBy !== "relevance"
+              ? sortBy
+              : undefined,
         page: pageToLoad,
         limit: 10,
       };
 
-      if (user?.location?.lat && user?.location?.lng) {
-        params.lat = user.location.lat;
-        params.lng = user.location.lng;
-      }
-
       const { data } = await api.get("/api/providers/filter", { params });
+
+      if (keyAtCall !== queryKeyRef.current) return;
+
+      lastFetchedPageRef.current = pageToLoad;
 
       const raw = data?.data?.providers || [];
       const total = data?.data?.total || 0;
@@ -123,15 +133,33 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
       setIsLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [
+    debouncedSearch,
+    priceRange,
+    ratingFilter,
+    sortBy,
+    locationFilter,
+  ]);
 
   useEffect(() => {
+    queryKeyRef.current = [
+      debouncedSearch,
+      priceRange,
+      ratingFilter,
+      sortBy,
+      locationFilter,
+      user?.location?.lat,
+      user?.location?.lng,
+    ].join("|");
+
     setPage(1);
     setHasMore(true);
-    setLastFetchedPage(0);
+    lastFetchedPageRef.current = 0;
     setFilteredProviders([]);
-    fetchProviders(1, true);
+    fetchProviders(1, true, queryKeyRef.current);
   }, [
+    fetchProviders,
+    setPage,
     debouncedSearch,
     priceRange,
     ratingFilter,
@@ -152,7 +180,7 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
           if (entries[0].isIntersecting && hasMore && !loadingMore) {
             setPage((prev) => {
               const next = prev + 1;
-              fetchProviders(next);
+              fetchProviders(next, false, queryKeyRef.current);
               return next;
             });
           }
@@ -166,7 +194,7 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
 
       if (node) observer.current.observe(node);
     },
-    [loadingMore, hasMore],
+    [loadingMore, hasMore, fetchProviders],
   );
 
   const selectedProvider = providerId
@@ -381,10 +409,12 @@ export default function SearchPage({ searchQuery = "", setSearchQuery }) {
   return (
     <div className="min-h-screen bg-background mb-15">
       {selectedProvider ? (
-        <SkillDetailPage
-          provider={selectedProvider}
-          onClose={() => navigate("/search")}
-        />
+        <Suspense fallback={<div className="min-h-screen bg-background" />}>
+          <SkillDetailPage
+            provider={selectedProvider}
+            onClose={() => navigate("/search")}
+          />
+        </Suspense>
       ) : (
         <main className="container mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
@@ -42,11 +42,12 @@ export default function Navigation({
   const dispatch = useDispatch();
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const userLocationFromDb = user?.location?.address || "Select location";
+  const userLocationAddress = user?.location?.address;
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = location.pathname.split("/")[1];
 
-  const handleNavigate = (id) => {
+  const handleNavigate = useCallback((id) => {
     let target = "/";
     switch (id) {
       case "orders":
@@ -68,27 +69,30 @@ export default function Navigation({
     if (location.pathname === target) return;
 
     navigate(target);
-  };
+  }, [location.pathname, navigate]);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     if (!isAuthenticated) {
       setIsAuthPanelOpen(true);
       return;
     }
 
     navigate("/search");
-  };
+  }, [isAuthenticated, navigate, setIsAuthPanelOpen]);
 
-  const navItems = [
-    { id: "/", label: "Home", icon: Home },
-    { id: "orders", label: "Orders", icon: FileText },
-    { id: "search", label: "Search", icon: Search },
-    { id: "chat", label: "Chat", icon: MessageCircle },
-    { id: "profile", label: "Profile", icon: null },
-  ];
+  const navItems = useMemo(
+    () => [
+      { id: "/", label: "Home", icon: Home },
+      { id: "orders", label: "Orders", icon: FileText },
+      { id: "search", label: "Search", icon: Search },
+      { id: "chat", label: "Chat", icon: MessageCircle },
+      { id: "profile", label: "Profile", icon: null },
+    ],
+    [],
+  );
 
   // If user has no saved location, fetch via IP and persist
-  const fetchIpLocationAndSave = async () => {
+  const fetchIpLocationAndSave = useCallback(async () => {
     try {
       const res = await api.get("/api/maps/ip-lookup");
       const data = res?.data?.data || {};
@@ -113,19 +117,18 @@ export default function Navigation({
     } catch (err) {
       console.error("IP location failed", err);
     }
-  };
+  }, [dispatch]);
 
   const ipFetchedRef = useRef(false);
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const hasLocation = Boolean(user?.location && user.location.address);
+    const hasLocation = Boolean(userLocationAddress);
     if (!hasLocation && !ipFetchedRef.current) {
       ipFetchedRef.current = true;
       fetchIpLocationAndSave();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user?.location?.address]);
+  }, [isAuthenticated, userLocationAddress, fetchIpLocationAndSave]);
 
   return (
     <>
@@ -134,11 +137,11 @@ export default function Navigation({
         <div className="container flex h-18 items-center justify-between px-4 mx-auto py-3">
           {/* Logo */}
           <div
-            className="flex items-center space-x-2 cursor-pointer group"
+            className="flex items-center space-x-1 cursor-pointer group"
             onClick={() => handleNavigate("home")}
           >
-            <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
-              <span className="font-bold text-lg">S</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-105">
+              <img src="https://res.cloudinary.com/drivnx6ia/image/upload/v1771311379/Logo_iconn_udmkzk.png" alt="" />
             </div>
             <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
               SkillHub

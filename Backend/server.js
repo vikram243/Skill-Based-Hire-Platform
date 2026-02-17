@@ -6,12 +6,14 @@ import { initializeSocket } from "./src/config/socket.io.config.js";
 
 const PORT = config.port;
 
+let server;
+
 (async () => {
     try {
         await connectDB();
 
         // Create HTTP server & attach app
-        let server = http.createServer(app);
+        server = http.createServer(app);
 
         // Initialize socket.io
         console.log('Setting up socket.io');

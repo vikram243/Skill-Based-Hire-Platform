@@ -2,12 +2,10 @@ import React from 'react';
 import { Mail, Phone, Instagram, Twitter, Facebook, Youtube } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useUI } from '../../contexts/ui-context';
 
-export default function Footer(
-  {
-    setIsAuthPanelOpen
-  }
-) {
+export default function Footer() {
+  const { setIsAuthPanelOpen } = useUI();
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useSelector(state => state.user);
@@ -17,9 +15,9 @@ export default function Footer(
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Column */}
           <div className="space-y-6">
-            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => { if (location.pathname !== '/') navigate('/'); }}>
-              <div className="w-12 h-12 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                <span className="font-bold text-xl">S</span>
+            <div className="flex items-center space-x-1 cursor-pointer group" onClick={() => { if (location.pathname !== '/') navigate('/'); }}>
+              <div className="w-12 h-12  rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105">
+                <img src="https://res.cloudinary.com/drivnx6ia/image/upload/v1771311379/Logo_iconn_udmkzk.png" alt="" />
               </div>
               <h1 className="font-bold text-2xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
                 SkillHub

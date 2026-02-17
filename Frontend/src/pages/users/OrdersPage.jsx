@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import ReviewDialog from "../../components/users/ReviewPanel";
@@ -47,71 +47,147 @@ export default function OrdersPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const observer = React.useRef();
 
+  const PAGE_LIMIT = 5;
+  const ORDERS_CACHE_TTL_MS = 30_000;
+  const ordersCacheRef = useRef(new Map());
+  const latestRequestIdRef = useRef(0);
+
   useEffect(() => {
     document.title = "Orders | SkillHub";
   }, []);
 
-  const pageFade = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { duration: 0.4 } },
-  };
+  const pageFade = useMemo(
+    () => ({
+      hidden: { opacity: 0 },
+      show: { opacity: 1, transition: { duration: 0.4 } },
+    }),
+    [],
+  );
 
-  const tabContentAnim = {
-    hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "ease" } },
-    exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
-  };
+  const tabContentAnim = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 10 },
+      show: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.2, ease: "ease" },
+      },
+      exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
+    }),
+    [],
+  );
 
-  const listVariants = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.06 } },
-  };
+  const listVariants = useMemo(
+    () => ({
+      hidden: {},
+      show: { transition: { staggerChildren: 0.06 } },
+    }),
+    [],
+  );
 
-  const listItem = {
-    hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0 },
-  };
+  const listItem = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 10 },
+      show: { opacity: 1, y: 0 },
+    }),
+    [],
+  );
 
   const MotionCard = motion.create(Card);
   const MotionButton = motion.create(Button);
 
-  const fetchOrders = async (status, pageToLoad = 1, reset = false) => {
+  const readOrdersCache = useCallback(
+    (status) => {
+      const cached = ordersCacheRef.current.get(status);
+      if (!cached) return null;
+      const isFresh = Date.now() - cached.cachedAt <= ORDERS_CACHE_TTL_MS;
+      return isFresh ? cached : null;
+    },
+    [ORDERS_CACHE_TTL_MS],
+  );
+
+  const writeOrdersCache = useCallback((status, next) => {
+    ordersCacheRef.current.set(status, { ...next, cachedAt: Date.now() });
+  }, []);
+
+  const fetchOrders = useCallback(
+    async (status, pageToLoad = 1, reset = false) => {
     try {
       if (pageToLoad === 1) setLoading(true);
       else setLoadingMore(true);
 
+      // If we already have this page cached, don't re-fetch.
+      const existing = readOrdersCache(status);
+      if (existing?.pagesLoaded?.has(pageToLoad)) {
+        setOrders(existing.data);
+        setHasMore(existing.hasMore);
+        setPage(existing.page);
+        return;
+      }
+
+      const requestId = (latestRequestIdRef.current += 1);
+
       const res = await api.get(
-        `/api/orders/status/${status}?page=${pageToLoad}&limit=5`,
+        `/api/orders/status/${status}?page=${pageToLoad}&limit=${PAGE_LIMIT}`,
       );
+
+      // If user switched tab while request was in-flight, ignore stale response.
+      if (requestId !== latestRequestIdRef.current) return;
 
       const data = res.data?.data || {};
       const newOrders = data.orders || [];
 
-      setOrders((prev) => {
-        if (reset) return data;
+      const mergedData = reset
+        ? data
+        : {
+            ...data,
+            orders: [...(existing?.data?.orders || []), ...newOrders],
+          };
 
-        return {
-          ...data,
-          orders: [...(prev.orders || []), ...newOrders],
-        };
+      const loadedCount = mergedData.orders?.length || 0;
+      const nextHasMore = loadedCount < (data.total || 0);
+
+      setOrders(mergedData);
+      setHasMore(nextHasMore);
+      setPage(pageToLoad);
+
+      const pagesLoaded = existing?.pagesLoaded
+        ? new Set(existing.pagesLoaded)
+        : new Set();
+      pagesLoaded.add(pageToLoad);
+
+      writeOrdersCache(status, {
+        data: mergedData,
+        page: pageToLoad,
+        hasMore: nextHasMore,
+        pagesLoaded,
       });
-
-      const loadedCount = (pageToLoad - 1) * 10 + newOrders.length;
-      setHasMore(loadedCount < data.total);
     } catch (err) {
       console.error("Error fetching orders:", err);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+    },
+    [PAGE_LIMIT, readOrdersCache, setPage, writeOrdersCache],
+  );
 
   useEffect(() => {
+    const cached = readOrdersCache(selectedTab);
+    if (cached) {
+      setOrders(cached.data);
+      setHasMore(cached.hasMore);
+      setPage(cached.page);
+      setLoading(false);
+      setLoadingMore(false);
+      return;
+    }
+
     setPage(1);
     setHasMore(true);
-    setOrders({ orders: [] });
+    setOrders({ orders: [], completed: 0, pending: 0, totalSpent: 0 });
     fetchOrders(selectedTab, 1, true);
-  }, [selectedTab]);
+  }, [fetchOrders, readOrdersCache, selectedTab]);
 
   const lastOrderRef = React.useCallback(
     (node) => {
