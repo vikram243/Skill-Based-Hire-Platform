@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
@@ -32,6 +32,23 @@ import {
   Share2,
 } from "lucide-react";
 
+const MotionButton = motion.create(Button);
+const MotionCard = motion.create(Card);
+const MotionP = motion.p;
+
+const ProviderAvatar = memo(function ProviderAvatar({ src, name }) {
+  const initial = (name || "?").trim().charAt(0) || "?";
+
+  return (
+    <Avatar className="h-20 w-20 ring-4 ring-(--primary-gradient-start)/20">
+      <AvatarImage src={src} alt={name || "Provider"} />
+      <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white text-xl">
+        {initial}
+      </AvatarFallback>
+    </Avatar>
+  );
+});
+
 export default function SkillDetailPage({ provider }) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -41,56 +58,51 @@ export default function SkillDetailPage({ provider }) {
     if (provider?.name) {
       document.title = `${provider.name} | SkillHub`;
     }
-  }, [provider]);
+  }, [provider?.name]);
 
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 14, scale: 0.98 },
-    show: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.45,
-        ease: [0.22, 1, 0.36, 1],
+  const providerName = provider?.name || "";
+  const providerAvatarSrc = provider?.avatar || "";
+
+  const sectionVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 14, scale: 0.98 },
+      show: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+          duration: 0.45,
+          ease: [0.22, 1, 0.36, 1],
+        },
       },
-    },
-  };
+    }),
+    [],
+  );
 
-  const listVariants = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.06 } },
-  };
+  const listVariants = useMemo(
+    () => ({
+      hidden: {},
+      show: { transition: { staggerChildren: 0.06 } },
+    }),
+    [],
+  );
 
-  const listItem = {
-    hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0 },
-  };
+  const listItem = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 10 },
+      show: { opacity: 1, y: 0 },
+    }),
+    [],
+  );
 
-  const MotionButton = motion.create(Button);
-  const MotionCard = motion.create(Card);
-  const MotionP = motion.p;
-
-  if (!provider) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-background via-surface/30 to-background authenticated-page">
-        <div className="container mx-auto px-4 py-8">
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">Provider not found</p>
-            <Button onClick={navigate(-1)}>Go Back</Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     const url = `${window.location.origin}/search/${provider?.id}`;
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: provider?.name,
-          text: `Hire "${provider?.name}" on SkillHub.`,
+          title: providerName,
+          text: `Hire "${providerName}" on SkillHub.`,
           url,
         });
       } else {
@@ -99,60 +111,79 @@ export default function SkillDetailPage({ provider }) {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [provider?.id, providerName]);
 
-  const reviews = [
-    {
-      id: 1,
-      user: "Sarah M.",
-      rating: 5,
-      date: "2 days ago",
-      comment:
-        "Excellent work! Very professional and completed the job ahead of schedule. Highly recommend!",
-      service: "Plumbing Repair",
-    },
-    {
-      id: 2,
-      user: "Mike R.",
-      rating: 5,
-      date: "1 week ago",
-      comment:
-        "Great communication and quality work. Will definitely hire again.",
-      service: "Electrical Installation",
-    },
-    {
-      id: 3,
-      user: "Lisa P.",
-      rating: 4,
-      date: "2 weeks ago",
-      comment: "Good service, arrived on time and fixed the issue quickly.",
-      service: "Emergency Plumbing",
-    },
-  ];
+  const reviews = useMemo(
+    () => [
+      {
+        id: 1,
+        user: "Sarah M.",
+        rating: 5,
+        date: "2 days ago",
+        comment:
+          "Excellent work! Very professional and completed the job ahead of schedule. Highly recommend!",
+        service: "Plumbing Repair",
+      },
+      {
+        id: 2,
+        user: "Mike R.",
+        rating: 5,
+        date: "1 week ago",
+        comment:
+          "Great communication and quality work. Will definitely hire again.",
+        service: "Electrical Installation",
+      },
+      {
+        id: 3,
+        user: "Lisa P.",
+        rating: 4,
+        date: "2 weeks ago",
+        comment: "Good service, arrived on time and fixed the issue quickly.",
+        service: "Emergency Plumbing",
+      },
+    ],
+    [],
+  );
 
-  const portfolio = [
-    {
-      id: 1,
-      title: "Kitchen Renovation",
-      image:
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=200&fit=crop",
-      description: "Complete kitchen plumbing overhaul",
-    },
-    {
-      id: 2,
-      title: "Bathroom Fixture Installation",
-      image:
-        "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=300&h=200&fit=crop",
-      description: "Modern bathroom fixtures and piping",
-    },
-    {
-      id: 3,
-      title: "Emergency Leak Repair",
-      image:
-        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop",
-      description: "Quick response emergency service",
-    },
-  ];
+  const portfolio = useMemo(
+    () => [
+      {
+        id: 1,
+        title: "Kitchen Renovation",
+        image:
+          "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=200&fit=crop",
+        description: "Complete kitchen plumbing overhaul",
+      },
+      {
+        id: 2,
+        title: "Bathroom Fixture Installation",
+        image:
+          "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=300&h=200&fit=crop",
+        description: "Modern bathroom fixtures and piping",
+      },
+      {
+        id: 3,
+        title: "Emergency Leak Repair",
+        image:
+          "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop",
+        description: "Quick response emergency service",
+      },
+    ],
+    [],
+  );
+
+  if (!provider) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-background via-surface/30 to-background authenticated-page">
+        <div className="container mx-auto px-4 py-8">
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground mb-4">Provider not found</p>
+            <Button onClick={() => navigate(-1)}>Go Back</Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background via-surface/30 to-background authenticated-page">
@@ -182,12 +213,7 @@ export default function SkillDetailPage({ provider }) {
             {/* Provider Header */}
             <MotionCard className="p-6 bg-card border-2 border-border/40 shadow-lg">
               <div className="flex justify-between">
-                <Avatar className="h-20 w-20 ring-4 ring-(--primary-gradient-start)/20">
-                  <AvatarImage src={provider?.avatar} alt={provider?.name} />
-                  <AvatarFallback className="bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white text-xl">
-                    {provider?.name?.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
+                <ProviderAvatar src={providerAvatarSrc} name={providerName} />
 
                 <div className="flex items-center space-x-2">
                   <MotionButton
@@ -222,7 +248,7 @@ export default function SkillDetailPage({ provider }) {
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
                       <h1 className="text-2xl font-bold truncate max-w-54 md:max-w-100">
-                        {provider?.name}
+                        {providerName}
                       </h1>
                       {provider?.isVerified && (
                         <CheckCircle className="w-6 h-6 text-(--primary-gradient-start)" />
