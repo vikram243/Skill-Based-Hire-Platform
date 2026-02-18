@@ -47,12 +47,16 @@ export const filterProviders = asyncHandler(async (req, res) => {
   };
 
   // 🔎 Search filter
-  if (q || skill) {
-    const searchTerm = q || skill;
-    matchFilter.$or = [
-      { businessName: { $regex: searchTerm, $options: "i" } },
-      { "selectedSkill.name": { $regex: searchTerm, $options: "i" } }
-    ];
+  const searchTerm = (q || skill || "").toString().trim();
+
+  // If `skill` is an ObjectId, we can filter early.
+  if (skill && mongoose.Types.ObjectId.isValid(String(skill))) {
+    matchFilter.selectedSkill = new mongoose.Types.ObjectId(String(skill));
+  }
+
+  // Otherwise, apply text search later (after $lookup on skills)
+  if (searchTerm && !(skill && mongoose.Types.ObjectId.isValid(String(skill)))) {
+    matchFilter.businessName = { $regex: searchTerm, $options: "i" };
   }
 
   // 💰 Price filter
@@ -95,6 +99,15 @@ export const filterProviders = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
+        from: "skills",
+        localField: "selectedSkill",
+        foreignField: "_id",
+        as: "skill"
+      }
+    },
+    { $unwind: { path: "$skill", preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
         from: "users",
         localField: "user",
         foreignField: "_id",
@@ -109,6 +122,18 @@ export const filterProviders = asyncHandler(async (req, res) => {
       }
     }
   ];
+
+  // If the search is a text term, also match on skill name.
+  if (searchTerm && !(skill && mongoose.Types.ObjectId.isValid(String(skill)))) {
+    pipeline.push({
+      $match: {
+        $or: [
+          { businessName: { $regex: searchTerm, $options: "i" } },
+          { "skill.name": { $regex: searchTerm, $options: "i" } }
+        ]
+      }
+    });
+  }
 
   // 🔄 Sorting
   let sortStage = { distance: 1 };
@@ -150,7 +175,10 @@ export const filterProviders = asyncHandler(async (req, res) => {
       _id: p._id,
       name: p.businessName || "Unknown",
       avatar: p.user?.avatar || null,
-      skills: p.selectedSkill || "Unknown",
+      skills: {
+        skillId: p.skill?._id || null,
+        name: p.skill?.name || "Unknown",
+      },
       price: p.pricing?.serviceRate || 0,
       rateType: p.pricing?.rateType,
       rating: p.meta?.avgRating || 0,

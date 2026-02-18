@@ -139,6 +139,23 @@ body {
   color: var(--foreground);
 }
 
+/* Disable text selection across the app (allow in form fields) */
+body {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""],
+select {
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
 
 @layer base {
   * {

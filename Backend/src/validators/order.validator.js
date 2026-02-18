@@ -4,7 +4,7 @@ const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 export const createOrderSchema = z.object({
   body: z.object({
-    customer: z.string().regex(objectIdRegex),
+    customer: z.string().regex(objectIdRegex).optional(),
     skill: z.string().regex(objectIdRegex),
     provider: z.string().regex(objectIdRegex),
     urgency: z.enum(['normal', 'emergency']),

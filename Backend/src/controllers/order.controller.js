@@ -1,10 +1,26 @@
 import Order from "../models/order.model.js";
+import Provider from "../models/provider.model.js";
 import { ApiError, ApiResponse } from "../utils/api.handeller.js";
 import { asyncHandler } from "../utils/async.handeller.js";
 
+const haversineDistanceKm = (aLat, aLng, bLat, bLng) => {
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(bLat - aLat);
+  const dLng = toRad(bLng - aLng);
+  const aa =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(aLat)) *
+      Math.cos(toRad(bLat)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+  return R * c;
+};
+
 export const createOrder = asyncHandler(async (req, res) => {
   const {
-    customer,
+    customer: bodyCustomer,
     provider,
     skill,
     description,
@@ -14,12 +30,68 @@ export const createOrder = asyncHandler(async (req, res) => {
     contactPhone,
   } = req.body;
 
-  if (!address || !pricing || !provider || !customer || !skill || !urgency || !contactPhone || !description) {
-    throw new ApiError(400, "Missing required fields (skillName, address, schedule, pricing)");
+  if (!address || !pricing || !provider || !skill || !urgency || !contactPhone || !description) {
+    throw new ApiError(400, "Missing required fields (provider, skill, description, address, urgency, pricing, contactPhone)");
+  }
+
+  // customer is derived from the authenticated user.
+  // If client sends customer anyway, reject spoofing.
+  const authUserId = req.user?._id?.toString();
+  if (!authUserId) {
+    throw new ApiError(401, "Unauthorized");
+  }
+  if (bodyCustomer && bodyCustomer?.toString() !== authUserId) {
+    throw new ApiError(403, "Invalid customer for this request");
+  }
+
+  // Enforce provider range (<= 35km) from authenticated user's location.
+  const userLat = Number(req.user?.location?.lat);
+  const userLng = Number(req.user?.location?.lng);
+  if (!Number.isFinite(userLat) || !Number.isFinite(userLng)) {
+    throw new ApiError(400, "User location is missing. Please set your location and try again.");
+  }
+
+  const providerDoc = await Provider.findById(provider).select(
+    "location.geo.coordinates isOnline isAvailable",
+  );
+  if (!providerDoc) {
+    throw new ApiError(404, "Provider not found");
+  }
+
+  if (!providerDoc.isOnline || !providerDoc.isAvailable) {
+    throw new ApiError(
+      409,
+      "The provider you are trying to reach is not available right now",
+    );
+  }
+
+  const [providerLng, providerLat] = providerDoc.location?.geo?.coordinates || [];
+  if (!Number.isFinite(providerLat) || !Number.isFinite(providerLng)) {
+    throw new ApiError(400, "Provider location is missing");
+  }
+
+  const distanceKm = haversineDistanceKm(userLat, userLng, providerLat, providerLng);
+  if (distanceKm > 35) {
+    throw new ApiError(400, "Provider is not available in your area (outside 35km)");
+  }
+
+  // Block booking the same provider if an active order already exists
+  // (pending / accepted / ongoing are considered active)
+  const existingActiveOrder = await Order.findOne({
+    customer: req.user._id,
+    provider,
+    status: { $in: ["pending", "accepted", "ongoing"] },
+  }).select("_id status createdAt");
+
+  if (existingActiveOrder) {
+    throw new ApiError(
+      409,
+      "You already have an active order with this provider. Please complete it before booking again.",
+    );
   }
 
   const order = await Order.create({
-    customer,
+    customer: req.user._id,
     provider,
     skill,
     description,

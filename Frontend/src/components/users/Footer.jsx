@@ -16,12 +16,14 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="space-y-6">
             <div className="flex items-center space-x-1 cursor-pointer group" onClick={() => { if (location.pathname !== '/') navigate('/'); }}>
-              <div className="w-12 h-12  rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105">
-                <img src="https://res.cloudinary.com/drivnx6ia/image/upload/v1771311379/Logo_iconn_udmkzk.png" alt="" />
-              </div>
-              <h1 className="font-bold text-2xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
-                SkillHub
-              </h1>
+              <img
+              className="w-15 -mr-2 rounded-full transition-all duration-200 group-hover:scale-105"
+              src="https://res.cloudinary.com/drivnx6ia/image/upload/v1771413526/ChatGPT-removebg-preview_dbpqrl.png"
+              alt=""
+            />
+            <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
+              SkillHub
+            </h1>
             </div>
             <p className="text-muted-foreground leading-relaxed max-w-xs">
               Empowering local talent and connecting communities through skilled services. The most trusted platform for professional help.

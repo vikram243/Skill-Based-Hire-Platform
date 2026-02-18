@@ -677,7 +677,7 @@ function ProfilePage() {
                         transition={{ duration: 0.25, ease: "easeOut" }}
                       >
                         <Card className="p-6">
-                          <h3 className="text-lg font-semibold mb-6">
+                          <h3 className="text-lg font-semibold">
                             Recent Activity
                           </h3>
                           <motion.div

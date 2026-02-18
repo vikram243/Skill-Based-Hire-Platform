@@ -277,7 +277,7 @@ export default function RegisterProviderPanel({ isOpen, onClose, onSuccess }) {
         data.append("pricing", JSON.stringify(formData.pricing));
         data.append("agreedToTOS", formData.agreedToTOS);
         data.append("consentBackgroundCheck", formData.consentBackgroundCheck);
-        data.append("selectedSkill", JSON.stringify(formData.selectedSkill));
+        data.append("selectedSkill", String(formData.selectedSkill?.skillId || ""));
         formData.documents.forEach((file) => {
           data.append("documents", file);
         });

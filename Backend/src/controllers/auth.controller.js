@@ -8,6 +8,7 @@ import { logActivity } from '../utils/activity.handeller.js';
 import { setRefreshToken, setSessionId, setSessionMeta } from '../config/redis.config.js';
 import crypto from 'crypto';
 import config from '../config/config.js';
+import { getAvatarUrl } from "../utils/cloudinaryUrl.js";
 
 const googleLogin = asyncHandler(async (req, res) => {
   const { code } = req.query;
@@ -31,22 +32,24 @@ const googleLogin = asyncHandler(async (req, res) => {
     path: "providerProfile",
     select: "applicationStatus submittedAt isAttampted"
   });
-  let avatarUrl = user?.avatar;
+  let avatar = user?.avatar;
 
   if (!user || (user && user.avatar !== picture)) {
+    
     const cloudinaryRes = await uploadOnCloudinary(picture);
-    avatarUrl = cloudinaryRes?.secure_url || picture;
+    avatar = cloudinaryRes?.public_id;
   }
 
   user = await User.findOneAndUpdate(
     { email },
     {
       fullName: name,
-      avatar: avatarUrl
+      avatar: avatar
     },
     { new: true, upsert: true }
   );
 
+  console.log("User after Google login:", user);
   const userSafe = getSafeUser(user);
 
   await logActivity({
