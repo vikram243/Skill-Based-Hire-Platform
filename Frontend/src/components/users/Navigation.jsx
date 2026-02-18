@@ -1,5 +1,11 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
@@ -47,29 +53,32 @@ export default function Navigation({
   const location = useLocation();
   const currentPage = location.pathname.split("/")[1];
 
-  const handleNavigate = useCallback((id) => {
-    let target = "/";
-    switch (id) {
-      case "orders":
-        target = "/orders";
-        break;
-      case "chat":
-        target = "/";
-        break;
-      case "search":
-        target = "/search";
-        break;
-      case "profile":
-        target = "/profile";
-        break;
-      default:
-        target = "/";
-    }
+  const handleNavigate = useCallback(
+    (id) => {
+      let target = "/";
+      switch (id) {
+        case "orders":
+          target = "/orders";
+          break;
+        case "chat":
+          target = "/";
+          break;
+        case "search":
+          target = "/search";
+          break;
+        case "profile":
+          target = "/profile";
+          break;
+        default:
+          target = "/";
+      }
 
-    if (location.pathname === target) return;
+      if (location.pathname === target) return;
 
-    navigate(target);
-  }, [location.pathname, navigate]);
+      navigate(target);
+    },
+    [location.pathname, navigate],
+  );
 
   const handleSearch = useCallback(() => {
     if (!isAuthenticated) {
@@ -140,9 +149,11 @@ export default function Navigation({
             className="flex items-center space-x-1 cursor-pointer group"
             onClick={() => handleNavigate("home")}
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-105">
-              <img src="https://res.cloudinary.com/drivnx6ia/image/upload/v1771311379/Logo_iconn_udmkzk.png" alt="" />
-            </div>
+            <img
+              className="w-15 -mr-2 rounded-full transition-all duration-200 group-hover:scale-105"
+              src="https://res.cloudinary.com/drivnx6ia/image/upload/v1771413526/ChatGPT-removebg-preview_dbpqrl.png"
+              alt=""
+            />
             <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
               SkillHub
             </h1>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
@@ -29,11 +29,48 @@ export default function HireFlow() {
   const number = user?.number || "";
   const service = provider?.data?.profile?.skill?.name || "";
 
-  useEffect(() => {
-    if (provider?.name) {
-      document.title = `${provider.name} | SkillHub`;
+  const distanceKm = useMemo(() => {
+    const userLat = Number(user?.location?.lat);
+    const userLng = Number(user?.location?.lng);
+    const providerLat = Number(provider?.data?.profile?.location?.lat);
+    const providerLng = Number(provider?.data?.profile?.location?.lng);
+
+    if (
+      !Number.isFinite(userLat) ||
+      !Number.isFinite(userLng) ||
+      !Number.isFinite(providerLat) ||
+      !Number.isFinite(providerLng)
+    ) {
+      return null;
     }
-  }, [provider]);
+
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(providerLat - userLat);
+    const dLng = toRad(providerLng - userLng);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(userLat)) *
+        Math.cos(toRad(providerLat)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }, [
+    provider?.data?.profile?.location?.lat,
+    provider?.data?.profile?.location?.lng,
+    user?.location?.lat,
+    user?.location?.lng,
+  ]);
+
+  const isProviderInRange = distanceKm == null ? true : distanceKm <= 35;
+
+  useEffect(() => {
+    const name = provider?.data?.profile?.full_name;
+    if (name) {
+      document.title = `${name} | SkillHub`;
+    }
+  }, [provider?.data?.profile?.full_name]);
 
   useEffect(() => {
     const fetchProvider = async () => {
@@ -75,6 +112,16 @@ export default function HireFlow() {
     }
   }, [service, number]);
 
+  useEffect(() => {
+    const addr = user?.location?.address;
+    if (addr) {
+      setBookingData((prev) => ({
+        ...prev,
+        address: addr,
+      }));
+    }
+  }, [user?.location?.address]);
+
   const [bookingData, setBookingData] = useState({
     service: "",
     description: "",
@@ -95,11 +142,62 @@ export default function HireFlow() {
     }
   };
 
+  const createBooking = async () => {
+    const skillId = provider?.data?.profile?.skill?.id;
+    const providerMongoId = providerId;
+
+    const addressFull = user?.location?.address || bookingData.address;
+    const addressLat = user?.location?.lat ?? null;
+    const addressLng = user?.location?.lng ?? null;
+
+    const payload = {
+      provider: providerMongoId,
+      skill: skillId,
+      description: bookingData.description,
+      urgency: bookingData.urgency,
+      contactPhone: bookingData.phone,
+      address: {
+        full: addressFull,
+        lat: addressLat,
+        lng: addressLng,
+      },
+      pricing: {
+        serviceRate: providerRate,
+        taxes: 0,
+        total: estimatedCost,
+      },
+    };
+
+    if (!payload.provider || !payload.skill) {
+      throw new Error("Missing booking context (provider/skill)");
+    }
+    if (!payload.description) {
+      throw new Error("Description is required");
+    }
+    if (!payload.contactPhone) {
+      throw new Error("Phone number is required");
+    }
+
+    return api.post("/api/orders/createOrder", payload);
+  };
+
   const handleSubmit = async () => {
-    setIsLoading(true);
-    setTimeout(() => {
+    try {
+      setIsLoading(true);
+      setErrorMessage("");
+
+      await createBooking();
+      navigate("/orders");
+    } catch (error) {
+      console.error("Error creating order:", error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to create order. Please try again.";
+      setErrorMessage(message);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   if (!provider) {
@@ -173,8 +271,64 @@ export default function HireFlow() {
     );
   }
 
-  const estimatedCost =
-    parseInt(bookingData?.duration) * provider?.data?.profile?.hourly_rate;
+  if (!isProviderInRange) {
+    return (
+      <div className="min-h-100 flex items-center justify-center bg-linear-to-br from-background via-surface/30 to-background authenticated-page px-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          {/* Icon Circle */}
+          <div className="flex justify-center">
+            <div className="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border border-red-200 shadow-md">
+              <svg
+                className="w-10 h-10 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Heading */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">
+              Oops! Something went wrong
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              {"Provider is not available in your area (outside 35km)."}
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-4 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="px-6"
+            >
+              Go Back
+            </Button>
+
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white px-6"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const providerRate = Number(provider?.data?.profile?.price?.rate || 0);
+  const travelCost = distanceKm == null ? 0 : distanceKm * 7;
+  const estimatedCost = Math.max(0, Math.round(travelCost + providerRate));
 
   return (
     <div className="min-h-screen bg-linear-to-br pb-18 from-background via-surface/30 to-background authenticated-page">
@@ -349,6 +503,14 @@ export default function HireFlow() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">
+                            Location:
+                          </span>
+                          <span className="truncate max-w-40">
+                            {user?.location?.address || bookingData?.address}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
                             Urgency:
                           </span>
                           <Badge variant="outline" className="text-xs">
@@ -392,6 +554,12 @@ export default function HireFlow() {
                         </p>
                       </div>
                     </div>
+
+                    {errorMessage ? (
+                      <p className="mt-4 text-xs text-red-500 font-medium">
+                        {errorMessage}
+                      </p>
+                    ) : null}
                   </div>
                 )}
 
@@ -409,6 +577,7 @@ export default function HireFlow() {
                         onClick={handleNext}
                         className="bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white"
                         disabled={
+                          !isProviderInRange ||
                           (currentStep === 1 && !bookingData?.description) ||
                           (currentStep === 2 && !bookingData?.phone)
                         }
@@ -484,7 +653,15 @@ export default function HireFlow() {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Distance:</span>
                     <span className="font-medium">
-                      {provider?.data?.profile?.distance}
+                      {distanceKm == null
+                        ? "N/A"
+                        : `${distanceKm.toFixed(1)} km`}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Travel Cost:</span>
+                    <span className="font-medium">
+                      {distanceKm == null ? "N/A" : `₹${travelCost.toFixed(2)}`}
                     </span>
                   </div>
                 </div>
@@ -500,7 +677,9 @@ export default function HireFlow() {
                         ₹{estimatedCost}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Based on {bookingData?.duration} hour(s)
+                        {distanceKm == null
+                          ? "(distance unavailable)"
+                          : `Based on ${distanceKm.toFixed(1)} km`}
                       </p>
                     </div>
                   </>

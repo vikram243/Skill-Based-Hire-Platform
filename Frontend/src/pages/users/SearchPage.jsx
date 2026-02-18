@@ -489,6 +489,7 @@ export default function SearchPage() {
                   <h2 className="text-2xl font-black">
                     {filteredProviders.length} Providers Found
                   </h2>
+                  <span className="text-muted-foreground text-sm">(Under 35km of your location)</span>
                   {searchQuery && (
                     <p className="text-muted-foreground text-sm mt-1">
                       Showing results for "{searchQuery}"

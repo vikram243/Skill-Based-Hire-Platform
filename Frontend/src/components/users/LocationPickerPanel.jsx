@@ -58,7 +58,7 @@ export function LocationPickerPanel({
           city: info?.city || '',
           state: info?.state || '',
           lat: info?.lat || null,
-          lon: info?.lng || null
+          lng: info?.lng || null
         }));
       } catch (e) { /* empty */ }
       onLocationSelect(display);
@@ -88,7 +88,7 @@ export function LocationPickerPanel({
           city: info?.city || '',
           state: info?.state || '',
           lat: info?.lat || Number(lat),
-          lon: info?.lng || Number(lng)
+          lng: info?.lng || Number(lng)
         }));
       } catch (e) { /* empty */ }
       onLocationSelect(display);

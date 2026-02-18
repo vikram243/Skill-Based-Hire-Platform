@@ -3,33 +3,41 @@ import { z } from "zod";
 const phoneRegex = /^\+?\d{10,15}$/;
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
-const skillEntry = z.object({
-  skillId: z.string().regex(objectIdRegex).nullable().optional(),
-  name: z.string().min(1, "Skill name required"),
-});
+const skillId = z.string().regex(objectIdRegex, "Invalid skill id");
 
-const pricingEntry = z
-  .object({
-    skill: skillEntry.optional(),
-    rateType: z.enum(["hourly", "perJob", "daily"]),
-    serviceRate: z.preprocess(
-      (v) => Number(v),
-      z.number().positive("Service rate must be > 0"),
-    ),
-  })
-  .transform((val, ctx) => {
-    const parent = ctx.parent;
-    if (!val.skill && parent?.selectedSkill) {
-      val.skill = parent.selectedSkill;
-    }
-    return val;
-  });
+const selectedSkillEntry = z.union([
+  // New shape: just a Skill ObjectId string
+  skillId,
+  // Legacy shape from the old embedded schema
+  z
+    .object({
+      skillId: skillId.optional().nullable(),
+      _id: skillId.optional(),
+      id: skillId.optional(),
+      name: z.string().optional(),
+    })
+    .passthrough(),
+]);
+
+const pricingEntry = z.object({
+  rateType: z.enum(["hourly", "perJob", "daily"]),
+  serviceRate: z.preprocess(
+    (v) => Number(v),
+    z.number().positive("Service rate must be > 0"),
+  ),
+});
 
 const parseJSON = (val) => {
   try {
     if (!val) return undefined;
 
-    if (typeof val === "string") return JSON.parse(val);
+    if (typeof val === "string") {
+      try {
+        return JSON.parse(val);
+      } catch {
+        return val;
+      }
+    }
 
     if (Array.isArray(val))
       return typeof val[0] === "string" ? JSON.parse(val[0]) : val[0];
@@ -60,7 +68,7 @@ export const becomeProviderSchema = z.object({
 
     selectedSkill: z.preprocess(
       parseJSON,
-      skillEntry.refine((v) => v !== undefined, {
+      selectedSkillEntry.refine((v) => v !== undefined, {
         message: "Skill required",
       }),
     ),

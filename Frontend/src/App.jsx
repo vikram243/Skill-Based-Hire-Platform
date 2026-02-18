@@ -42,6 +42,41 @@ const App = () => {
     verifyAuth();
   }, [dispatch]);
 
+  useEffect(() => {
+    const isEditableTarget = (target) => {
+      const el = target;
+      if (!el) return false;
+      const tag = el.tagName?.toLowerCase();
+      return tag === "input" || tag === "textarea" || tag === "select" || el.isContentEditable;
+    };
+
+    const preventIfNotEditable = (e) => {
+      if (isEditableTarget(e.target)) return;
+      e.preventDefault();
+    };
+
+    const preventCopyCutKeys = (e) => {
+      if (isEditableTarget(e.target)) return;
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const key = (e.key || "").toLowerCase();
+      if (key === "c" || key === "x") {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("copy", preventIfNotEditable);
+    document.addEventListener("cut", preventIfNotEditable);
+    document.addEventListener("contextmenu", preventIfNotEditable);
+    document.addEventListener("keydown", preventCopyCutKeys);
+
+    return () => {
+      document.removeEventListener("copy", preventIfNotEditable);
+      document.removeEventListener("cut", preventIfNotEditable);
+      document.removeEventListener("contextmenu", preventIfNotEditable);
+      document.removeEventListener("keydown", preventCopyCutKeys);
+    };
+  }, []);
+
   if (loading) {
     return <FullPageLoader />;
   }

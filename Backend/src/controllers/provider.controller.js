@@ -29,7 +29,13 @@ export const becomeProvider = asyncHandler(async (req, res) => {
   const parseIfString = (val) => {
     try {
       if (!val) return undefined;
-      if (typeof val === "string") return JSON.parse(val);
+      if (typeof val === "string") {
+        try {
+          return JSON.parse(val);
+        } catch {
+          return val;
+        }
+      }
       if (Array.isArray(val))
         return typeof val[0] === "string" ? JSON.parse(val[0]) : val[0];
       return val;
@@ -39,16 +45,16 @@ export const becomeProvider = asyncHandler(async (req, res) => {
   };
 
   /* ---------- NORMALIZE SKILL ---------- */
-  const normalizeSkillEntry = (skill) => {
+  const normalizeSkillId = (skill) => {
     if (!skill) return null;
 
-    const validId =
-      skill.skillId && mongoose.Types.ObjectId.isValid(skill.skillId);
+    if (typeof skill === "string") {
+      return mongoose.Types.ObjectId.isValid(skill) ? skill : null;
+    }
 
-    return {
-      skillId: validId ? skill.skillId : null,
-      name: skill.name?.trim(),
-    };
+    const candidates = [skill.skillId, skill._id, skill.id];
+    const found = candidates.find((v) => typeof v === "string" && mongoose.Types.ObjectId.isValid(v));
+    return found || null;
   };
 
   /* ---------- FILE UPLOAD ---------- */
@@ -90,8 +96,8 @@ export const becomeProvider = asyncHandler(async (req, res) => {
   const skillParsed = parseIfString(selectedSkill);
   const pricingParsed = parseIfString(pricing);
 
-  const skillObj = normalizeSkillEntry(skillParsed);
-  if (!skillObj) throw new ApiError(400, "Skill is required");
+  const selectedSkillId = normalizeSkillId(skillParsed);
+  if (!selectedSkillId) throw new ApiError(400, "Skill is required");
 
   const pricingObj = {
     rateType: pricingParsed?.rateType || "hourly",
@@ -112,7 +118,7 @@ export const becomeProvider = asyncHandler(async (req, res) => {
     yearsExperience: Number(yearsExperience) || 0,
     contactPhone,
 
-    selectedSkill: skillObj,
+    selectedSkill: selectedSkillId,
     pricing: pricingObj,
 
     documents: uploadedDocs,
@@ -167,10 +173,9 @@ export const hireProviderId = asyncHandler(async (req, res) => {
   const { providerId } = req.params;
   if (!providerId) throw new ApiError(403, "Provider id is required");
 
-  const provider = await Provider.findById(providerId).populate(
-    "user",
-    "avatar email location"
-  );
+  const provider = await Provider.findById(providerId)
+    .populate("user", "avatar email location")
+    .populate("selectedSkill", "name");
 
   if (!provider) throw new ApiError(404, "Provider not found");
 
@@ -190,8 +195,8 @@ export const hireProviderId = asyncHandler(async (req, res) => {
     avatar: provider.user.avatar || null,
     location: provider.user.location || null,
     skill: {
-      id: provider.selectedSkill.skillId,
-      name: provider.selectedSkill.name,
+      id: provider.selectedSkill?._id || null,
+      name: provider.selectedSkill?.name || "",
     },
     price: {
       rate: provider.pricing.serviceRate,
@@ -218,10 +223,9 @@ export const getProviderProfile = asyncHandler(async (req, res) => {
   const providerId = req.user?.providerProfile;
   if (!providerId) throw new ApiError(403, "Provider profile not linked");
 
-  const provider = await Provider.findById(providerId).populate(
-    "user",
-    "fullName email number",
-  );
+  const provider = await Provider.findById(providerId)
+    .populate("user", "fullName email number")
+    .populate("selectedSkill", "name");
   if (!provider) throw new ApiError(404, "Provider not found");
 
   const profile = {
@@ -236,10 +240,8 @@ export const getProviderProfile = asyncHandler(async (req, res) => {
 
   const skills = [
     {
-      id:
-        provider.selectedSkill.skillId?.toString() ||
-        provider.selectedSkill.name,
-      name: provider.selectedSkill.name,
+      id: provider.selectedSkill?._id?.toString() || "",
+      name: provider.selectedSkill?.name || "",
       price: provider.pricing?.serviceRate || 0,
     },
   ];
