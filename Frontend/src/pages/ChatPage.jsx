@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../components/ui/button';
-import { Card } from '../components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { Separator } from '../components/ui/separator';
 import { 
   Send,
   Search,
@@ -27,7 +25,8 @@ import {
 import { mockConversations, mockMessages, getRelativeTime, formatMessageTime } from '../data/chatMockData';
 import { toast } from 'sonner';
 
-export function ChatPage({
+
+export default function ChatPage({
   isDarkMode = false,
   onNavigate,
   onToggleDarkMode,
@@ -82,10 +81,8 @@ export function ChatPage({
       isMine: true
     };
 
-    // Add message to messages list
     setMessages([...messages, message]);
-    
-    // Update conversation's last message
+
     const updatedConversations = conversations.map(conv => 
       conv.id === selectedConversation.id 
         ? { ...conv, lastMessage: newMessage, lastMessageTime: new Date().toISOString() }
@@ -111,15 +108,6 @@ export function ChatPage({
   const showConversationList = !isMobileView || !selectedConversation;
   const showChatWindow = !isMobileView || selectedConversation;
 
-  // Desktop Sidebar Navigation Items
-  const navItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'map', label: 'Map', icon: Map },
-    { id: 'orders', label: 'Orders', icon: FileText },
-    { id: 'chat', label: 'Chat', icon: MessageSquare },
-    { id: 'profile', label: 'Profile', icon: User }
-  ];
-
   return (
     <div className="bg-background">
       <div className="flex">
@@ -127,16 +115,9 @@ export function ChatPage({
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Conversations List */}
           {showConversationList && (
-            <div className={`${isMobileView ? 'w-full fixed top-0 bottom-16 left-0 right-0 z-10' : 'w-80 xl:w-96 h-screen'} border-r border-border flex flex-col bg-card`}>
+            <div className={`${isMobileView ? 'w-full' : 'w-80 xl:w-96'} border-r border-border flex flex-col bg-card`}>
               {/* Header */}
               <div className="p-4 border-b border-border shrink-0">
-                {!isMobileView && (
-                  <BreadcrumbNav 
-                    items={[
-                      { label: 'Messages' }
-                    ]} 
-                  />
-                )}
                 <h2 className="text-2xl mb-4">Messages</h2>
                 
                 {/* Search */}
@@ -211,7 +192,7 @@ export function ChatPage({
 
           {/* Chat Window */}
           {showChatWindow && (
-            <div className={`flex-1 flex flex-col bg-background ${isMobileView ? 'fixed top-0 bottom-16 left-0 right-0 z-10' : 'h-screen'}`}>
+            <div className={`flex-1 flex flex-col bg-background ${isMobileView ? 'z-10' : 'h-[calc(100vh-75px)]'}`}>
               {selectedConversation ? (
                 <>
                   {/* Chat Header - Sticky */}
@@ -369,92 +350,7 @@ export function ChatPage({
             </div>
           )}
         </div>
-
-        {/* Desktop Right Sidebar Navigation - Only show on desktop */}
-        {!isMobileView && (
-          <div className="w-20 border-l border-border bg-card h-screen flex flex-col items-center py-6">
-            {/* Logo */}
-            <div 
-              className="w-12 h-12 bg-gradient-to-br from-[var(--primary-gradient-start)] to-[var(--primary-gradient-end)] rounded-xl flex items-center justify-center text-white shadow-lg mb-8 cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => onNavigate('home')}
-            >
-              <span className="font-bold text-lg">S</span>
-            </div>
-
-            {/* Navigation Items */}
-            <div className="flex-1 flex flex-col gap-4">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = item.id === 'chat';
-                
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onNavigate(item.id)}
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                      isActive
-                        ? 'bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-lg'
-                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                    }`}
-                    title={item.label}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* User Profile */}
-            <div className="mt-auto pt-4 border-t border-border w-full flex flex-col items-center gap-3">
-              <Avatar 
-                className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-(--primary-gradient-start) transition-all" 
-                onClick={() => onNavigate('profile')}
-              >
-                <AvatarImage src={user?.avatar} alt={user?.name} />
-                <AvatarFallback>{user?.name?.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Mobile Bottom Navigation - Only show on mobile */}
-      {isMobileView && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border">
-          <div className="flex justify-around items-center py-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = item.id === 'chat';
-
-              return (
-                <Button
-                  key={item.id}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onNavigate(item.id)}
-                    className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
-                    isActive ? 'text-(--primary-gradient-start)' : 'text-muted-foreground'
-                  }`}
-                >
-                  {item.id === "profile" ? (
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={user?.avatar} alt={user?.name} />
-                      <AvatarFallback className="text-xs">
-                        {user?.name
-                          ? user.name.split(" ").map((n) => n[0]).join("")
-                          : "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <Icon className="w-5 h-5" />
-                  )}
-                  <span className="text-xs">{item.label}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </nav>
-      )}
     </div>
   );
 }
