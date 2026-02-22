@@ -29,7 +29,7 @@ const Layout = () => {
 
       <Outlet />
 
-      <Footer />
+      {location.pathname !== "/chat" && <Footer />}
 
       <Suspense fallback={null}>
         {isAuthPanelOpen && (

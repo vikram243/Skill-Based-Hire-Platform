@@ -1,8 +1,9 @@
-import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
+import { useUI } from "../../contexts/ui-context";
 
 const Toaster = (props) => {
-  const { theme = "system" } = useTheme();
+  const { isDarkMode } = useUI();
+  const theme = isDarkMode ? "dark" : "light";
 
   return (
     <Sonner

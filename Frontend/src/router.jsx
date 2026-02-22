@@ -20,6 +20,7 @@ const GuaranteePage = lazy(() => import("./pages/users/GuaranteePage"));
 const CommunityGuidelinesPage = lazy(() => import("./pages/users/CommunityGuidelinesPage"));
 const PrivacyPage = lazy(() => import("./pages/users/PrivacyPage"));
 const SuccessStoriesPage = lazy(() => import("./pages/users/SuccessStoriesPage"));
+import ChatPage from "./pages/ChatPage";
 
 const suspense = (node) => (
   <Suspense fallback={<FullPageLoader />}>
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
           { path: "search", element: suspense(<SearchPage />) },
           { path: "search/:providerId", element: suspense(<SearchPage />) },
           { path: "hire/:providerId", element: suspense(<HireFlow />) },
+          { path: "chat", element: <ChatPage /> },
         ],
       },
 
