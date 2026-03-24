@@ -1,32 +1,34 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card.jsx";
+import { Button } from "../../components/ui/button.jsx";
 import {
   Avatar,
   AvatarImage,
   AvatarFallback,
-} from "../../components/ui/avatar";
-import { Badge } from "../../components/ui/badge";
-import { Separator } from "../../components/ui/separator";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import ReviewDialog from "../../components/users/ReviewPanel";
+} from "../../components/ui/avatar.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Separator } from "../../components/ui/separator.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Label } from "../../components/ui/label.jsx";
+import { Textarea } from "../../components/ui/textarea.jsx";
+import ReviewDialog from "../../components/users/ReviewPanel.jsx";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "../../components/ui/tabs";
+} from "../../components/ui/tabs.jsx";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import RegisterProviderPanel from "../../components/users/RegisterProviderPage";
-import { profileSchema, firstZodError } from "../../lib/schemas";
-import ApplicationStatusPanel from "../../components/users/ApplicationStatusPanel";
-import api from "../../lib/axiosSetup";
+import RegisterProviderPanel from "../../components/users/RegisterProviderPage.jsx";
+import { profileSchema, firstZodError } from "../../lib/schemas.js";
+import ApplicationStatusPanel from "../../components/users/ApplicationStatusPanel.jsx";
+import api from "../../lib/axiosSetup.js";
 import { useDispatch } from "react-redux";
-import { updateAvatar } from "../../slices/userSlice";
-import { updatePersonalInfo } from "../../slices/userSlice";
+import { updateAvatar } from "../../slices/userSlice.js";
+import { updatePersonalInfo } from "../../slices/userSlice.js";
+import { setProviderMode } from "../../slices/userSlice.js";
+import { toast } from "../../components/ui/toast-sonner.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAnimation } from "motion/react";
 import {
@@ -40,12 +42,9 @@ import {
   X,
   Briefcase,
 } from "lucide-react";
-import { Switch } from "../../components/ui/switch";
+import { Switch } from "../../components/ui/switch.jsx";
 
 function ProfilePage() {
-  const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
-  const [reviewProviderId, setReviewProviderId] = useState(null);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const { user } = useSelector((state) => state.user);
   const [isEditing, setIsEditing] = useState(false);
   const [isRegisterProviderOpen, setIsRegisterProviderOpen] = useState(false);
@@ -63,7 +62,13 @@ function ProfilePage() {
   });
   const [orderStats, setOrderStats] = useState(null);
   const [profileError, setProfileError] = useState("");
+  const [switchLoading, setSwitchLoading] = useState(false);
+  const [switchError, setSwitchError] = useState("");
   const navigate = useNavigate();
+
+  const isApprovedProvider = Boolean(
+    user?.providerStatus === "approved" || user?.isProvider === true,
+  );
 
   useEffect(() => {
     if (user?.firstName) {
@@ -194,6 +199,52 @@ function ProfilePage() {
 
     return () => clearTimeout(timer);
   }, [profileError]);
+
+  useEffect(() => {
+    if (!switchError) return;
+    const timer = setTimeout(() => {
+      setSwitchError("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [switchError]);
+
+  const getApiErrorMessage = (error, fallback) => {
+    return (
+      error?.response?.data?.message ||
+      error?.message ||
+      fallback ||
+      "Something went wrong"
+    );
+  };
+
+  const handleSwitchToProviderDashboard = async () => {
+    setSwitchError("");
+
+    try {
+      setSwitchLoading(true);
+
+      const resp = await api.post("/api/users/provider-mode/on");
+      const enabled = Boolean(resp?.data?.data?.isProviderMode);
+
+      if (!enabled) {
+        const msg = "Unable to switch to provider dashboard";
+        setSwitchError(msg);
+        toast.error(msg);
+        return;
+      }
+
+      dispatch(setProviderMode(true));
+      toast.success("Switched to provider mode");
+      navigate("/provider-dashboard");
+    } catch (error) {
+      const msg = getApiErrorMessage(error, "Switch failed");
+      setSwitchError(msg);
+      toast.error(msg);
+    } finally {
+      setSwitchLoading(false);
+    }
+  };
 
   const onLogout = async () => {
     try {
@@ -381,7 +432,7 @@ function ProfilePage() {
                       </p>
 
                       <Badge variant="secondary" className="mb-4">
-                        {user?.isProvider ? "Service Provider" : "Customer"}
+                        {isApprovedProvider ? "Service Provider" : "Customer"}
                       </Badge>
                     </div>
                   </div>
@@ -421,10 +472,16 @@ function ProfilePage() {
                       <MotionButton
                         variant="outline"
                         className="w-full mt-3 bg-linear-to-r cursor-pointer from-(--primary-gradient-start) to-(--primary-gradient-end) hover:opacity-90 text-white"
-                        onClick={() => {
-                          if (user?.isProvider) {
-                            navigate("/provider-dashboard");
-                          } else if (user?.isApplicationAttampted) {
+                        disabled={switchLoading}
+                        onClick={async () => {
+                          setProfileError("");
+
+                          if (isApprovedProvider) {
+                            await handleSwitchToProviderDashboard();
+                            return;
+                          }
+
+                          if (user?.isApplicationAttampted) {
                             setIsApplicationStatusOpen(true);
                           } else {
                             setIsRegisterProviderOpen(true);
@@ -433,7 +490,7 @@ function ProfilePage() {
                         whileTap={{ scale: 0.96 }}
                         transition={{ duration: 0.1 }}
                       >
-                        {user?.isProvider
+                        {isApprovedProvider
                           ? "Go to Provider Dashboard"
                           : user?.isApplicationAttampted
                             ? "Check Application Status"
@@ -720,14 +777,7 @@ function ProfilePage() {
 
                                   <div className="flex items-center gap-1">
                                     <Star
-                                      className="w-4 h-4 cursor-pointer fill-yellow-400 text-yellow-400"
-                                      onClick={() => {
-                                        (setIsReviewPanelOpen(true),
-                                          setReviewProviderId(
-                                            activity?.provider,
-                                          ),
-                                          setSelectedOrderId(activity?._id));
-                                      }}
+                                      className="w-4 h-4 fill-yellow-400 text-yellow-400"
                                     />
                                   </div>
                                 </motion.div>
@@ -817,13 +867,6 @@ function ProfilePage() {
         <ApplicationStatusPanel
           isOpen={isApplicationStatusOpen}
           onClose={() => setIsApplicationStatusOpen(false)}
-        />
-
-        <ReviewDialog
-          isOpen={isReviewPanelOpen}
-          reviewProviderId={reviewProviderId}
-          orderId={selectedOrderId}
-          onClose={() => setIsReviewPanelOpen(false)}
         />
       </div>
     </AnimatePresence>

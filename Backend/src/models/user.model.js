@@ -43,6 +43,8 @@ const userSchema = new mongoose.Schema({
     sparse: true,
   },
 
+  isProviderMode: { type: Boolean, default: false },
+
   isUser: { type: Boolean, default: false },
   isProvider: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },

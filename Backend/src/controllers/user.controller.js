@@ -1,4 +1,6 @@
 import User from '../models/user.model.js';
+import Provider from '../models/provider.model.js';
+import Order from '../models/order.model.js';
 import { asyncHandler } from '../utils/async.handeller.js';
 import { ApiError, ApiResponse } from '../utils/api.handeller.js';
 import { generateOtp, verifyOtp } from '../services/otp.service.js';
@@ -11,6 +13,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { uploadOnCloudinary } from '../config/cloudinary.config.js';
 import { getAvatarUrl } from "../utils/cloudinaryUrl.js";
+
 
 
 const sendOtpToUser = asyncHandler(async (req, res) => {
@@ -275,11 +278,92 @@ const updateProfile = asyncHandler(async (req, res) => {
   );
 });
 
+const switchToProviderMode = asyncHandler(async (req, res) => {
+  const ACTIVE_PROVIDER_ORDER_STATUSES = ['pending', 'accepted', 'ongoing'];
+  const userId = req.user?.id;
+  if (!userId) throw new ApiError(401, 'Not authenticated');
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, 'User not found');
+
+  if (!user.providerProfile) {
+    throw new ApiError(403, 'Provider profile not linked');
+  }
+
+  const provider = await Provider.findById(user.providerProfile).select('applicationStatus');
+  if (!provider) throw new ApiError(403, 'Provider profile not found');
+  if (provider.applicationStatus !== 'approved') {
+    throw new ApiError(403, 'Provider application is not approved');
+  }
+
+  // block switching to provider mode if the user (as customer) has any active orders
+  const activeCount = await Order.countDocuments({
+    customer: userId,
+    status: { $in: ACTIVE_PROVIDER_ORDER_STATUSES },
+  });
+
+  if (activeCount > 0) {
+    throw new ApiError(409, 'Can not switch: You have active orders');
+  }
+
+  user.isProviderMode = true;
+
+  await user.save();
+
+  return res.status(200).json(
+    new ApiResponse(200, { isProviderMode: true }, 'Switched to provider mode')
+  );
+});
+
+const switchToUserMode = asyncHandler(async (req, res) => {
+  const ACTIVE_PROVIDER_ORDER_STATUSES = ['pending', 'accepted', 'ongoing'];
+  const userId = req.user?.id;
+  if (!userId) throw new ApiError(401, 'Not authenticated');
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, 'User not found');
+
+  // if not in provider mode already, just return ok
+  if (!user.isProviderMode) {
+    return res.status(200).json(
+      new ApiResponse(200, { isProviderMode: false }, 'Already in user mode')
+    );
+  }
+
+  if (!user.providerProfile) {
+    // safety: if profile missing, allow exiting provider mode
+    user.isProviderMode = false;
+    await user.save();
+    return res.status(200).json(
+      new ApiResponse(200, { isProviderMode: false }, 'Switched to user mode')
+    );
+  }
+
+  // block switching back to user mode if the provider profile has any active orders
+  const activeCount = await Order.countDocuments({
+    provider: user.providerProfile,
+    status: { $in: ACTIVE_PROVIDER_ORDER_STATUSES },
+  });
+
+  if (activeCount > 0) {
+    throw new ApiError(409, 'Can not switch: You have active orders');
+  }
+
+  user.isProviderMode = false;
+  await user.save();
+
+  return res.status(200).json(
+    new ApiResponse(200, { isProviderMode: false }, 'Switched to user mode')
+  );
+});
+
 export {
   sendOtpToUser,
   verifyOtpAndLogin,
   registerUser,
   logoutUser,
   refreshAccessToken,
-  updateProfile
+  updateProfile,
+  switchToProviderMode,
+  switchToUserMode
 }
