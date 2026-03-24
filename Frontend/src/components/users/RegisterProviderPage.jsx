@@ -5,16 +5,16 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Badge } from "../ui/badge";
-import { Checkbox } from "../ui/checkbox";
-import { Progress } from "../ui/progress";
+} from "../ui/dialog.jsx";
+import { Button } from "../ui/button.jsx";
+import { Input } from "../ui/input.jsx";
+import { Textarea } from "../ui/textarea.jsx";
+import { Badge } from "../ui/badge.jsx";
+import { Checkbox } from "../ui/checkbox.jsx";
+import { Progress } from "../ui/progress.jsx";
 import Dropzone from "./DropZone.jsx";
-import api from "../../lib/axiosSetup";
-import { updateIsAttampted } from "../../slices/userSlice";
+import api from "../../lib/axiosSetup.js";
+import { updateIsAttampted } from "../../slices/userSlice.js";
 import { useDispatch } from "react-redux";
 import {
   providerBasicSchema,
@@ -24,7 +24,7 @@ import {
   providerVerificationSchema,
   providerFullSchema,
   firstZodError,
-} from "../../lib/schemas";
+} from "../../lib/schemas.js";
 import {
   Upload,
   Plus,

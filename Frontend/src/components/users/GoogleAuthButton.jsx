@@ -1,15 +1,13 @@
 import React from 'react'
 import { useGoogleLogin } from '@react-oauth/google';
-import api from "../..//lib/axiosSetup";
+import api from "../../lib/axiosSetup";
 import { Button } from "../ui/button";
 import { Chrome } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { setUser } from "../../slices/userSlice";
 
 
 const GoogleLoginbutton = ({ onSuccess, isLoading, setIsLoading }) => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const googleAuth = (code) => api.get(`/api/auth/google?code=${code}`);
@@ -21,7 +19,6 @@ const GoogleLoginbutton = ({ onSuccess, isLoading, setIsLoading }) => {
         onSuccess?.({ user, accessToken });
         localStorage.setItem('accessToken', accessToken);
         dispatch(setUser(user));
-        navigate('/');
       }
     } catch (error) {
       console.error("Error during Google login:", error);

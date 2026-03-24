@@ -5,7 +5,9 @@ import {
   registerUser,
   logoutUser,
   refreshAccessToken,
-  updateProfile
+  updateProfile,
+  switchToProviderMode,
+  switchToUserMode
 } from '../controllers/user.controller.js';
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
@@ -43,6 +45,16 @@ router.route("/update-profile").put(
   validate(updateProfileSchema),
   upload.single("avatar"),
   updateProfile
+);
+
+router.route('/provider-mode/on').post(
+  isAuthenticated,
+  switchToProviderMode
+);
+
+router.route('/provider-mode/off').post(
+  isAuthenticated,
+  switchToUserMode
 );
 
 export default router;

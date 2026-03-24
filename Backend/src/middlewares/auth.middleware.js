@@ -51,7 +51,8 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
 });
 
 export const isAdmin = asyncHandler(async (req,res,next) => {
-  if(!req.user || req.user.role !== 'admin'){
+  const isAdminUser = Boolean(req.user?.isAdmin) || req.user?.role === 'admin';
+  if(!req.user || !isAdminUser){
     throw new ApiError(403,"access denied : only admin can access");
   }
   next();

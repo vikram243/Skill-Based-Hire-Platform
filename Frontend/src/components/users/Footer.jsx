@@ -15,16 +15,17 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Column */}
           <div className="space-y-6">
-            <div className="flex items-center space-x-1 cursor-pointer group" onClick={() => { if (location.pathname !== '/') navigate('/'); }}>
-              <img
-              className="w-15 -mr-2 rounded-full transition-all duration-200 group-hover:scale-105"
-              src="https://res.cloudinary.com/drivnx6ia/image/upload/v1771413526/ChatGPT-removebg-preview_dbpqrl.png"
-              alt=""
-            />
+            <div
+            className="flex items-center space-x-3 cursor-pointer group"
+            onClick={() => navigate('/')}
+          >
+              <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
+                <span className="font-bold text-lg">S</span>
+              </div>
             <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
               SkillHub
             </h1>
-            </div>
+          </div>
             <p className="text-muted-foreground leading-relaxed max-w-xs">
               Empowering local talent and connecting communities through skilled services. The most trusted platform for professional help.
             </p>

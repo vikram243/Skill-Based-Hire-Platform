@@ -7,6 +7,7 @@ import { setUser, logoutUser, setLoading } from "./slices/userSlice";
 import api from "./lib/axiosSetup";
 import FullPageLoader from "./components/ui/full-page-loader";
 import { UIProvider } from "./contexts/ui-context";
+import Toaster from "./components/ui/sonner";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -84,6 +85,7 @@ const App = () => {
   return (
     <UIProvider>
       <RouterProvider router={router} />
+      <Toaster richColors closeButton position="top-center" />
     </UIProvider>
   );
 };
