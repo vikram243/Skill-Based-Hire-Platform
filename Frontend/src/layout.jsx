@@ -1,4 +1,4 @@
-import { Outlet, ScrollRestoration } from "react-router-dom";
+import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import React, { Suspense, lazy } from "react";
 import Navigation from "./components/users/Navigation";
 import Footer from "./components/users/Footer";
@@ -16,20 +16,25 @@ const Layout = () => {
     setSearchQuery,
   } = useUI();
 
+  const { pathname } = useLocation();
+  const isProviderRoute = pathname.startsWith("/provider");
+
   return (
     <>
       <ScrollRestoration />
-      <Navigation
-        setIsAuthPanelOpen={setIsAuthPanelOpen}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={toggleDarkMode}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      {!isProviderRoute && (
+        <Navigation
+          setIsAuthPanelOpen={setIsAuthPanelOpen}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={toggleDarkMode}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+      )}
 
       <Outlet />
 
-      <Footer />
+      {!isProviderRoute && <Footer />}
 
       <Suspense fallback={null}>
         {isAuthPanelOpen && (

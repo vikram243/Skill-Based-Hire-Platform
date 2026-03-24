@@ -6,13 +6,13 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+import { Button } from "../ui/button.jsx";
+import { Input } from "../ui/input.jsx";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar.jsx";
 import { LocationPickerPanel } from "./LocationPickerPanel.jsx";
 import { useSelector, useDispatch } from "react-redux";
-import api from "../../lib/axiosSetup";
-import { updateLocation } from "../../slices/userSlice";
+import api from "../../lib/axiosSetup.js";
+import { updateLocation } from "../../slices/userSlice.js";
 import {
   Search,
   Home,
@@ -61,7 +61,7 @@ export default function Navigation({
           target = "/orders";
           break;
         case "chat":
-          target = "/";
+          target = "/chat";
           break;
         case "search":
           target = "/search";
@@ -146,14 +146,12 @@ export default function Navigation({
         <div className="container flex h-18 items-center justify-between px-4 mx-auto py-3">
           {/* Logo */}
           <div
-            className="flex items-center space-x-1 cursor-pointer group"
-            onClick={() => handleNavigate("home")}
+            className="flex items-center space-x-3 cursor-pointer group"
+            onClick={() => navigate("/")}
           >
-            <img
-              className="w-15 -mr-2 rounded-full transition-all duration-200 group-hover:scale-105"
-              src="https://res.cloudinary.com/drivnx6ia/image/upload/v1771413526/ChatGPT-removebg-preview_dbpqrl.png"
-              alt=""
-            />
+              <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
+                <span className="font-bold text-lg">S</span>
+              </div>
             <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
               SkillHub
             </h1>

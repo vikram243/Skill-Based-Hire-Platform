@@ -43,6 +43,12 @@ const userSlice = createSlice({
       }
     },
 
+    setProviderMode: (state, action) => {
+      if (state.user) {
+        state.user.isProviderMode = Boolean(action.payload);
+      }
+    },
+
     logoutUser(state) {
       state.isAuthenticated = false;
       state.user = null;
@@ -56,5 +62,5 @@ const userSlice = createSlice({
 });
 
 
-export const { setUser, logoutUser, setLoading, updateIsAttampted, updateAvatar, updatePersonalInfo, updateLocation } = userSlice.actions;
+export const { setUser, logoutUser, setLoading, updateIsAttampted, updateAvatar, updatePersonalInfo, updateLocation, setProviderMode } = userSlice.actions;
 export default userSlice.reducer;

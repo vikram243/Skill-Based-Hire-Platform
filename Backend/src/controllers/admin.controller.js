@@ -116,28 +116,49 @@ export const updateProviderStatus = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!["approved", "rejected", "draft"].includes(status)) {
+  // support legacy 'draft' input by mapping to 'pending'
+  const normalizedStatus = status === 'draft' ? 'pending' : status;
+
+  if (!["approved", "rejected", "pending"].includes(normalizedStatus)) {
         throw new ApiError(400, "Invalid Status")
     };
 
     const provider = await Provider.findByIdAndUpdate(
         id,
-        { applicationStatus: status },
+    { applicationStatus: normalizedStatus },
         { new: true }
     ).populate("user", "fullName email");
 
     if (!provider) throw new ApiError(404, "Provider Not Found")
 
     await logActivity({
-        action: `Provider ${status}`,
+      action: `Provider ${normalizedStatus}`,
         performedBy: req.user._id,
         target: provider._id,
         targetModel: "Provider",
-        description: `Admin ${req.user.fullName} ${status} provider ${provider.user.fullName}`,
+      description: `Admin ${req.user.fullName} ${normalizedStatus} provider ${provider.user.fullName}`,
     })
 
+    // keep user's role flags in sync
+    try {
+      const user = await User.findById(provider.user?._id || provider.user);
+      if (user) {
+        if (normalizedStatus === 'approved') {
+          user.isProvider = true;
+          if (user.role !== 'admin') user.role = 'provider';
+        } else {
+          user.isProvider = false;
+          user.isProviderMode = false;
+          if (user.role !== 'admin') user.role = 'user';
+        }
+        await user.save();
+      }
+    } catch (e) {
+      // ignore sync errors
+    }
+
     return res.status(200).json(
-        new ApiResponse(200, provider, `Provider ${status} successfully`)
+      new ApiResponse(200, provider, `Provider ${normalizedStatus} successfully`)
     )
 })
 

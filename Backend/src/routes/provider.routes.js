@@ -15,6 +15,7 @@ import { filterProviders } from '../controllers/filter.controller.js';
 
 import { upload } from '../middlewares/upload.middleware.js';
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
+import { requireProviderMode } from '../middlewares/providerMode.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { becomeProviderSchema, updateProviderSchema, updateOrderStatusSchema, hireProviderByIdSchema } from '../validators/provider.validator.js';
 
@@ -35,42 +36,50 @@ router.route('/:providerId').post(
 
 router.route('/dashboard').get(
     isAuthenticated,
+    requireProviderMode,
     getProviderDashboard
 )
 
 router.route('/order').get(
     isAuthenticated,
+    requireProviderMode,
     getProviderOrders
 )
 
 router.route('/orders/:orderId/status').patch(
     isAuthenticated,
+    requireProviderMode,
     validate(updateOrderStatusSchema),
     updateProviderOrderStatus
 )
 
 router.route('/history').get(
     isAuthenticated,
+    requireProviderMode,
     getProviderHistory
 )
 
 router.route('/analytics').get(
     isAuthenticated,
+    requireProviderMode,
     getProviderAnalytics
 )
 
 router.route('/reviews').get(
     isAuthenticated,
+    requireProviderMode,
     getProviderReviews
 )
 
 router.route('/profile').get(
     isAuthenticated,
+    requireProviderMode,
     getProviderProfile
 )
 
 router.route('/update-profile').patch(
     isAuthenticated,
+    requireProviderMode,
     validate(updateProviderSchema),
     updateProviderProfile
 )
