@@ -1,5 +1,5 @@
-import { Outlet, ScrollRestoration } from "react-router-dom";
-import React, { Suspense, lazy } from "react";
+import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
+import React, { Suspense, lazy, use } from "react";
 import Navigation from "./components/users/Navigation";
 import Footer from "./components/users/Footer";
 import { useUI } from "./contexts/ui-context";
@@ -15,21 +15,27 @@ const Layout = () => {
     searchQuery,
     setSearchQuery,
   } = useUI();
+  const { pathname } = useLocation();
+const isChatPage = pathname === "/chat";
+
 
   return (
     <>
       <ScrollRestoration />
-      <Navigation
+      {!isChatPage && (
+        <Navigation
         setIsAuthPanelOpen={setIsAuthPanelOpen}
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
+      )}
+      
 
       <Outlet />
 
-      {location.pathname !== "/chat" && <Footer />}
+      {!isChatPage && <Footer />}
 
       <Suspense fallback={null}>
         {isAuthPanelOpen && (
