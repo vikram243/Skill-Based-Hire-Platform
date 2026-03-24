@@ -29,6 +29,7 @@ const ProviderAnalytics = lazy(() => import("./pages/providers/Analytics"));
 const ProviderReviews = lazy(() => import("./pages/providers/Reviews"));
 const ProviderProfile = lazy(() => import("./pages/providers/Profile"));
 const ProviderModeRedirect = lazy(() => import("./components/providers/ProviderModeRedirect"));
+const ChatPage = lazy(() => import("./pages/users/ChatPage"));
 
 const suspense = (node) => (
   <Suspense fallback={<FullPageLoader />}>
@@ -62,6 +63,7 @@ export const router = createBrowserRouter([
           { path: "search", element: suspense(<SearchPage />) },
           { path: "search/:providerId", element: suspense(<SearchPage />) },
           { path: "hire/:providerId", element: suspense(<HireFlow />) },
+          { path: "chat", element: <ChatPage /> },
         ],
       },
 
