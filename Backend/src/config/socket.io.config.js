@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import origin from './config.js';
+import jwt from 'jsonwebtoken';
 
 let io = null;
 

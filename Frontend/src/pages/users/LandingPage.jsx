@@ -1,6 +1,7 @@
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card } from "../../components/ui/card";
+import { useEffect } from "react";
 import {
   Search,
   MapPin,
@@ -20,6 +21,7 @@ import { useSelector } from "react-redux";
 import { motion } from "motion/react";
 import { useCallback, useMemo } from "react";
 import { useUI } from "../../contexts/ui-context";
+import { connectSocket } from "../../lib/socket";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ export default function LandingPage() {
     }
   }, [isAuthenticated, navigate, setIsAuthPanelOpen]);
 
+  
   const features = useMemo(
     () => [
       {
@@ -90,6 +93,20 @@ export default function LandingPage() {
     }),
     [],
   );
+
+  useEffect(() => {
+  const socket = connectSocket(localStorage.getItem("accessToken"));
+
+  socket.on("connection", () => {
+    console.log("✅ Connected:", socket.id);
+  });
+
+  socket.on("connect_error", (err) => {
+    console.log("❌ Connection error:", err.message);
+  });
+
+  return () => socket.disconnect();
+}, []);
 
   return (
     <div className="min-h-screen bg-background">

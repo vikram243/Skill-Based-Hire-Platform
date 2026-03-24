@@ -63,7 +63,7 @@ export const router = createBrowserRouter([
           { path: "search", element: suspense(<SearchPage />) },
           { path: "search/:providerId", element: suspense(<SearchPage />) },
           { path: "hire/:providerId", element: suspense(<HireFlow />) },
-          { path: "chat", element: <ChatPage /> },
+          { path: "chat", element: suspense(<ChatPage />) },
         ],
       },
 

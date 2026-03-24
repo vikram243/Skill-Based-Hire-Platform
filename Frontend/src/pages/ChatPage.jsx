@@ -27,10 +27,6 @@ import { toast } from 'sonner';
 
 
 export default function ChatPage({
-  isDarkMode = false,
-  onNavigate,
-  onToggleDarkMode,
-  user
 }) {
   const [conversations, setConversations] = useState(mockConversations);
   const [selectedConversation, setSelectedConversation] = useState(null);
