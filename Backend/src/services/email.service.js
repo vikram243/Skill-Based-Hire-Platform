@@ -1,18 +1,18 @@
-import transporter from "../config/email.config.js";
+import resend from "../config/resend.config.js";
 
-const sendEmail = async ({ to, subject, text }) => {
+const sendEmail = async ({ to, subject, html }) => {
   try {
-    const info = await transporter.sendMail({
-      from: "Skill-Hub",
+    const data = await resend.emails.send({
+      from: "SkillHub <noreply@myskillhub.in>", // 🔥 IMPORTANT
       to,
       subject,
-      text,
+      html,
     });
 
-    console.log("Email sent:", info.messageId);
+    console.log("Email sent:", data);
     return true;
   } catch (error) {
-    console.error("Email send failed:", error.message);
+    console.error("Email failed:", error);
     return false;
   }
 };

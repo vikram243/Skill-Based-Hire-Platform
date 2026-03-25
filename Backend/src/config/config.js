@@ -28,6 +28,7 @@ const config = {
     },
     EmailUser: process.env.EMAIL_USER,
     EmailPass: process.env.EMAIL_PASS,
+    ResendApiKey: process.env.RESEND_API_KEY,
     twillioAccountSid : process.env.TWILIO_ACCOUNT_SID,
     twillioToken : process.env.TWILIO_TOKEN,
     twillioNumber : process.env.TWILIO_NUMBER
