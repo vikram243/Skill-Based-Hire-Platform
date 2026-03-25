@@ -74,7 +74,8 @@ const googleLogin = asyncHandler(async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: config.nodeEnv === "production",
-    sameSite: config.nodeEnv === "production" ? 'none' : 'strict',
+    sameSite: 'None',
+    domain: config.cookieDomain,
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 

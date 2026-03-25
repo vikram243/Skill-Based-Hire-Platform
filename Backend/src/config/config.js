@@ -8,6 +8,7 @@ const config = {
         dbName: process.env.DB_NAME
     },
     origin: process.env.CORS_ORIGIN,
+    cookieDomain: process.env.COOKIE_DOMAIN,
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     cloudApiKey: process.env.CLOUDINARY_API_KEY,
     cloudSecretKey: process.env.CLOUDINARY_API_SECRET,
