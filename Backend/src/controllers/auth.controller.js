@@ -11,7 +11,7 @@ import config from '../config/config.js';
 import { getAvatarUrl } from "../utils/cloudinaryUrl.js";
 
 const googleLogin = asyncHandler(async (req, res) => {
-  const { code } = req.body;
+  const { code } = req.query;
 
   if (!code) throw new ApiError(400, "Authorization code is required");
 
@@ -75,8 +75,7 @@ const googleLogin = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: config.nodeEnv === "production",
     sameSite: 'None',
-    domain: `.${config.cookieDomain}`,
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000 
   });
 
   return res.status(200).json(

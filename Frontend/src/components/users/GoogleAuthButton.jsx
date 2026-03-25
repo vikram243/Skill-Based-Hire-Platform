@@ -9,17 +9,17 @@ import { setUser } from "../../slices/userSlice";
 const GoogleLoginbutton = ({ onSuccess, isLoading, setIsLoading }) => {
   const dispatch = useDispatch();
 
-  const googleAuth = (code) => api.post(`/api/auth/google?code=${code}`);
+  const googleAuth = (code) => api.get(`/api/auth/google?code=${code}`);
   const responseGoogleResult = async (authResult) => {
     try {
       if (authResult["code"]) {
         const response = await googleAuth(authResult["code"]);
         const { user, accessToken } = response.data.data;
-        if (!accessToken) {
+        onSuccess?.({ user, accessToken });
+        if (!accessToken || !user) {
           console.error("Access token missing!");
           return;
         }
-        onSuccess?.({ user, accessToken });
         localStorage.setItem("accessToken", accessToken);
         dispatch(setUser(user));
       }
