@@ -1,23 +1,26 @@
-import React from 'react'
-import { useGoogleLogin } from '@react-oauth/google';
+import React from "react";
+import { useGoogleLogin } from "@react-oauth/google";
 import api from "../../lib/axiosSetup";
 import { Button } from "../ui/button";
 import { Chrome } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../slices/userSlice";
 
-
 const GoogleLoginbutton = ({ onSuccess, isLoading, setIsLoading }) => {
   const dispatch = useDispatch();
 
-  const googleAuth = (code) => api.get(`/api/auth/google?code=${code}`);
+  const googleAuth = (code) => api.post(`/api/auth/google?code=${code}`);
   const responseGoogleResult = async (authResult) => {
     try {
-      if (authResult['code']) {
-        const response = await googleAuth(authResult['code']);
+      if (authResult["code"]) {
+        const response = await googleAuth(authResult["code"]);
         const { user, accessToken } = response.data.data;
+        if (!accessToken) {
+          console.error("Access token missing!");
+          return;
+        }
         onSuccess?.({ user, accessToken });
-        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem("accessToken", accessToken);
         dispatch(setUser(user));
       }
     } catch (error) {
@@ -34,19 +37,22 @@ const GoogleLoginbutton = ({ onSuccess, isLoading, setIsLoading }) => {
   const googleLogin = useGoogleLogin({
     onSuccess: responseGoogleResult,
     onError: responseGoogleError,
-    flow: 'auth-code'
+    flow: "auth-code",
   });
 
   return (
     <Button
       disabled={isLoading}
-      onClick={() => { setIsLoading(true), googleLogin() }}
+      onClick={() => {
+        (setIsLoading(true), googleLogin());
+      }}
       className="w-full h-14 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 shadow-lg
                  dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:border-gray-600"
     >
-      <Chrome className="mr-2" /> {isLoading ? "Signing..." : "Continue With Google"}
+      <Chrome className="mr-2" />{" "}
+      {isLoading ? "Signing..." : "Continue With Google"}
     </Button>
-  )
-}
+  );
+};
 
-export default GoogleLoginbutton
+export default GoogleLoginbutton;
