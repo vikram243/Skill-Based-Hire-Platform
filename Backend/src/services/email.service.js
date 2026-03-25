@@ -3,7 +3,7 @@ import resend from "../config/resend.config.js";
 const sendEmail = async ({ to, subject, html }) => {
   try {
     const data = await resend.emails.send({
-      from: "SkillHub <noreply@myskillhub.in>", // 🔥 IMPORTANT
+      from: "SkillHub <noreply@myskillhub.in>",
       to,
       subject,
       html,
