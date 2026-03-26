@@ -195,49 +195,44 @@ const logoutUser = async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
+  console.log("🍪 Cookies received:", req.cookies); // ADD THIS
+  console.log("🔑 RefreshToken:", refreshToken);     // ADD THIS
+  
   if (!refreshToken) throw new ApiError(401, "Refresh token missing");
 
   let payload;
   try {
-    payload = jwt.verify(
-      refreshToken,
-      config.jwtRefreshSecret || config.jwtSecret + "_refresh",
-    );
+    payload = jwt.verify(refreshToken, config.jwtRefreshSecret || (config.jwtSecret + '_refresh'));
   } catch (e) {
+    console.log("❌ JWT verify failed:", e.message); // ADD THIS
     throw new ApiError(401, "Invalid refresh token");
   }
 
   const stored = await getRefreshToken(payload.id.toString());
-  if (!stored || stored !== refreshToken)
-    throw new ApiError(401, "Refresh token not recognized");
+  console.log("📦 Stored token match:", stored === refreshToken); // ADD THIS
+  
+  if (!stored || stored !== refreshToken) throw new ApiError(401, "Refresh token not recognized");
 
   const user = await User.findById(payload.id);
   if (!user) throw new ApiError(404, "User not found");
 
-  // use the stored sessionId so the refreshed access token matches current session
-  const sessionId = await getSessionId(user._id.toString());
-  // validate fingerprint on refresh
+  // ⚠️ TEMPORARILY COMMENT OUT FINGERPRINT CHECK
   // try {
   //   const meta = await getSessionMeta(user._id.toString());
   //   if (meta?.fingerprint) {
-  //     const fingerprintRaw = req.headers["user-agent"] || "";
-  //     const fingerprint = crypto
-  //       .createHash("sha256")
-  //       .update(fingerprintRaw)
-  //       .digest("hex");
+  //     const fingerprintRaw = `${req.ip || ''}|${req.headers['user-agent'] || ''}`;
+  //     const fingerprint = crypto.createHash('sha256').update(fingerprintRaw).digest('hex');
   //     if (fingerprint !== meta.fingerprint) {
-  //       throw new ApiError(401, "Session fingerprint mismatch");
+  //       throw new ApiError(401, 'Session fingerprint mismatch');
   //     }
   //   }
   // } catch (e) {
   //   if (e instanceof ApiError) throw e;
-  //   // on redis/meta read error, continue (fail-open)
   // }
 
+  const sessionId = await getSessionId(user._id.toString());
   const accessToken = user.generateAccessToken(sessionId);
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
+  return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
