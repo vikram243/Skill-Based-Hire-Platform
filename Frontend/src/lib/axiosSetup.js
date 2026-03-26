@@ -73,6 +73,7 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (err) {
         processQueue(err, null)
+        localStorage.removeItem('accessToken')
         return Promise.reject(err)
       } finally {
         isRefreshing = false
