@@ -49,7 +49,6 @@ const googleLogin = asyncHandler(async (req, res) => {
     { new: true, upsert: true }
   );
 
-  console.log("User after Google login:", user);
   const userSafe = getSafeUser(user);
 
   await logActivity({
@@ -75,8 +74,8 @@ const googleLogin = asyncHandler(async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: config.nodeEnv === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 
   });
 
   return res.status(200).json(

@@ -1,20 +1,18 @@
-import resend from "../config/email.config.js";
-import config from "../config/config.js";
+import resend from "../config/resend.config.js";
 
 const sendEmail = async ({ to, subject, text, html, from }) => {
   try {
-    const message = {
-      from: "onboarding@resend.dev",
+    const data = await resend.emails.send({
+      from: "SkillHub <noreply@myskillhub.in>",
       to,
       subject,
       html: html || (text ? `<pre>${text}</pre>` : ""),
     };
 
-    const res = await resend.emails.send(message);
-    console.log("Email sent:", res.id || res);
+    console.log("Email sent:", data);
     return true;
   } catch (error) {
-    console.error("Email send failed:", error);
+    console.error("Email failed:", error);
     return false;
   }
 };
