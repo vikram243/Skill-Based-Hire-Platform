@@ -1,13 +1,13 @@
 import resend from "../config/resend.config.js";
 
-const sendEmail = async ({ to, subject, text, html, from }) => {
+const sendEmail = async ({ to, subject, text }) => {
   try {
     const data = await resend.emails.send({
       from: "SkillHub <noreply@myskillhub.in>",
       to,
       subject,
-      html: html || (text ? `<pre>${text}</pre>` : ""),
-    };
+      text,
+    });
 
     console.log("Email sent:", data);
     return true;
