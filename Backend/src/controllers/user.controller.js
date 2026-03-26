@@ -70,15 +70,6 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     })
 
-    // store access token in cookie as well (available to frontend JS)
-    res.cookie("accessToken", accessToken, {
-      httpOnly: false,
-      secure: config.nodeEnv === "production",
-      sameSite: "None",
-      domain: `.${config.cookieDomain}`,
-      maxAge: 15 * 60 * 1000 // 15 minutes
-    });
-
     const userSafe = getSafeUser(user);
     return res.status(200).json(new ApiResponse(200, { user: userSafe, accessToken }, "user login successfully"));
   }
@@ -118,18 +109,8 @@ const registerUser = asyncHandler(async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: config.nodeEnv === "production",
-    sameSite: "None",
-    domain: `.${config.cookieDomain}`,
+    sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000
-  });
-
-  // also set access token cookie for frontend usage
-  res.cookie("accessToken", accessToken, {
-    httpOnly: false,
-    secure: config.nodeEnv === "production",
-    sameSite: "None",
-    domain: `.${config.cookieDomain}`,
-    maxAge: 15 * 60 * 1000 // 15 minutes
   });
 
   const userSafe = getSafeUser(user);
@@ -145,7 +126,6 @@ const logoutUser = async (req, res) => {
     try {
       const payload = jwt.verify(refreshToken, config.jwtRefreshSecret || (config.jwtSecret + '_refresh'));
       if (payload?.id) {
-        // remove all refresh tokens for the user on logout
         await deleteRefreshToken(payload.id.toString());
         try { await deleteSessionId(payload.id.toString()); } catch (e) { /* ignore */ }
         try { await deleteSessionMeta(payload.id.toString()); } catch (e) { /* ignore */ }
@@ -153,8 +133,7 @@ const logoutUser = async (req, res) => {
     } catch (e) {
     }
   }
-  res.clearCookie("refreshToken", { httpOnly: true, secure: config.nodeEnv === "production", sameSite: "None", domain: `.${config.cookieDomain}` });
-  res.clearCookie("accessToken", { httpOnly: false, secure: config.nodeEnv === "production", sameSite: "None", domain: `.${config.cookieDomain}` });
+  res.clearCookie("refreshToken", { httpOnly: true, secure: config.nodeEnv === "production", sameSite: "strict" });
   return res.status(200).json(new ApiResponse(200, {}, "User logout successfully"));
 };
 
@@ -170,16 +149,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 
   const stored = await getRefreshToken(payload.id.toString());
-  // stored is an array of tokens (allow multiple sessions)
-  // If Redis returns a non-empty array, require membership. If empty (no Redis data), allow JWT-only verification (fail-open).
-  if (Array.isArray(stored) && stored.length > 0) {
-    if (!stored.includes(refreshToken)) {
-      throw new ApiError(401, "Refresh token not recognized");
-    }
-  } else {
-    // no tokens stored in redis — allow fallback but log for debugging
-    console.warn(`Refresh tokens missing in Redis for user ${payload.id}. Falling back to JWT-only verification.`);
-  }
+  if (!stored || stored !== refreshToken) throw new ApiError(401, "Refresh token not recognized");
 
   const user = await User.findById(payload.id);
   if (!user) throw new ApiError(404, "User not found");
@@ -202,15 +172,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 
   const accessToken = user.generateAccessToken(sessionId);
-  // set access token cookie on refresh
-  res.cookie("accessToken", accessToken, {
-    httpOnly: false,
-    secure: config.nodeEnv === "production",
-    sameSite: "None",
-    domain: `.${config.cookieDomain}`,
-    maxAge: 15 * 60 * 1000 // 15 minutes
-  });
-
   return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
 });
 

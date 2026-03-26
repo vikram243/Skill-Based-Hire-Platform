@@ -159,9 +159,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
         setPanelMessage({ type: '', text: '' });
         onSuccess && onSuccess(payload.user);
         handleClose();
-        // server sets accessToken cookie; set axios header for immediate use
-        // eslint-disable-next-line no-unused-vars
-        try { if (payload?.accessToken) api.defaults.headers.common.Authorization = `Bearer ${payload.accessToken}` } catch (e) { /* empty */ }
+        localStorage.setItem('accessToken', payload?.accessToken);
         dispatch(setUser(payload.user));
         return;
       }
@@ -205,8 +203,7 @@ export default function AuthPanel({ isOpen, onClose, onSuccess }) {
       setPanelMessage({ type: 'info', text: 'Registered and logged in' });
       onSuccess && onSuccess(user);
       handleClose();
-      // eslint-disable-next-line no-unused-vars
-      try { if (res?.data?.data?.accessToken) api.defaults.headers.common.Authorization = `Bearer ${res.data.data.accessToken}` } catch (e) { /* empty */ }
+      localStorage.setItem('accessToken', res?.data?.data?.accessToken);
       dispatch(setUser(user));
     } catch (err) {
       const msg = err?.response?.data?.message || 'Registration failed';

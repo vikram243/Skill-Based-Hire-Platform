@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { getCookie } from './cookies'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL || 'http://localhost:5000',
@@ -22,7 +21,7 @@ const processQueue = (error, token = null) => {
 
 api.interceptors.request.use(
   config => {
-    const token = getCookie('accessToken')
+    const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers = config.headers || {}
       config.headers.Authorization = `Bearer ${token}`
@@ -68,13 +67,13 @@ api.interceptors.response.use(
         const newToken = r.data?.data?.accessToken
         if (!newToken) throw new Error('No refresh token returned')
 
-        // server also sets accessToken cookie; set header for immediate use
+        localStorage.setItem('accessToken', newToken)
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`
         processQueue(null, newToken)
         return api(originalRequest)
       } catch (err) {
         processQueue(err, null)
-        try { delete api.defaults.headers.common.Authorization } catch (e) {}
+        localStorage.removeItem('accessToken')
         return Promise.reject(err)
       } finally {
         isRefreshing = false

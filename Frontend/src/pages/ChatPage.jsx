@@ -22,12 +22,11 @@ import {
   User,
   LogOut
 } from 'lucide-react';
-import { mockConversations, mockMessages, getRelativeTime, formatMessageTime } from '../data/chatMockData';
+import { mockConversations, mockMessages, getRelativeTime } from '../data/chatMockData';
 import { toast } from 'sonner';
 
 
-export default function ChatPage({
-}) {
+export default function ChatPage() {
   const [conversations, setConversations] = useState(mockConversations);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
