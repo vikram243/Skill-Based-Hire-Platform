@@ -85,11 +85,19 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
     await setSessionId(user._id.toString(), sessionId);
     await setSessionMeta(user._id.toString(), { fingerprint });
 
-    res.cookie("refreshToken", refreshToken, {
+    res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: config.nodeEnv === "production" ? `.myskillhub.in` : "localhost",
+      domain: ".myskillhub.in",
+    });
+
+    // Phir set karo
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none", // ← "lax" se "none" karo
+      domain: ".myskillhub.in", // ← dot wala
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -146,18 +154,31 @@ const registerUser = asyncHandler(async (req, res) => {
     .digest("hex");
   await setRefreshToken(user._id.toString(), refreshToken);
 
-// ADD THIS - verify karo ki save hua
-const saved = await getRefreshToken(user._id.toString());
-console.log("✅ Token saved check:", saved === refreshToken, "| saved:", saved?.slice(0,20));
+  // ADD THIS - verify karo ki save hua
+  const saved = await getRefreshToken(user._id.toString());
+  console.log(
+    "✅ Token saved check:",
+    saved === refreshToken,
+    "| saved:",
+    saved?.slice(0, 20),
+  );
 
   await setSessionId(user._id.toString(), sessionId);
   await setSessionMeta(user._id.toString(), { fingerprint });
 
-  res.cookie("refreshToken", refreshToken, {
+  res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    domain: config.nodeEnv === "production" ? `.myskillhub.in` : "localhost",
+    domain: ".myskillhub.in",
+  });
+
+  // Phir set karo
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none", // ← "lax" se "none" karo
+    domain: ".myskillhub.in", // ← dot wala
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
