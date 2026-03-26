@@ -1,17 +1,23 @@
-import { asyncHandler } from '../utils/async.handeller.js';
-import { auth2client } from '../utils/googleConfig.js';
-import User from '../models/user.model.js';
+import { asyncHandler } from "../utils/async.handeller.js";
+import { auth2client } from "../utils/googleConfig.js";
+import User from "../models/user.model.js";
 import { uploadOnCloudinary } from "../config/cloudinary.config.js";
-import { ApiError, ApiResponse } from '../utils/api.handeller.js';
-import { getSafeUser } from '../utils/userSafe.helper.js';
-import { logActivity } from '../utils/activity.handeller.js';
-import { setRefreshToken, setSessionId, setSessionMeta } from '../config/redis.config.js';
-import crypto from 'crypto';
-import config from '../config/config.js';
+import { ApiError, ApiResponse } from "../utils/api.handeller.js";
+import { getSafeUser } from "../utils/userSafe.helper.js";
+import { logActivity } from "../utils/activity.handeller.js";
+import {
+  setRefreshToken,
+  setSessionId,
+  setSessionMeta,
+  getRefreshToken,
+} from "../config/redis.config.js";
+import crypto from "crypto";
+import config from "../config/config.js";
 import { getAvatarUrl } from "../utils/cloudinaryUrl.js";
 
 const googleLogin = asyncHandler(async (req, res) => {
   const { code } = req.query;
+
   if (!code) throw new ApiError(400, "Authorization code is required");
 
   const { tokens } = await auth2client.getToken(code);
@@ -19,81 +25,88 @@ const googleLogin = asyncHandler(async (req, res) => {
 
   const ticket = await auth2client.verifyIdToken({
     idToken: tokens.id_token,
-    audience: process.env.GOOGLE_CLIENT_ID
+    audience: process.env.GOOGLE_CLIENT_ID,
   });
 
   const payload = ticket.getPayload();
   const { email, name, picture } = payload;
 
-  if (!email) throw new ApiError(400, "Google did not return email");
+  if (!email) throw new ApiError(400, "Google did not return an email");
 
-  // 🔹 Check existing user
-  let user = await User.findOne({ email });
-
-  let isNewUser = false;
+  let user = await User.findOne({ email }).populate({
+    path: "providerProfile",
+    select: "applicationStatus submittedAt isAttampted",
+  });
   let avatar = user?.avatar;
 
-  // 🔹 Upload avatar ONLY if new user
-  if (!user) {
-    isNewUser = true;
+  if (!user || (user && user.avatar !== picture)) {
     const cloudinaryRes = await uploadOnCloudinary(picture);
     avatar = cloudinaryRes?.public_id;
   }
 
-  // 🔹 Create or update
   user = await User.findOneAndUpdate(
     { email },
     {
       fullName: name,
-      avatar
+      avatar: avatar,
     },
-    { new: true, upsert: true }
+    { new: true, upsert: true },
   );
 
   const userSafe = getSafeUser(user);
 
-  // 🔹 Correct activity
   await logActivity({
-    action: isNewUser ? "User Registered" : "User Logged In",
+    action: "User Registered",
     target: user._id,
     targetModel: "User",
-    description: `${user.fullName} ${isNewUser ? "registered" : "logged in"}`
+    description: `${user.fullName} has registered`,
   });
 
-  // 🔹 Session
+  // generate tokens + session id
   const sessionId = crypto.randomUUID();
   const accessToken = user.generateAccessToken(sessionId);
   const refreshToken = user.generateRefreshToken();
 
-  // 🔹 Store per session (IMPORTANT)
-  await setRefreshToken(user._id.toString(), sessionId, refreshToken);
+  // ADD THIS - verify karo ki save hua
+  const saved = await getRefreshToken(user._id.toString());
+
   await setSessionId(user._id.toString(), sessionId);
 
-  // 🔹 Cookie
-  res.cookie("refreshToken", refreshToken, {
+  res.clearCookie("refreshToken", {
     httpOnly: true,
-    secure: config.nodeEnv === "production",
-    sameSite: 'None',
-    maxAge: 7 * 24 * 60 * 60 * 1000 
+    secure: true,
+    sameSite: "none",
+    domain: ".myskillhub.in",
   });
 
-  return res.status(200).json(
-    new ApiResponse(200, { user: userSafe, accessToken }, "success")
-  );
+  // Phir set karo
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none", // ← "lax" se "none" karo
+    domain: ".myskillhub.in", // ← dot wala
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { user: userSafe, accessToken }, "success"));
 });
 
 const verifyAuth = asyncHandler(async (req, res) => {
   // fetch fresh user from DB (with providerProfile) instead of using token payload
   const user = await User.findById(req.user.id).populate({
     path: "providerProfile",
-    select: "applicationStatus submittedAt isAttampted"
+    select: "applicationStatus submittedAt isAttampted",
   });
 
   if (!user) throw new ApiError(404, "User not found");
 
   const userSafe = getSafeUser(user);
-  res.set('Cache-Control', 'no-store');
-  return res.status(200).json(new ApiResponse(200, { user: userSafe }, "verified"));
+  res.set("Cache-Control", "no-store");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { user: userSafe }, "verified"));
 });
 
 export { verifyAuth, googleLogin };
