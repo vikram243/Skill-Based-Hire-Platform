@@ -32,10 +32,7 @@ const App = () => {
         });
 
         dispatch(setUser(res?.data?.data?.user));
-      } catch (err) {
-        localStorage.removeItem("accessToken");
-        dispatch(logoutUser());
-      } finally {
+      } catch (err) { /* empty */ } finally {
         dispatch(setLoading(false));
       }
     };
