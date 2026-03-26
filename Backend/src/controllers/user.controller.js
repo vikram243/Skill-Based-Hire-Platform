@@ -171,7 +171,15 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
   const stored = await getRefreshToken(payload.id.toString());
   // stored is an array of tokens (allow multiple sessions)
-  if (!stored || !Array.isArray(stored) || !stored.includes(refreshToken)) throw new ApiError(401, "Refresh token not recognized");
+  // If Redis returns a non-empty array, require membership. If empty (no Redis data), allow JWT-only verification (fail-open).
+  if (Array.isArray(stored) && stored.length > 0) {
+    if (!stored.includes(refreshToken)) {
+      throw new ApiError(401, "Refresh token not recognized");
+    }
+  } else {
+    // no tokens stored in redis — allow fallback but log for debugging
+    console.warn(`Refresh tokens missing in Redis for user ${payload.id}. Falling back to JWT-only verification.`);
+  }
 
   const user = await User.findById(payload.id);
   if (!user) throw new ApiError(404, "User not found");
