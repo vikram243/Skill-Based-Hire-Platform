@@ -65,12 +65,6 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
 
     // ADD THIS - verify karo ki save hua
     const saved = await getRefreshToken(user._id.toString());
-    console.log(
-      "✅ Token saved check:",
-      saved === refreshToken,
-      "| saved:",
-      saved?.slice(0, 20),
-    );
 
     await setSessionId(user._id.toString(), sessionId);
 
@@ -139,12 +133,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // ADD THIS - verify karo ki save hua
   const saved = await getRefreshToken(user._id.toString());
-  console.log(
-    "✅ Token saved check:",
-    saved === refreshToken,
-    "| saved:",
-    saved?.slice(0, 20),
-  );
 
   await setSessionId(user._id.toString(), sessionId);
 
@@ -213,8 +201,6 @@ const logoutUser = async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
-  console.log("🍪 Cookies received:", req.cookies); // ADD THIS
-  console.log("🔑 RefreshToken:", refreshToken); // ADD THIS
 
   if (!refreshToken) throw new ApiError(401, "Refresh token missing");
 
@@ -225,12 +211,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       config.jwtRefreshSecret || config.jwtSecret + "_refresh",
     );
   } catch (e) {
-    console.log("❌ JWT verify failed:", e.message); // ADD THIS
     throw new ApiError(401, "Invalid refresh token");
   }
 
   const stored = await getRefreshToken(payload.id.toString());
-  console.log("📦 Stored token match:", stored === refreshToken); // ADD THIS
 
   if (!stored || stored !== refreshToken)
     throw new ApiError(401, "Refresh token not recognized");
@@ -238,19 +222,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const user = await User.findById(payload.id);
   if (!user) throw new ApiError(404, "User not found");
 
-  // ⚠️ TEMPORARILY COMMENT OUT FINGERPRINT CHECK
-  // try {
-  //   const meta = await getSessionMeta(user._id.toString());
-  //   if (meta?.fingerprint) {
-  //     const fingerprintRaw = `${req.ip || ''}|${req.headers['user-agent'] || ''}`;
-  //     const fingerprint = crypto.createHash('sha256').update(fingerprintRaw).digest('hex');
-  //     if (fingerprint !== meta.fingerprint) {
-  //       throw new ApiError(401, 'Session fingerprint mismatch');
-  //     }
-  //   }
-  // } catch (e) {
-  //   if (e instanceof ApiError) throw e;
-  // }
 
   const sessionId = await getSessionId(user._id.toString());
   const accessToken = user.generateAccessToken(sessionId);

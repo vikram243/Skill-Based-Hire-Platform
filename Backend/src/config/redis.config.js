@@ -39,17 +39,10 @@ async function connect() {
   }
 })();
 
-export async function setRefreshToken(key, token, expirySeconds = 7*24*60*60) {
+export async function setRefreshToken(key, token, expirySeconds = 7 * 24 * 60 * 60) {
   await connect();
+  // store token under key (e.g., userId) with TTL
   await redis.set(key, token, { EX: expirySeconds });
-  
-  // Verify save hua
-  const check = await redis.get(key);
-  if (check !== token) {
-    console.error("❌ Redis save FAILED for key:", key);
-    throw new Error("Redis save failed");
-  }
-  console.log("✅ Redis saved successfully for key:", key);
 }
 
 export async function getRefreshToken(key) {
