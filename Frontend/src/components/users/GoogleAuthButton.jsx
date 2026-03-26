@@ -24,10 +24,9 @@ const GoogleLoginbutton = ({ onSuccess, isLoading, setIsLoading }) => {
           calledRef.current = false;
           return;
         }
-        localStorage.setItem("accessToken", accessToken);
-        // ensure axios sends Authorization header for subsequent requests
+        // server sets `accessToken` cookie; set axios header for immediate use
         try {
-          api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+          if (accessToken) api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         } catch (e) {
           // ignore
         }

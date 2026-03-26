@@ -249,7 +249,7 @@ function ProfilePage() {
   const onLogout = async () => {
     try {
       const res = await api.get("/api/users/logout");
-      if (res.status === 200) localStorage.removeItem("accessToken");
+      if (res.status === 200) try { delete api.defaults.headers.common.Authorization } catch (e) {}
       window.location.href = "/";
     } catch (error) {
       console.error("Logout failed:", error);

@@ -41,25 +41,24 @@ async function connect() {
 
 export async function setRefreshToken(key, token, expirySeconds = 7 * 24 * 60 * 60) {
   await connect();
-  // store multiple refresh tokens per user using a Redis set
   const redisKey = `refreshTokens:${key}`;
+  // use a Redis Set to keep multiple refresh tokens per user
   await redis.sAdd(redisKey, token);
-  // ensure TTL is set/updated
-  try {
+  // ensure key has a TTL (expire) so stale tokens are eventually removed
+  if (expirySeconds && expirySeconds > 0) {
     await redis.expire(redisKey, expirySeconds);
-  } catch (e) {
-    // ignore expiry errors
   }
 }
 
+// returns array of tokens (may be empty)
 export async function getRefreshToken(key) {
   await connect();
   const redisKey = `refreshTokens:${key}`;
-  // return an array of tokens (may be empty)
   return await redis.sMembers(redisKey);
 }
 
-export async function deleteRefreshToken(key, token = null) {
+// delete a specific token when provided, otherwise delete entire set
+export async function deleteRefreshToken(key, token) {
   await connect();
   const redisKey = `refreshTokens:${key}`;
   if (token) {

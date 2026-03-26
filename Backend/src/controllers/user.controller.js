@@ -70,6 +70,15 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     })
 
+    // store access token in cookie as well (available to frontend JS)
+    res.cookie("accessToken", accessToken, {
+      httpOnly: false,
+      secure: config.nodeEnv === "production",
+      sameSite: "None",
+      domain: `.${config.cookieDomain}`,
+      maxAge: 15 * 60 * 1000 // 15 minutes
+    });
+
     const userSafe = getSafeUser(user);
     return res.status(200).json(new ApiResponse(200, { user: userSafe, accessToken }, "user login successfully"));
   }
@@ -114,6 +123,15 @@ const registerUser = asyncHandler(async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
+  // also set access token cookie for frontend usage
+  res.cookie("accessToken", accessToken, {
+    httpOnly: false,
+    secure: config.nodeEnv === "production",
+    sameSite: "None",
+    domain: `.${config.cookieDomain}`,
+    maxAge: 15 * 60 * 1000 // 15 minutes
+  });
+
   const userSafe = getSafeUser(user);
 
   return res
@@ -127,15 +145,16 @@ const logoutUser = async (req, res) => {
     try {
       const payload = jwt.verify(refreshToken, config.jwtRefreshSecret || (config.jwtSecret + '_refresh'));
       if (payload?.id) {
-        // remove this specific refresh token from user's token set
-        await deleteRefreshToken(payload.id.toString(), refreshToken);
+        // remove all refresh tokens for the user on logout
+        await deleteRefreshToken(payload.id.toString());
         try { await deleteSessionId(payload.id.toString()); } catch (e) { /* ignore */ }
         try { await deleteSessionMeta(payload.id.toString()); } catch (e) { /* ignore */ }
       }
     } catch (e) {
     }
   }
-  res.clearCookie("refreshToken", { httpOnly: true, secure: config.nodeEnv === "production", sameSite: "strict" });
+  res.clearCookie("refreshToken", { httpOnly: true, secure: config.nodeEnv === "production", sameSite: "None", domain: `.${config.cookieDomain}` });
+  res.clearCookie("accessToken", { httpOnly: false, secure: config.nodeEnv === "production", sameSite: "None", domain: `.${config.cookieDomain}` });
   return res.status(200).json(new ApiResponse(200, {}, "User logout successfully"));
 };
 
@@ -175,6 +194,15 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 
   const accessToken = user.generateAccessToken(sessionId);
+  // set access token cookie on refresh
+  res.cookie("accessToken", accessToken, {
+    httpOnly: false,
+    secure: config.nodeEnv === "production",
+    sameSite: "None",
+    domain: `.${config.cookieDomain}`,
+    maxAge: 15 * 60 * 1000 // 15 minutes
+  });
+
   return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
 });
 

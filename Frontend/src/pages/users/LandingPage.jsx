@@ -22,6 +22,7 @@ import { motion } from "motion/react";
 import { useCallback, useMemo } from "react";
 import { useUI } from "../../contexts/ui-context";
 import { connectSocket } from "../../lib/socket";
+import { getCookie } from "../../lib/cookies";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -95,7 +96,7 @@ export default function LandingPage() {
   );
 
   useEffect(() => {
-  const socket = connectSocket(localStorage.getItem("accessToken"));
+  const socket = connectSocket(getCookie("accessToken"));
 
   socket.on("connection", () => {
     console.log("✅ Connected:", socket.id);

@@ -17,23 +17,11 @@ const App = () => {
     const verifyAuth = async () => {
       dispatch(setLoading(true));
 
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        dispatch(logoutUser());
-        dispatch(setLoading(false));
-        return;
-      }
-
+      // rely on accessToken cookie and axios request interceptor
       try {
-        const res = await api.get("/api/auth/verify", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const res = await api.get("/api/auth/verify");
         dispatch(setUser(res?.data?.data?.user));
       } catch (err) {
-        localStorage.removeItem("accessToken");
         dispatch(logoutUser());
       } finally {
         dispatch(setLoading(false));
