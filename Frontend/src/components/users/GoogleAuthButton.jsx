@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import api from "../../lib/axiosSetup";
 import { Button } from "../ui/button";
@@ -10,28 +10,41 @@ const GoogleLoginbutton = ({ onSuccess, isLoading, setIsLoading }) => {
   const dispatch = useDispatch();
 
   const googleAuth = (code) => api.get(`/api/auth/google?code=${code}`);
+  const calledRef = useRef(false);
   const responseGoogleResult = async (authResult) => {
     try {
       if (authResult["code"]) {
+        if (calledRef.current) return; // prevent duplicate calls
+        calledRef.current = true;
         const response = await googleAuth(authResult["code"]);
         const { user, accessToken } = response.data.data;
         onSuccess?.({ user, accessToken });
         if (!accessToken || !user) {
           console.error("Access token missing!");
+          calledRef.current = false;
           return;
         }
         localStorage.setItem("accessToken", accessToken);
+        // ensure axios sends Authorization header for subsequent requests
+        try {
+          api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+        } catch (e) {
+          // ignore
+        }
         dispatch(setUser(user));
       }
     } catch (error) {
       console.error("Error during Google login:", error);
+      calledRef.current = false;
     } finally {
       setIsLoading(false);
     }
   };
 
   const responseGoogleError = () => {
+    // allow retry
     setIsLoading(false);
+    calledRef.current = false;
   };
 
   const googleLogin = useGoogleLogin({

@@ -14,44 +14,34 @@ const App = () => {
   const { loading } = useSelector((state) => state.user);
 
   useEffect(() => {
-  const verifyAuth = async () => {
-    dispatch(setLoading(true));
+    const verifyAuth = async () => {
+      dispatch(setLoading(true));
 
-    let token = localStorage.getItem("accessToken");
-
-    try {
-      // 🔥 STEP 1: agar token nahi hai → refresh try karo
+      const token = localStorage.getItem("accessToken");
       if (!token) {
-        const refreshRes = await api.post("/api/users/refresh");
-        const newToken = refreshRes?.data?.data?.accessToken;
-
-        if (newToken) {
-          localStorage.setItem("accessToken", newToken);
-          token = newToken;
-        } else {
-          throw new Error("No token from refresh");
-        }
+        dispatch(logoutUser());
+        dispatch(setLoading(false));
+        return;
       }
 
-      // 🔥 STEP 2: verify user
-      const res = await api.get("/api/auth/verify", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      try {
+        const res = await api.get("/api/auth/verify", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      dispatch(setUser(res?.data?.data?.user));
-    } catch (err) {
-      console.log("Auth failed:", err);
-      localStorage.removeItem("accessToken");
-      dispatch(logoutUser());
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
+        dispatch(setUser(res?.data?.data?.user));
+      } catch (err) {
+        localStorage.removeItem("accessToken");
+        dispatch(logoutUser());
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
 
-  verifyAuth();
-}, [dispatch]);
+    verifyAuth();
+  }, [dispatch]);
 
   useEffect(() => {
     const isEditableTarget = (target) => {

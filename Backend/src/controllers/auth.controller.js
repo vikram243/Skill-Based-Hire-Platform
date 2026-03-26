@@ -75,7 +75,7 @@ const googleLogin = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: config.nodeEnv === "production",
     sameSite: 'None',
-    domain: `${config.cookieDomain}`,
+    domain: `.${config.cookieDomain}`,
     maxAge: 7 * 24 * 60 * 60 * 1000 
   });
 

@@ -127,7 +127,8 @@ const logoutUser = async (req, res) => {
     try {
       const payload = jwt.verify(refreshToken, config.jwtRefreshSecret || (config.jwtSecret + '_refresh'));
       if (payload?.id) {
-        await deleteRefreshToken(payload.id.toString());
+        // remove this specific refresh token from user's token set
+        await deleteRefreshToken(payload.id.toString(), refreshToken);
         try { await deleteSessionId(payload.id.toString()); } catch (e) { /* ignore */ }
         try { await deleteSessionMeta(payload.id.toString()); } catch (e) { /* ignore */ }
       }
@@ -150,7 +151,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 
   const stored = await getRefreshToken(payload.id.toString());
-  if (!stored || stored !== refreshToken) throw new ApiError(401, "Refresh token not recognized");
+  // stored is an array of tokens (allow multiple sessions)
+  if (!stored || !Array.isArray(stored) || !stored.includes(refreshToken)) throw new ApiError(401, "Refresh token not recognized");
 
   const user = await User.findById(payload.id);
   if (!user) throw new ApiError(404, "User not found");
