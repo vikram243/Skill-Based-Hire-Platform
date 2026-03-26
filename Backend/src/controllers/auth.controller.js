@@ -77,7 +77,6 @@ const googleLogin = asyncHandler(async (req, res) => {
   );
 
   await setSessionId(user._id.toString(), sessionId);
-  await setSessionMeta(user._id.toString(), { fingerprint });
 
   res.clearCookie("refreshToken", {
     httpOnly: true,
