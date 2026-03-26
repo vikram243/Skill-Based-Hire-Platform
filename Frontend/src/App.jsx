@@ -19,7 +19,6 @@ const App = () => {
 
       const token = localStorage.getItem("accessToken");
       if (!token) {
-        dispatch(logoutUser());
         dispatch(setLoading(false));
         return;
       }
