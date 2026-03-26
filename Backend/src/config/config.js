@@ -26,7 +26,7 @@ const config = {
         password: process.env.REDIS_PASSWORD || null,
     },
     EmailUser: process.env.EMAIL_USER,
-    EmailPass: process.env.EMAIL_PASS,
+    resendApiKey: process.env.RESEND_API_KEY,
     twillioAccountSid : process.env.TWILIO_ACCOUNT_SID,
     twillioToken : process.env.TWILIO_TOKEN,
     twillioNumber : process.env.TWILIO_NUMBER

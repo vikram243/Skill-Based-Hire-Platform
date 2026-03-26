@@ -1,13 +1,14 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import config from "./config.js";
 
-// Create a transporter using Gmail SMTP
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: config.EmailUser,
-    pass: config.EmailPass,
-  },
-});
+const resendApiKey = config.resendApiKey || process.env.RESEND_API_KEY;
 
-export default transporter;
+if (!resendApiKey) {
+  console.warn(
+    "RESEND_API_KEY is not set."
+  );
+}
+
+const resend = new Resend(resendApiKey);
+
+export default resend;
