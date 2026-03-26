@@ -12,7 +12,6 @@ import { getAvatarUrl } from "../utils/cloudinaryUrl.js";
 
 const googleLogin = asyncHandler(async (req, res) => {
   const { code } = req.query;
-
   if (!code) throw new ApiError(400, "Authorization code is required");
 
   const { tokens } = await auth2client.getToken(code);
@@ -26,56 +25,56 @@ const googleLogin = asyncHandler(async (req, res) => {
   const payload = ticket.getPayload();
   const { email, name, picture } = payload;
 
-  if (!email) throw new ApiError(400, "Google did not return an email");
+  if (!email) throw new ApiError(400, "Google did not return email");
 
-  let user = await User.findOne({ email }).populate({
-    path: "providerProfile",
-    select: "applicationStatus submittedAt isAttampted"
-  });
+  // 🔹 Check existing user
+  let user = await User.findOne({ email });
+
+  let isNewUser = false;
   let avatar = user?.avatar;
 
-  if (!user || (user && user.avatar !== picture)) {
-    
+  // 🔹 Upload avatar ONLY if new user
+  if (!user) {
+    isNewUser = true;
     const cloudinaryRes = await uploadOnCloudinary(picture);
     avatar = cloudinaryRes?.public_id;
   }
 
+  // 🔹 Create or update
   user = await User.findOneAndUpdate(
     { email },
     {
       fullName: name,
-      avatar: avatar
+      avatar
     },
     { new: true, upsert: true }
   );
 
   const userSafe = getSafeUser(user);
 
+  // 🔹 Correct activity
   await logActivity({
-    action: "User Registered",
+    action: isNewUser ? "User Registered" : "User Logged In",
     target: user._id,
     targetModel: "User",
-    description: `${user.fullName} has registered`
-  })
+    description: `${user.fullName} ${isNewUser ? "registered" : "logged in"}`
+  });
 
-  // generate tokens + session id
+  // 🔹 Session
   const sessionId = crypto.randomUUID();
   const accessToken = user.generateAccessToken(sessionId);
   const refreshToken = user.generateRefreshToken();
 
-  // compute fingerprint and store refresh token, session id and meta
-  const fingerprintRaw = `${req.ip || ''}|${req.headers['user-agent'] || ''}`;
-  const fingerprint = crypto.createHash('sha256').update(fingerprintRaw).digest('hex');
-  await setRefreshToken(user._id.toString(), refreshToken);
+  // 🔹 Store per session (IMPORTANT)
+  await setRefreshToken(user._id.toString(), sessionId, refreshToken);
   await setSessionId(user._id.toString(), sessionId);
-  await setSessionMeta(user._id.toString(), { fingerprint });
 
-  // send refresh token as HttpOnly cookie
+  // 🔹 Cookie
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: config.nodeEnv === "production",
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000 
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
   return res.status(200).json(
