@@ -73,6 +73,11 @@ const googleLogin = asyncHandler(async (req, res) => {
     .update(fingerprintRaw)
     .digest("hex");
   await setRefreshToken(user._id.toString(), refreshToken);
+
+// ADD THIS - verify karo ki save hua
+const saved = await getRefreshToken(user._id.toString());
+console.log("✅ Token saved check:", saved === refreshToken, "| saved:", saved?.slice(0,20));
+
   await setSessionId(user._id.toString(), sessionId);
   await setSessionMeta(user._id.toString(), { fingerprint });
 

@@ -72,6 +72,16 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
 
     // store refresh token, session id and session meta keyed by user id
     await setRefreshToken(user._id.toString(), refreshToken);
+
+    // ADD THIS - verify karo ki save hua
+    const saved = await getRefreshToken(user._id.toString());
+    console.log(
+      "✅ Token saved check:",
+      saved === refreshToken,
+      "| saved:",
+      saved?.slice(0, 20),
+    );
+
     await setSessionId(user._id.toString(), sessionId);
     await setSessionMeta(user._id.toString(), { fingerprint });
 
@@ -135,6 +145,11 @@ const registerUser = asyncHandler(async (req, res) => {
     .update(fingerprintRaw)
     .digest("hex");
   await setRefreshToken(user._id.toString(), refreshToken);
+
+// ADD THIS - verify karo ki save hua
+const saved = await getRefreshToken(user._id.toString());
+console.log("✅ Token saved check:", saved === refreshToken, "| saved:", saved?.slice(0,20));
+
   await setSessionId(user._id.toString(), sessionId);
   await setSessionMeta(user._id.toString(), { fingerprint });
 
@@ -196,13 +211,16 @@ const logoutUser = async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
   console.log("🍪 Cookies received:", req.cookies); // ADD THIS
-  console.log("🔑 RefreshToken:", refreshToken);     // ADD THIS
-  
+  console.log("🔑 RefreshToken:", refreshToken); // ADD THIS
+
   if (!refreshToken) throw new ApiError(401, "Refresh token missing");
 
   let payload;
   try {
-    payload = jwt.verify(refreshToken, config.jwtRefreshSecret || (config.jwtSecret + '_refresh'));
+    payload = jwt.verify(
+      refreshToken,
+      config.jwtRefreshSecret || config.jwtSecret + "_refresh",
+    );
   } catch (e) {
     console.log("❌ JWT verify failed:", e.message); // ADD THIS
     throw new ApiError(401, "Invalid refresh token");
@@ -210,8 +228,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
   const stored = await getRefreshToken(payload.id.toString());
   console.log("📦 Stored token match:", stored === refreshToken); // ADD THIS
-  
-  if (!stored || stored !== refreshToken) throw new ApiError(401, "Refresh token not recognized");
+
+  if (!stored || stored !== refreshToken)
+    throw new ApiError(401, "Refresh token not recognized");
 
   const user = await User.findById(payload.id);
   if (!user) throw new ApiError(404, "User not found");
@@ -232,7 +251,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
   const sessionId = await getSessionId(user._id.toString());
   const accessToken = user.generateAccessToken(sessionId);
-  return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { accessToken }, "Access token refreshed"));
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
