@@ -67,14 +67,6 @@ const googleLogin = asyncHandler(async (req, res) => {
   const accessToken = user.generateAccessToken(sessionId);
   const refreshToken = user.generateRefreshToken();
 
-  // compute fingerprint and store refresh token, session id and meta
-  const fingerprintRaw = req.headers["user-agent"] || "";
-  const fingerprint = crypto
-    .createHash("sha256")
-    .update(fingerprintRaw)
-    .digest("hex");
-  await setRefreshToken(user._id.toString(), refreshToken);
-
   // ADD THIS - verify karo ki save hua
   const saved = await getRefreshToken(user._id.toString());
   console.log(

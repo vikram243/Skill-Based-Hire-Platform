@@ -63,16 +63,6 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
     const accessToken = user.generateAccessToken(sessionId);
     const refreshToken = user.generateRefreshToken();
 
-    // compute fingerprint from request
-    const fingerprintRaw = req.headers["user-agent"] || "";
-    const fingerprint = crypto
-      .createHash("sha256")
-      .update(fingerprintRaw)
-      .digest("hex");
-
-    // store refresh token, session id and session meta keyed by user id
-    await setRefreshToken(user._id.toString(), refreshToken);
-
     // ADD THIS - verify karo ki save hua
     const saved = await getRefreshToken(user._id.toString());
     console.log(
@@ -147,12 +137,6 @@ const registerUser = asyncHandler(async (req, res) => {
   const sessionId = crypto.randomUUID();
   const accessToken = user.generateAccessToken(sessionId);
   const refreshToken = user.generateRefreshToken();
-  const fingerprintRaw = req.headers["user-agent"] || "";
-  const fingerprint = crypto
-    .createHash("sha256")
-    .update(fingerprintRaw)
-    .digest("hex");
-  await setRefreshToken(user._id.toString(), refreshToken);
 
   // ADD THIS - verify karo ki save hua
   const saved = await getRefreshToken(user._id.toString());
