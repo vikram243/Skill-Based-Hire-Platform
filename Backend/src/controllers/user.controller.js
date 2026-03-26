@@ -217,22 +217,22 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   // use the stored sessionId so the refreshed access token matches current session
   const sessionId = await getSessionId(user._id.toString());
   // validate fingerprint on refresh
-  try {
-    const meta = await getSessionMeta(user._id.toString());
-    if (meta?.fingerprint) {
-      const fingerprintRaw = req.headers["user-agent"] || "";
-      const fingerprint = crypto
-        .createHash("sha256")
-        .update(fingerprintRaw)
-        .digest("hex");
-      if (fingerprint !== meta.fingerprint) {
-        throw new ApiError(401, "Session fingerprint mismatch");
-      }
-    }
-  } catch (e) {
-    if (e instanceof ApiError) throw e;
-    // on redis/meta read error, continue (fail-open)
-  }
+  // try {
+  //   const meta = await getSessionMeta(user._id.toString());
+  //   if (meta?.fingerprint) {
+  //     const fingerprintRaw = req.headers["user-agent"] || "";
+  //     const fingerprint = crypto
+  //       .createHash("sha256")
+  //       .update(fingerprintRaw)
+  //       .digest("hex");
+  //     if (fingerprint !== meta.fingerprint) {
+  //       throw new ApiError(401, "Session fingerprint mismatch");
+  //     }
+  //   }
+  // } catch (e) {
+  //   if (e instanceof ApiError) throw e;
+  //   // on redis/meta read error, continue (fail-open)
+  // }
 
   const accessToken = user.generateAccessToken(sessionId);
   return res
