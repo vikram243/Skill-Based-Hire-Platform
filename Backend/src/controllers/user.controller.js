@@ -14,8 +14,6 @@ import jwt from 'jsonwebtoken';
 import { uploadOnCloudinary } from '../config/cloudinary.config.js';
 import { getAvatarUrl } from "../utils/cloudinaryUrl.js";
 
-
-
 const sendOtpToUser = asyncHandler(async (req, res) => {
   const { email, number } = req.body;
   const identifier = email || number;
@@ -66,7 +64,6 @@ const verifyOtpAndLogin = asyncHandler(async (req, res) => {
       httpOnly: true,
       secure: config.nodeEnv === "production",
       sameSite: "None",
-      domain: `.${config.cookieDomain}`,
       maxAge: 7 * 24 * 60 * 60 * 1000
     })
 
@@ -110,7 +107,6 @@ const registerUser = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: config.nodeEnv === "production",
     sameSite: "None",
-    domain: `.${config.cookieDomain}`,
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
