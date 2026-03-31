@@ -7,7 +7,7 @@ const sendEmail = async ({ to, subject, text, html, from }) => {
       to,
       subject,
       html: html || (text ? `<pre>${text}</pre>` : ""),
-    };
+    });
 
     console.log("Email sent:", data);
     return true;
