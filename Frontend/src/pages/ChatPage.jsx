@@ -20,10 +20,11 @@ import {
   Map,
   FileText,
   User,
-  LogOut
+  LogOut,
 } from 'lucide-react';
 import { mockConversations, mockMessages, getRelativeTime } from '../data/chatMockData';
 import { toast } from 'sonner';
+import { useNavigate } from "react-router-dom";
 
 
 export default function ChatPage() {
@@ -34,6 +35,7 @@ export default function ChatPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileView, setIsMobileView] = useState(false);
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
 
   // Check mobile view
   useEffect(() => {
@@ -113,8 +115,10 @@ export default function ChatPage() {
             <div className={`${isMobileView ? 'w-full' : 'w-80 xl:w-96'} border-r border-border flex flex-col bg-card`}>
               {/* Header */}
               <div className="p-4 border-b border-border shrink-0">
+                <div className='flex gap-4'>
+                <ArrowLeft onClick={() => navigate('/home')} className='mt-1.5'/>
                 <h2 className="text-2xl mb-4">Messages</h2>
-                
+                </div>
                 {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -153,6 +157,7 @@ export default function ChatPage() {
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
                           )}
                         </div>
+                        
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
@@ -177,6 +182,7 @@ export default function ChatPage() {
                             )}
                           </div>
                         </div>
+                        
                       </button>
                     ))}
                   </div>
@@ -187,7 +193,7 @@ export default function ChatPage() {
 
           {/* Chat Window */}
           {showChatWindow && (
-            <div className={`flex-1 flex flex-col bg-background ${isMobileView ? 'z-10' : 'h-[calc(100vh-75px)]'}`}>
+            <div className={`flex-1 flex flex-col bg-background ${isMobileView ? 'z-10 min-h-screen max-h-screen' : 'h-screen'}`}>
               {selectedConversation ? (
                 <>
                   {/* Chat Header - Sticky */}
