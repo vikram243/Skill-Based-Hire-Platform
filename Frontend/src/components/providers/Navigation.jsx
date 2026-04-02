@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useUI } from '../../contexts/ui-context';
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -14,270 +13,326 @@ import {
   Home,
   Moon,
   Sun,
-} from 'lucide-react';
-import { Button } from '../ui/button';
-import { Switch } from '../ui/switch';
-import { mockAuth } from '../../data/authMockData';
-import api from '../../lib/axiosSetup';
-import { useDispatch } from 'react-redux';
-import { setProviderMode } from '../../slices/userSlice.js';
-import { toast } from '../ui/toast-sonner.jsx';
-export default function ProviderNavigation() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [providerName, setProviderName] = useState('Provider');
+  ChevronRight,
+  Bell,
+} from "lucide-react";
+import { Switch } from "../../components/ui/switch";
+import { mockAuth } from "../../data/authMockData";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import api from "../../lib/axiosSetup.js";
+import { setProviderMode, logoutUser } from "../../slices/userSlice.js";
+import { motion, AnimatePresence } from "motion/react";
+
+const navItems = [
+  {
+    id: "provider-dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    badge: null,
+  },
+  { id: "provider-orders", label: "Orders", icon: ShoppingBag, badge: "3" },
+  { id: "provider-history", label: "History", icon: History, badge: null },
+  {
+    id: "provider-analytics",
+    label: "Analytics",
+    icon: TrendingUp,
+    badge: null,
+  },
+  { id: "provider-reviews", label: "Reviews", icon: Star, badge: null },
+  { id: "provider-profile", label: "Profile", icon: User, badge: null },
+];
+
+export default function ProviderNavigation({
+  currentPage: propCurrentPage,
+  onNavigate: propOnNavigate,
+  isDarkMode,
+  onToggleDarkMode,
+  onLogout,
+}) {
+  const [providerName, setProviderName] = useState("Provider");
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDarkMode, toggleDarkMode } = useUI();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    fetchProviderInfo();
+    mockAuth
+      .getUser()
+      .then(({ user }) => {
+        if (user?.name) setProviderName(user.name);
+      })
+      .catch(() => {});
   }, []);
-
-  const fetchProviderInfo = async () => {
-    try {
-      const { user } = await mockAuth.getUser();
-      if (user?.name) {
-        setProviderName(user.name);
-      }
-    } catch (error) {
-      console.error('Error fetching provider info:', error);
-    }
-  };
 
   const handleLogout = async () => {
     try {
-      const res = await api.get("/api/users/logout");
-      if (res.status === 200) localStorage.removeItem("accessToken");
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Logout failed:", error);
+      // Prefer server-side logout when possible
+      await api.get("/api/users/logout");
+    } catch (err) {
+      /* ignore */
     }
-  };
 
-  const dispatch = useDispatch();
+    try {
+      await mockAuth.signOut();
+    } catch (e) {
+      /* ignore */
+    }
+
+    // Clear client auth state and redirect to homepage
+    try {
+      dispatch(logoutUser());
+    } catch (e) { /* empty */ }
+    localStorage.removeItem("accessToken");
+    if (onLogout) onLogout();
+    navigate("/");
+  };
 
   const handleSwitchToUserMode = async () => {
     try {
-      const resp = await api.post('/api/users/provider-mode/off');
-      const enabled = Boolean(resp?.data?.data?.isProviderMode);
-
-      if (enabled) {
-        const msg = 'Unable to switch to user mode';
-        toast.error(msg);
-        return;
-      }
-
-      dispatch(setProviderMode(false));
-      toast.success('Switched to user mode');
-      navigate('/');
-    } catch (error) {
-      const msg = error?.response?.data?.message || error?.message || 'Switch failed';
-      toast.error(msg);
+      await api.post("/api/users/provider-mode/off");
+    } catch (err) {
+      /* ignore */
     }
+    try {
+      dispatch(setProviderMode(false));
+    } catch (e) { /* empty */ }
+    navigate("/");
   };
 
-  const navItems = [
-    { id: 'provider-dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'provider-orders', label: 'Orders', icon: ShoppingBag },
-    { id: 'provider-history', label: 'History', icon: History },
-    { id: 'provider-analytics', label: 'Analytics', icon: TrendingUp },
-    { id: 'provider-reviews', label: 'Reviews', icon: Star },
-    { id: 'provider-profile', label: 'Profile', icon: User },
-  ];
-
+  // Internal navigation handler when parent doesn't provide one
   const handleNavigate = (id) => {
+    if (propOnNavigate) return propOnNavigate(id);
+
+    let target = "/provider/dashboard";
     switch (id) {
-      case 'provider-dashboard':
-        navigate('/provider/dashboard');
+      case "provider-dashboard":
+        target = "/provider/dashboard";
         break;
-      case 'provider-orders':
-        navigate('/provider/orders');
+      case "provider-orders":
+        target = "/provider/orders";
         break;
-      case 'provider-history':
-        navigate('/provider/history');
+      case "provider-history":
+        target = "/provider/history";
         break;
-      case 'provider-analytics':
-        navigate('/provider/analytics');
+      case "provider-analytics":
+        target = "/provider/analytics";
         break;
-      case 'provider-reviews':
-        navigate('/provider/reviews');
+      case "provider-reviews":
+        target = "/provider/reviews";
         break;
-      case 'provider-profile':
-        navigate('/provider/profile');
+      case "provider-profile":
+        target = "/provider/profile";
         break;
-      case 'home':
-        navigate('/');
+      case "home":
+        target = "/";
         break;
       default:
-        break;
+        target = "/provider/dashboard";
     }
+
+    if (location.pathname !== target) navigate(target);
   };
 
-  const currentPage = (() => {
-    const p = location.pathname.replace('/provider/', 'provider-');
-    if (p === '/provider' || p === '/provider/') return 'provider-dashboard';
-    return p.replace('/', '');
+  // Determine active page from location when parent doesn't pass `currentPage`
+  const computedCurrentPage = (() => {
+    if (propCurrentPage) return propCurrentPage;
+    const parts = location.pathname.split("/").filter(Boolean);
+    // expect ['/provider', 'dashboard'] -> parts[0] === 'provider', parts[1] === 'dashboard'
+    const segment = parts[1] || parts[0] || "dashboard";
+    return `provider-${segment}`;
   })();
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <nav className="hidden lg:block fixed top-0 left-0 h-screen w-64 bg-sidebar border-r border-sidebar-border p-6 z-50">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
+      {/* ══════════════ DESKTOP SIDEBAR ══════════════ */}
+      <nav className="hidden lg:flex fixed top-0 left-0 h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border z-50">
+        {/* Logo */}
+        <div className="px-6 py-5 border-b border-sidebar-border/60">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
               <span className="font-bold text-lg">S</span>
-          </div>
-          <div>
-            <h1 className="text-sidebar-foreground text-2xl">SkillHub</h1>
-            <p className="text-sidebar-foreground/70 text-sm">Provider Panel</p>
+            </div>
+            <div>
+              <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
+                SkillHub
+              </h1>
+              <p className="text-sidebar-foreground/50 text-xs">
+                Provider Panel
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-2 mb-8">
+        {/* Nav Items */}
+        <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = currentPage === item.id;
+            const active = computedCurrentPage === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => handleNavigate(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${
                   active
-                    ? 'bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-(--shadow-mid)'
-                    : 'text-sidebar-foreground/80 hover:bg-sidebar-accent'
+                    ? "bg-linear-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-500/25"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 }`}
               >
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
+                <Icon
+                  className={`h-4.5 w-4.5 shrink-0 ${active ? "text-white" : ""}`}
+                  style={{ height: 18, width: 18 }}
+                />
+                <span className="text-sm flex-1 text-left">{item.label}</span>
+                {item.badge && (
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded-full ${active ? "bg-white/25 text-white" : "bg-red-500 text-white"}`}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+                {active && (
+                  <ChevronRight className="h-3.5 w-3.5 text-white/70" />
+                )}
               </button>
             );
           })}
         </div>
 
-        {/* Footer Section */}
-        <div className="absolute bottom-6 left-6 right-6 space-y-3">
-          <div className="bg-sidebar-accent rounded-xl p-4 border border-sidebar-border">
-            <p className="text-sidebar-foreground/60 text-xs mb-1">Logged in as</p>
-            <p className="text-sidebar-foreground text-sm truncate">{providerName}</p>
-          </div>
-
-          {/* Dark mode toggle */}
-          <div className="flex items-center justify-between p-3 bg-sidebar-accent rounded-xl border border-sidebar-border">
-            <div className="flex items-center gap-2">
-              {isDarkMode ? (
-                <Moon className="h-4 w-4 text-sidebar-foreground" />
-              ) : (
-                <Sun className="h-4 w-4 text-sidebar-foreground" />
-              )}
-              <span className="text-sidebar-foreground text-sm">Dark mode</span>
+        {/* Footer */}
+        <div className="px-3 py-4 border-t border-sidebar-border/60 space-y-2">
+          {/* User info */}
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-sidebar-accent">
+            <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs shrink-0">
+              {providerName.charAt(0).toUpperCase()}
             </div>
-            <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sidebar-foreground text-xs truncate">
+                {providerName}
+              </p>
+              <p className="text-sidebar-foreground/50 text-xs">Provider</p>
+            </div>
+            <div className="h-2 w-2 rounded-full bg-green-400 shrink-0" />
           </div>
 
-          {/* Switch to User Mode */}
-          <Button
-            onClick={handleSwitchToUserMode}
-            variant="outline"
-            className="w-full gap-2"
-          >
-            <Home className="h-4 w-4" />
-            Switch to User Mode
-          </Button>
-
-          {/* Logout */}
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="w-full text-destructive hover:bg-destructive hover:text-destructive-foreground gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
-        </div>
-      </nav>
-
-      {/* Mobile Navigation */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-sidebar/80 backdrop-blur-md border-b border-sidebar-border/50 p-4 z-50">
-        <div className="flex items-center justify-between">
-          <div className='flex items-center gap-3'>
-          <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
-              <span className="font-bold text-lg">S</span>
-          </div>
-          <div>
-            <h1 className="text-sidebar-foreground text-xl">SkillHub</h1>
-            <p className="text-sidebar-foreground/60 text-xs">Provider Panel</p>
-          </div>
-          </div>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg bg-sidebar-accent text-sidebar-foreground"
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-
-        {mobileMenuOpen && (
-          <div className="mt-4 space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = currentPage === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleNavigate(item.id);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
-                    active
-                      ? 'bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) text-white shadow-(--shadow-mid)'
-                      : 'text-sidebar-foreground/80 bg-sidebar-accent'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-
-            <div className="flex items-center justify-between p-3 bg-sidebar-accent rounded-xl border border-sidebar-border mt-4">
+          {/* Dark mode */}
+          {onToggleDarkMode !== undefined ? (
+            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-sidebar-accent">
               <div className="flex items-center gap-2">
                 {isDarkMode ? (
-                  <Moon className="h-4 w-4 text-sidebar-foreground" />
+                  <Moon className="h-3.5 w-3.5 text-sidebar-foreground/70" />
                 ) : (
-                  <Sun className="h-4 w-4 text-sidebar-foreground" />
+                  <Sun className="h-3.5 w-3.5 text-sidebar-foreground/70" />
                 )}
-                <span className="text-sidebar-foreground text-sm">Dark mode</span>
+                <span className="text-sidebar-foreground/70 text-xs">Dark mode</span>
               </div>
-              <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+              <Switch checked={isDarkMode} onCheckedChange={onToggleDarkMode} className="scale-75" />
             </div>
+          ) : (
+            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-sidebar-accent">
+              <div className="flex items-center gap-2">
+                {isDarkMode ? (
+                  <Moon className="h-3.5 w-3.5 text-sidebar-foreground/70" />
+                ) : (
+                  <Sun className="h-3.5 w-3.5 text-sidebar-foreground/70" />
+                )}
+                <span className="text-sidebar-foreground/70 text-xs">Dark mode</span>
+              </div>
+              <Switch checked={isDarkMode} onCheckedChange={onToggleDarkMode} className="scale-75" />
+            </div>
+          )}
 
-            <Button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                handleSwitchToUserMode();
-              }}
-              variant="outline"
-              className="w-full gap-2 mt-4"
-            >
-              <Home className="h-4 w-4" />
-              Switch to User Mode
-            </Button>
+          {/* Switch to user */}
+          <button
+            onClick={() => handleSwitchToUserMode()}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-200 text-sm"
+          >
+            <Home style={{ height: 16, width: 16 }} className="shrink-0" />
+            Switch to User Mode
+          </button>
 
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full text-destructive hover:bg-destructive hover:text-destructive-foreground gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-all duration-200 text-sm"
+          >
+            <LogOut style={{ height: 16, width: 16 }} className="shrink-0" />
+            Logout
+          </button>
+        </div>
+      </nav>
+      {/* ══════════════ MOBILE TOP BAR ══════════════ */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar/50 backdrop-blur-2xl border-b border-sidebar-border/50">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
+              <span className="font-bold text-lg">S</span>
+            </div>
+            <div>
+              <h1 className="font-bold text-md bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
+                SkillHub
+              </h1>
+              <p className="text-sidebar-foreground/50 text-xs leading-none mt-0.5">
+                Provider
+              </p>
+            </div>
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <button className="relative p-2 rounded-lg bg-sidebar-accent text-sidebar-foreground">
+              <Bell style={{ height: 16, width: 16 }} />
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
+            </button>
+            <button
+              aria-pressed={isDarkMode}
+              onClick={onToggleDarkMode}
+              title={
+                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+              }
+              className="p-2 relative rounded-lg bg-sidebar-accent cursor-pointer flex items-center text-amber-400 dark:text-blue-500 transition-colors"
+            >
+              {isDarkMode ? (
+                <Moon className="w-4 h-4" />
+              ) : (
+                <Sun className="w-4 h-4" />
+              )}
+            </button>
+            <button onClick={() => handleNavigate('provider-profile')} className="relative p-2 rounded-lg bg-sidebar-accent text-sidebar-foreground">
+              <User style={{ height: 16, width: 16 }} />
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* Spacer for mobile */}
-      <div className="lg:hidden h-20" />
+      {/* ══════════════ MOBILE BOTTOM NAV ══════════════ */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-sidebar/50 backdrop-blur-2xl border-t border-sidebar-border/50">
+        <div className="flex items-center justify-around px-2 py-2">
+          {navItems.slice(0, 5).map((item) => {
+            const Icon = item.icon;
+            const active = computedCurrentPage === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavigate(item.id)}
+                className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
+                  active ? "text-blue-500" : "text-sidebar-foreground/50"
+                }`}
+              >
+                {item.badge && (
+                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-red-500" />
+                )}
+                <Icon style={{ height: 18, width: 18 }} />
+                <span className="text-xs">{item.label.split(" ")[0]}</span>
+                {active && (
+                  <motion.div
+                    layoutId="mobile-nav-dot"
+                    className="h-1 w-1 rounded-full bg-blue-500"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {/* Spacers */}
+      <div className="lg:hidden h-15" /> {/* top bar spacer */}
     </>
   );
 }

@@ -13,6 +13,7 @@ import { LocationPickerPanel } from "./LocationPickerPanel.jsx";
 import { useSelector, useDispatch } from "react-redux";
 import api from "../../lib/axiosSetup.js";
 import { updateLocation } from "../../slices/userSlice.js";
+import { motion } from "framer-motion";
 import {
   Search,
   Home,
@@ -207,7 +208,6 @@ export default function Navigation({
             </div>
           )}
 
-          {/* Desktop User Menu */}
           <div className="hidden md:flex items-center gap-4">
             <button
               aria-pressed={isDarkMode}
@@ -348,8 +348,8 @@ export default function Navigation({
       {/* Mobile Bottom Navigation */}
       {isAuthenticated && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-2xl border-t border-border">
-          <div className="flex justify-around items-center py-2">
-            {navItems.map((item) => {
+          <div className="flex items-center justify-around py-2">
+            {navItems.slice(0, 5).map((item) => {
               const Icon = item.icon;
               let targetPath = "/";
               switch (item.id) {
@@ -365,25 +365,17 @@ export default function Navigation({
                 case "search":
                   targetPath = "/search";
                   break;
-                case "home":
-                  targetPath = "/";
-                  break;
                 default:
                   targetPath = "/";
               }
-
               const isActive = location.pathname === targetPath;
 
               return (
-                <Button
+                <button
                   key={item.id}
-                  variant="ghost"
-                  size="sm"
                   onClick={() => handleNavigate(item.id)}
-                  className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
-                    isActive
-                      ? "text-(--primary-gradient-start)"
-                      : "text-muted-foreground"
+                  className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
+                    isActive ? "text-blue-500" : "text-muted-foreground"
                   }`}
                 >
                   {item.id === "profile" ? (
@@ -399,10 +391,13 @@ export default function Navigation({
                       </AvatarFallback>
                     </Avatar>
                   ) : (
-                    Icon && <Icon className="w-5 h-5" />
+                    Icon && <Icon className="w-4 h-4" />
                   )}
                   <span className="text-xs">{item.label}</span>
-                </Button>
+                  {isActive && (
+                    <motion.div layoutId="mobile-nav-dot" className="h-1 w-1 rounded-full bg-blue-500 mt-1" />
+                  )}
+                </button>
               );
             })}
           </div>
