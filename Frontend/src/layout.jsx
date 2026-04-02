@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from "react";
 import Navigation from "./components/users/Navigation";
 import Footer from "./components/users/Footer";
 import { useUI } from "./contexts/ui-context";
+import ChatPage from "./pages/ChatPage";
 
 const AuthPanel = lazy(() => import("./components/users/AuthPanel"));
 
@@ -18,6 +19,7 @@ const Layout = () => {
 
   const { pathname } = useLocation();
   const isProviderRoute = pathname.startsWith("/provider");
+  const isChatRoute = pathname.startsWith("/chat");
 
   return (
     <>
@@ -43,6 +45,7 @@ const Layout = () => {
             onClose={() => setIsAuthPanelOpen(false)}
           />
         )}
+
       </Suspense>
     </>
   );
