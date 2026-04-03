@@ -112,9 +112,9 @@ export default function ChatPage() {
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Conversations List */}
           {showConversationList && (
-            <div className={`${isMobileView ? 'w-full' : 'w-80 xl:w-96'} border-r border-border flex flex-col bg-card`}>
+            <div className={`${isMobileView ? 'w-full' : 'w-80 xl:w-96'} border-r border-border flex flex-col bg-card max-h-screen overflow-y-auto`}>
               {/* Header */}
-              <div className="p-4 border-b border-border shrink-0">
+              <div className="p-4 border-b border-border shrink-0 sticky top-0 z-10 bg-card/95 backdrop-blur-sm">
                 <div className='flex gap-4'>
                 <ArrowLeft onClick={() => navigate('/home')} className='mt-1.5'/>
                 <h2 className="text-2xl mb-4">Messages</h2>

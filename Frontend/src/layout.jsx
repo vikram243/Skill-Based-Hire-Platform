@@ -24,7 +24,7 @@ const Layout = () => {
   return (
     <>
       <ScrollRestoration />
-      {!isProviderRoute && (
+      {(!isProviderRoute && !isChatRoute) && (
         <Navigation
           setIsAuthPanelOpen={setIsAuthPanelOpen}
           isDarkMode={isDarkMode}
@@ -36,7 +36,8 @@ const Layout = () => {
 
       <Outlet />
 
-      {!isProviderRoute && <Footer />}
+
+      {(!isProviderRoute && !isChatRoute) && <Footer />}
 
       <Suspense fallback={null}>
         {isAuthPanelOpen && (

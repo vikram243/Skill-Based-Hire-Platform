@@ -25,6 +25,54 @@ export const mockConversations = [
     isOnline: true
   },
   {
+    id: 'conv-20',
+    participantId: 'user-1',
+    participantName: 'John Smith',
+    participantAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+    participantRole: 'provider',
+    lastMessage: 'Sure, I can help you with that. When would you like to schedule?',
+    lastMessageTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
+    unreadCount: 2,
+    isOnline: true,
+    isTyping: false
+  },
+  {
+    id: 'conv-1',
+    participantId: 'user-1',
+    participantName: 'John Smith',
+    participantAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+    participantRole: 'provider',
+    lastMessage: 'Sure, I can help you with that. When would you like to schedule?',
+    lastMessageTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
+    unreadCount: 2,
+    isOnline: true,
+    isTyping: false
+  },
+  {
+    id: 'conv-1',
+    participantId: 'user-1',
+    participantName: 'John Smith',
+    participantAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+    participantRole: 'provider',
+    lastMessage: 'Sure, I can help you with that. When would you like to schedule?',
+    lastMessageTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
+    unreadCount: 2,
+    isOnline: true,
+    isTyping: false
+  },
+  {
+    id: 'conv-1',
+    participantId: 'user-1',
+    participantName: 'John Smith',
+    participantAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+    participantRole: 'provider',
+    lastMessage: 'Sure, I can help you with that. When would you like to schedule?',
+    lastMessageTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
+    unreadCount: 2,
+    isOnline: true,
+    isTyping: false
+  },
+  {
     id: 'conv-3',
     participantId: 'user-3',
     participantName: 'Michael Chen',
