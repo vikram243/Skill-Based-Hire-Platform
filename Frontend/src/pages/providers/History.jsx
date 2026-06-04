@@ -9,7 +9,7 @@ import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { mockProviderHistory } from '../../data/providerMockData';
+import api from '../../lib/axiosSetup';
 import { motion, AnimatePresence } from 'motion/react';
 
 const containerVariants = {
@@ -22,7 +22,7 @@ const itemVariants = {
 };
 
 export default function ProviderHistoryPage({ isDarkMode = false, onToggleDarkMode, onNavigate }) {
-  const [orders, setOrders] = useState(mockProviderHistory);
+  const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
@@ -37,11 +37,27 @@ export default function ProviderHistoryPage({ isDarkMode = false, onToggleDarkMo
   const successRate = orders.length > 0 ? Math.round((completed.length / orders.length) * 100) : 0;
 
   useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const params = {};
+        if (statusFilter && statusFilter !== 'all') params.status = statusFilter;
+        if (dateFilter && dateFilter !== 'all') params.date = dateFilter;
+        const { data } = await api.get('/api/providers/history', { params });
+        const list = data.data.orders || data.data || data.orders || [];
+        const normalized = (list || []).map(o => ({ ...o, id: o.id || o._id }));
+        setOrders(normalized);
+      } catch (err) {
+        toast.error('Failed to load history');
+      }
+    };
+    fetchHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, dateFilter]);
+
+  useEffect(() => {
     let filtered = [...orders];
     if (statusFilter !== 'all') filtered = filtered.filter(o => o.status === statusFilter);
-    if (searchQuery) filtered = filtered.filter(o =>
-      o.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    if (searchQuery) filtered = filtered.filter(o => (o.customer_name || '').toLowerCase().includes(searchQuery.toLowerCase()));
     if (dateFilter !== 'all') {
       const now = new Date();
       const cutoff = new Date();

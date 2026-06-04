@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { mockProviderReviews } from '../../data/providerMockData';
+import api from '../../lib/axiosSetup';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'motion/react';
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from 'recharts';
@@ -23,8 +23,8 @@ const itemVariants = {
 };
 
 export default function ProviderReviewsPage() {
-  const [reviews] = useState(mockProviderReviews);
-  const [filteredReviews, setFilteredReviews] = useState(mockProviderReviews);
+  const [reviews, setReviews] = useState([]);
+  const [filteredReviews, setFilteredReviews] = useState([]);
   const [ratingFilter, setRatingFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
@@ -38,7 +38,7 @@ export default function ProviderReviewsPage() {
     2: reviews.filter(r => r.rating === 2).length,
     1: reviews.filter(r => r.rating === 1).length,
   };
-  const satisfaction = Math.round(((ratingCounts[5] + ratingCounts[4]) / totalReviews) * 100);
+  const satisfaction = totalReviews > 0 ? Math.round(((ratingCounts[5] + ratingCounts[4]) / totalReviews) * 100) : 0;
 
   useEffect(() => {
     let filtered = [...reviews];
@@ -52,6 +52,22 @@ export default function ProviderReviewsPage() {
     else filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     setFilteredReviews(filtered);
   }, [reviews, ratingFilter, searchQuery, sortBy]);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const { data } = await api.get('/api/providers/reviews');
+        const d = data.data || data;
+        const list = d.reviews || d || [];
+        const normalized = (list || []).map(r => ({ ...r, id: r.id || r._id }));
+        setReviews(normalized);
+        setFilteredReviews(normalized);
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetch();
+  }, []);
 
   const radialData = [{ name: 'Rating', value: (avgRating / 5) * 100, fill: '#F59E0B' }];
 

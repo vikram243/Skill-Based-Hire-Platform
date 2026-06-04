@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   User, Mail, Phone, MapPin, Camera, Save, DollarSign, Briefcase,
   Globe, Clock, Shield, Star, Award, CheckCircle, Edit3, Image,
@@ -13,7 +13,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Switch } from '../../components/ui/switch';
 import { toast } from 'sonner';
-import { mockProviderProfile, mockProviderGallery, mockProviderStats } from '../../data/providerMockData';
+import api from '../../lib/axiosSetup';
+// fallbacks retained inline; mock data file no longer used
+const fallbackGallery = [];
+const fallbackStats = { averageRating: 0, completedOrders: 0, totalEarnings: 0, repeatClients: 0 };
 import { motion, AnimatePresence } from 'motion/react';
 
 const containerVariants = {
@@ -26,14 +29,59 @@ const itemVariants = {
 };
 
 export default function ProviderProfilePage() {
-  const [profile, setProfile] = useState({ ...mockProviderProfile });
-  const [galleryImages, setGalleryImages] = useState(mockProviderGallery);
+  const [profile, setProfile] = useState(null);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [stats, setStats] = useState(null);
   const [isAvailable, setIsAvailable] = useState(true);
   const [urgentAvailable, setUrgentAvailable] = useState(true);
   const [newCert, setNewCert] = useState('');
-  const [certifications, setCertifications] = useState(mockProviderProfile.certifications);
+  const [certifications, setCertifications] = useState([]);
 
-  const handleSave = () => toast.success('✅ Profile updated successfully!');
+  const handleSave = async () => {
+    try {
+      const payload = {
+        full_name: profile.full_name,
+        phone: profile.phone,
+        bio: profile.bio,
+        hourly_rate: profile.hourly_rate,
+        years_experience: profile.years_experience,
+      };
+      await api.patch('/api/providers/update-profile', payload);
+      toast.success('✅ Profile updated successfully!');
+    } catch (err) {
+      toast.error('Failed to update profile');
+    }
+  };
+
+  // load profile
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data } = await api.get('/api/providers/profile');
+        const d = data.data || data;
+        const defaults = { full_name: '', email: '', phone: '', bio: '', location: '', service_name: '', service_price: 0, years_experience: 0, certifications: [], languages: [], avatar_url: '', service_description: '' };
+        const incoming = d.profile || d || {};
+        const normalized = { ...defaults, ...incoming };
+        setProfile(normalized);
+        setGalleryImages(d.galleryImages || normalized.galleryImages || []);
+        setCertifications((normalized.certifications) || d.certifications || []);
+        setStats(fallbackStats);
+      } catch (err) {
+        toast.error('Could not load provider profile');
+        setProfile({ full_name: '', email: '', phone: '', bio: '', location: '', service_name: '', service_price: 0, years_experience: 0, certifications: [], languages: [] });
+        setGalleryImages(fallbackGallery);
+        setStats(fallbackStats);
+      }
+    };
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!profile) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-muted-foreground">Loading profile...</div>
+    </div>
+  );
 
   const handleRemoveGallery = (img) => {
     setGalleryImages(prev => prev.filter(i => i !== img));
@@ -96,10 +144,10 @@ export default function ProviderProfilePage() {
                     <p className="text-blue-200 text-sm mb-2">{profile.service_name} · {profile.location}</p>
                     <div className="flex flex-wrap gap-3">
                       <span className="flex items-center gap-1 text-blue-200 text-xs">
-                        <Star className="h-3.5 w-3.5 text-amber-300 fill-amber-300" /> {mockProviderStats.averageRating} rating
+                        <Star className="h-3.5 w-3.5 text-amber-300 fill-amber-300" /> {stats?.averageRating || 0} rating
                       </span>
                       <span className="flex items-center gap-1 text-blue-200 text-xs">
-                        <Award className="h-3.5 w-3.5" /> {mockProviderStats.completedOrders} completed
+                        <Award className="h-3.5 w-3.5" /> {stats?.completedOrders || 0} completed
                       </span>
                       <span className="flex items-center gap-1 text-blue-200 text-xs">
                         <Briefcase className="h-3.5 w-3.5" /> {profile.years_experience} yrs experience
@@ -183,7 +231,7 @@ export default function ProviderProfilePage() {
                             placeholder="Tell clients about your expertise, approach, and what makes you stand out..."
                             className="resize-none"
                           />
-                          <p className="text-muted-foreground text-xs mt-1">{profile.bio.length}/500 characters</p>
+                          <p className="text-muted-foreground text-xs mt-1">{(profile.bio || '').length}/500 characters</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -199,7 +247,7 @@ export default function ProviderProfilePage() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
-                          {profile.languages.map((lang, i) => (
+                          {(profile.languages || []).map((lang, i) => (
                             <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary rounded-full border border-border/40">
                               <span className="text-foreground text-sm">{lang}</span>
                               <button onClick={() => setProfile({ ...profile, languages: profile.languages.filter(l => l !== lang) })}
@@ -340,10 +388,10 @@ export default function ProviderProfilePage() {
                       <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           {[
-                            { label: 'Total Orders', value: mockProviderStats.completedOrders },
-                            { label: 'Total Revenue', value: `$${mockProviderStats.totalEarnings.toLocaleString()}` },
-                            { label: 'Avg Rating', value: `${mockProviderStats.averageRating}★` },
-                            { label: 'Repeat Clients', value: mockProviderStats.repeatClients },
+                            { label: 'Total Orders', value: stats.completedOrders || 0 },
+                            { label: 'Total Revenue', value: `$${(stats.totalEarnings || 0).toLocaleString()}` },
+                            { label: 'Avg Rating', value: `${stats.averageRating || 0}★` },
+                            { label: 'Repeat Clients', value: stats.repeatClients || 0 },
                           ].map((m, i) => (
                             <div key={i} className="p-3 rounded-xl bg-secondary border border-border/40 text-center">
                               <p className="text-foreground text-lg">{m.value}</p>

@@ -13,7 +13,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Card, CardContent } from '../../components/ui/card';
 import { Progress } from '../../components/ui/progress';
 import { toast } from 'sonner';
-import { mockProviderOrders } from '../../data/providerMockData';
+import api from '../../lib/axiosSetup';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -34,7 +34,7 @@ const itemVariants = {
 };
 
 export default function ProviderOrdersPage() {
-  const [orders, setOrders] = useState(mockProviderOrders);
+  const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -51,13 +51,31 @@ export default function ProviderOrdersPage() {
   const hasActiveOrder = !!activeOrder;
 
   useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const params = {};
+        if (statusFilter && statusFilter !== 'all') params.status = statusFilter;
+        const { data } = await api.get('/api/providers/order', { params });
+        const list = data.data.orders || data.data || data.orders || [];
+        // normalize ids
+        const normalized = (list || []).map(o => ({ ...o, id: o.id || o._id }));
+        setOrders(normalized);
+      } catch (err) {
+        toast.error('Failed to load orders');
+      }
+    };
+    fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter]);
+
+  useEffect(() => {
     let filtered = [...orders];
     if (statusFilter !== 'all') filtered = filtered.filter(o => o.status === statusFilter);
     if (urgencyFilter !== 'all') filtered = filtered.filter(o => o.urgency === urgencyFilter);
     if (searchQuery) filtered = filtered.filter(o =>
-      o.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.skill_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (o.notes || '').toLowerCase().includes(searchQuery.toLowerCase())
+      (o.customer_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (o.skill_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ((o.notes || '')).toLowerCase().includes(searchQuery.toLowerCase())
     );
     if (sortBy === 'price') filtered.sort((a, b) => b.price - a.price);
     else if (sortBy === 'urgency') filtered.sort((a) => (a.urgency === 'urgent' ? -1 : 1));
@@ -67,14 +85,18 @@ export default function ProviderOrdersPage() {
 
   const handleUpdateStatus = () => {
     if (!selectedOrder || !newStatus) return;
-    setOrders(prev => prev.map(o =>
-      o.id === selectedOrder.id
-        ? { ...o, status: newStatus, notes: updateNotes || o.notes, completed_at: newStatus === 'completed' ? new Date().toISOString() : o.completed_at }
-        : o
-    ));
-    toast.success('Order status updated successfully');
-    setShowUpdateDialog(false);
-    setUpdateNotes('');
+    (async () => {
+      try {
+        const { data } = await api.patch(`/api/providers/orders/${selectedOrder.id}/status`, { status: newStatus, notes: updateNotes });
+        const updated = data.data || data;
+        setOrders(prev => prev.map(o => (o.id === selectedOrder.id ? { ...o, ...updated } : o)));
+        toast.success('Order status updated successfully');
+        setShowUpdateDialog(false);
+        setUpdateNotes('');
+      } catch (err) {
+        toast.error('Failed to update order status');
+      }
+    })();
   };
 
   const handleQuickAccept = (id) => {
@@ -82,23 +104,42 @@ export default function ProviderOrdersPage() {
       toast.error(`⚠️ Complete your active order with ${activeOrder?.customer_name} first!`);
       return;
     }
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'in_progress' } : o));
-    const o = orders.find(x => x.id === id);
-    toast.success(`✅ Order from ${o?.customer_name} accepted — now in progress!`);
+    (async () => {
+      try {
+        const { data } = await api.patch(`/api/providers/orders/${id}/status`, { status: 'in_progress' });
+        const updated = data.data || data;
+        setOrders(prev => prev.map(o => (o.id === id ? { ...o, ...updated } : o)));
+        toast.success('Order accepted — now in progress');
+      } catch (err) {
+        toast.error('Failed to accept order');
+      }
+    })();
   };
 
   const handleQuickReject = (id) => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'cancelled' } : o));
-    const o = orders.find(x => x.id === id);
-    toast.info(`Order from ${o?.customer_name} declined.`);
+    (async () => {
+      try {
+        const { data } = await api.patch(`/api/providers/orders/${id}/status`, { status: 'cancelled' });
+        const updated = data.data || data;
+        setOrders(prev => prev.map(o => (o.id === id ? { ...o, ...updated } : o)));
+        toast.info('Order declined');
+      } catch (err) {
+        toast.error('Failed to decline order');
+      }
+    })();
   };
 
   const handleMarkComplete = (id) => {
-    setOrders(prev => prev.map(o =>
-      o.id === id ? { ...o, status: 'completed', completed_at: new Date().toISOString() } : o
-    ));
-    const o = orders.find(x => x.id === id);
-    toast.success(`🎉 Order from ${o?.customer_name} marked as completed! You can now accept new orders.`);
+    (async () => {
+      try {
+        const { data } = await api.patch(`/api/providers/orders/${id}/status`, { status: 'completed' });
+        const updated = data.data || data;
+        setOrders(prev => prev.map(o => (o.id === id ? { ...o, ...updated } : o)));
+        toast.success('Order marked as completed');
+      } catch (err) {
+        toast.error('Failed to mark order complete');
+      }
+    })();
   };
 
   const counts = {
