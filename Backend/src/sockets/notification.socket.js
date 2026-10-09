@@ -1,4 +1,4 @@
-import Notification from '../models/notification.model';
+import Notification from '../models/notification.model.js';
 
 export const registerNotificationHandler = (io) => {
     io.on("connection", (socket) => {

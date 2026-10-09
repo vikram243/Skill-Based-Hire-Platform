@@ -2,9 +2,9 @@ import React, { useState, useEffect, lazy, Suspense } from "react";
 import SkillCard from "../../components/users/SkillCard";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import useDebounce from "../../hooks/Debounce";
+import SEOHead from "../../components/seo/SEOHead";
 import {
   Filter,
   X,
@@ -54,9 +54,18 @@ export default function SearchPage() {
   const queryKeyRef = React.useRef("");
   const previousLengthRef = React.useRef(0);
 
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
-    document.title = "Search | SkillHub";
-  }, []);
+    const qParam = searchParams.get("q");
+    if (qParam && qParam !== searchQuery) {
+      setSearchQuery(qParam);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    document.title = searchQuery ? `"${searchQuery}" Specialists | SkillHub` : "Explore & Hire Local Specialists | SkillHub";
+  }, [searchQuery]);
 
   useEffect(() => {
     previousLengthRef.current = filteredProviders.length;
@@ -408,10 +417,11 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-background mb-15">
-      {selectedProvider ? (
-        <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      {providerId ? (
+        <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
           <SkillDetailPage
             provider={selectedProvider}
+            providerId={providerId}
             onClose={() => navigate("/search")}
           />
         </Suspense>

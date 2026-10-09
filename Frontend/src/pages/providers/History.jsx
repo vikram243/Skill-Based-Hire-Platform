@@ -9,7 +9,8 @@ import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { mockProviderHistory } from '../../data/providerMockData';
+import { toast } from 'sonner';
+import api from '../../lib/axiosSetup';
 import { motion, AnimatePresence } from 'motion/react';
 
 const containerVariants = {
@@ -22,7 +23,7 @@ const itemVariants = {
 };
 
 export default function ProviderHistoryPage({ isDarkMode = false, onToggleDarkMode, onNavigate }) {
-  const [orders, setOrders] = useState(mockProviderHistory);
+  const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
@@ -36,12 +37,55 @@ export default function ProviderHistoryPage({ isDarkMode = false, onToggleDarkMo
   const urgentCompleted = completed.filter(o => o.urgency === 'urgent').length;
   const successRate = orders.length > 0 ? Math.round((completed.length / orders.length) * 100) : 0;
 
+  const handleExportCSV = () => {
+    if (!filteredOrders.length) {
+      toast.info('No orders to export');
+      return;
+    }
+    const headers = ['Order ID', 'Customer', 'Skill', 'Status', 'Price', 'Urgency', 'Date', 'Rating'];
+    const rows = filteredOrders.map(o => [
+      o.id || o._id || '',
+      `"${(o.customer_name || '').replace(/"/g, '""')}"`,
+      `"${(o.skill_name || '').replace(/"/g, '""')}"`,
+      o.status || '',
+      o.price || 0,
+      o.urgency || 'normal',
+      o.created_at ? new Date(o.created_at).toISOString().split('T')[0] : '',
+      o.rating || 'N/A'
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `order_history_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Order history exported to CSV!');
+  };
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const params = {};
+        if (statusFilter && statusFilter !== 'all') params.status = statusFilter;
+        if (dateFilter && dateFilter !== 'all') params.date = dateFilter;
+        const { data } = await api.get('/api/providers/history', { params });
+        const list = data.data.orders || data.data || data.orders || [];
+        const normalized = (list || []).map(o => ({ ...o, id: o.id || o._id }));
+        setOrders(normalized);
+      } catch (err) {
+        toast.error('Failed to load history');
+      }
+    };
+    fetchHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, dateFilter]);
+
   useEffect(() => {
     let filtered = [...orders];
     if (statusFilter !== 'all') filtered = filtered.filter(o => o.status === statusFilter);
-    if (searchQuery) filtered = filtered.filter(o =>
-      o.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    if (searchQuery) filtered = filtered.filter(o => (o.customer_name || '').toLowerCase().includes(searchQuery.toLowerCase()));
     if (dateFilter !== 'all') {
       const now = new Date();
       const cutoff = new Date();
@@ -152,7 +196,7 @@ export default function ProviderHistoryPage({ isDarkMode = false, onToggleDarkMo
                       <SelectItem value="year">Last Year</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button variant="outline" className="h-9 gap-1.5 text-sm shrink-0">
+                  <Button variant="outline" onClick={handleExportCSV} className="h-9 gap-1.5 text-sm shrink-0">
                     <Download className="h-3.5 w-3.5" /> Export
                   </Button>
                 </div>

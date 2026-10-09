@@ -58,8 +58,10 @@ export const getProviderReviews = asyncHandler(async (req, res) => {
   const reviews = await Review.find({
     provider: id,
     status: "approved",
+    isHidden: { $ne: true },
   })
-    .populate("user", "fullName email")
+    .populate("user", "fullName email avatar")
+    .populate("order", "description urgency pricing")
     .sort({ createdAt: -1 });
 
   res

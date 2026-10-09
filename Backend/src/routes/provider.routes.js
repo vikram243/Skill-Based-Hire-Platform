@@ -9,12 +9,18 @@ import {
     getProviderHistory, 
     getProviderAnalytics, 
     getProviderReviews,
-    hireProviderId
+    hireProviderId,
+    uploadProviderAvatar,
+    uploadPortfolioImages,
+    deletePortfolioImage,
+    toggleProviderAvailability,
+    replyToReview,
+    getPublicProviderDetails
 } from '../controllers/provider.controller.js';
 import { filterProviders } from '../controllers/filter.controller.js';
 
 import { upload } from '../middlewares/upload.middleware.js';
-import { isAuthenticated } from '../middlewares/auth.middleware.js';
+import { isAuthenticated, optionalAuth } from '../middlewares/auth.middleware.js';
 import { requireProviderMode } from '../middlewares/providerMode.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { becomeProviderSchema, updateProviderSchema, updateOrderStatusSchema, hireProviderByIdSchema } from '../validators/provider.validator.js';
@@ -28,19 +34,19 @@ router.route('/onboardProvider').post(
     becomeProvider
 )
 
-router.route('/:providerId').post(
-    isAuthenticated,
-    validate(hireProviderByIdSchema),
-    hireProviderId
-)
-
 router.route('/dashboard').get(
     isAuthenticated,
     requireProviderMode,
     getProviderDashboard
 )
 
+// Support both /order and /orders
 router.route('/order').get(
+    isAuthenticated,
+    requireProviderMode,
+    getProviderOrders
+)
+router.route('/orders').get(
     isAuthenticated,
     requireProviderMode,
     getProviderOrders
@@ -71,6 +77,12 @@ router.route('/reviews').get(
     getProviderReviews
 )
 
+router.route('/reviews/:reviewId/reply').post(
+    isAuthenticated,
+    requireProviderMode,
+    replyToReview
+)
+
 router.route('/profile').get(
     isAuthenticated,
     requireProviderMode,
@@ -84,9 +96,45 @@ router.route('/update-profile').patch(
     updateProviderProfile
 )
 
-router.route('/filter').get(
+router.route('/avatar').post(
     isAuthenticated,
+    requireProviderMode,
+    upload.single('avatar'),
+    uploadProviderAvatar
+)
+
+router.route('/portfolio/upload').post(
+    isAuthenticated,
+    requireProviderMode,
+    upload.array('images', 5),
+    uploadPortfolioImages
+)
+
+router.route('/portfolio/delete').delete(
+    isAuthenticated,
+    requireProviderMode,
+    deletePortfolioImage
+)
+
+router.route('/availability').patch(
+    isAuthenticated,
+    requireProviderMode,
+    toggleProviderAvailability
+)
+
+router.route('/filter').get(
+    optionalAuth,
     filterProviders
 );
+
+router.route('/:providerId/details').get(getPublicProviderDetails);
+router.route('/:providerId/info').get(getPublicProviderDetails);
+router.route('/:providerId')
+    .get(getPublicProviderDetails)
+    .post(
+        isAuthenticated,
+        validate(hireProviderByIdSchema),
+        hireProviderId
+    );
 
 export default router;

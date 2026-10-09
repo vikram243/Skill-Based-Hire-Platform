@@ -1,0 +1,28 @@
+# SkillHub Robots Configuration
+User-agent: *
+Allow: /
+Allow: /search
+Allow: /services
+Allow: /categories
+Allow: /about
+Allow: /contact
+Allow: /faq
+Allow: /blog
+Allow: /how-it-works
+Allow: /safety
+Allow: /guarantee
+Allow: /refund-policy
+Allow: /terms
+Allow: /privacy
+
+# Disallow private user & admin paths
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /admin-login
+Disallow: /orders
+Disallow: /profile
+Disallow: /provider
+Disallow: /provider/*
+Disallow: /chat
+
+Sitemap: https://myskillhub.in/sitemap.xml

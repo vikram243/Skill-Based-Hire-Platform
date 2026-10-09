@@ -15,33 +15,15 @@ import {
   Sun,
   ChevronRight,
   Bell,
+  Layers,
+  DollarSign,
 } from "lucide-react";
 import { Switch } from "../../components/ui/switch";
-import { mockAuth } from "../../data/authMockData";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import api from "../../lib/axiosSetup.js";
 import { setProviderMode, logoutUser } from "../../slices/userSlice.js";
 import { motion, AnimatePresence } from "motion/react";
-
-const navItems = [
-  {
-    id: "provider-dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    badge: null,
-  },
-  { id: "provider-orders", label: "Orders", icon: ShoppingBag, badge: "3" },
-  { id: "provider-history", label: "History", icon: History, badge: null },
-  {
-    id: "provider-analytics",
-    label: "Analytics",
-    icon: TrendingUp,
-    badge: null,
-  },
-  { id: "provider-reviews", label: "Reviews", icon: Star, badge: null },
-  { id: "provider-profile", label: "Profile", icon: User, badge: null },
-];
 
 export default function ProviderNavigation({
   currentPage: propCurrentPage,
@@ -50,31 +32,75 @@ export default function ProviderNavigation({
   onToggleDarkMode,
   onLogout,
 }) {
-  const [providerName, setProviderName] = useState("Provider");
+  const reduxUser = useSelector((state) => state.user?.user);
+  const [providerName, setProviderName] = useState(reduxUser?.name || "Provider");
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    mockAuth
-      .getUser()
-      .then(({ user }) => {
-        if (user?.name) setProviderName(user.name);
-      })
-      .catch(() => {});
-  }, []);
+    if (reduxUser?.name) {
+      setProviderName(reduxUser.name);
+    }
+    const fetchDashboard = async () => {
+      try {
+        const { data } = await api.get('/api/providers/dashboard');
+        const d = data.data || data;
+        if (d.activeOrders !== undefined) {
+          setActiveOrdersCount(d.activeOrders);
+        }
+        if (d.providerName && !reduxUser?.name) {
+          setProviderName(d.providerName);
+        }
+      } catch (err) {
+        // graceful fallback
+      }
+    };
+    fetchDashboard();
+  }, [reduxUser]);
+
+  const navItems = [
+    {
+      id: "provider-dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      badge: null,
+    },
+    {
+      id: "provider-orders",
+      label: "Orders",
+      icon: ShoppingBag,
+      badge: activeOrdersCount > 0 ? String(activeOrdersCount) : null,
+    },
+    {
+      id: "provider-services",
+      label: "Services",
+      icon: Layers,
+      badge: null,
+    },
+    {
+      id: "provider-earnings",
+      label: "Earnings",
+      icon: DollarSign,
+      badge: null,
+    },
+    { id: "provider-history", label: "History", icon: History, badge: null },
+    {
+      id: "provider-analytics",
+      label: "Analytics",
+      icon: TrendingUp,
+      badge: null,
+    },
+    { id: "provider-reviews", label: "Reviews", icon: Star, badge: null },
+    { id: "provider-profile", label: "Profile", icon: User, badge: null },
+  ];
 
   const handleLogout = async () => {
     try {
       // Prefer server-side logout when possible
       await api.get("/api/users/logout");
     } catch (err) {
-      /* ignore */
-    }
-
-    try {
-      await mockAuth.signOut();
-    } catch (e) {
       /* ignore */
     }
 
@@ -110,6 +136,12 @@ export default function ProviderNavigation({
         break;
       case "provider-orders":
         target = "/provider/orders";
+        break;
+      case "provider-services":
+        target = "/provider/services";
+        break;
+      case "provider-earnings":
+        target = "/provider/earnings";
         break;
       case "provider-history":
         target = "/provider/history";

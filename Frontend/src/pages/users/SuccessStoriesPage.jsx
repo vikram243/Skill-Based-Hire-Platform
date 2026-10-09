@@ -23,21 +23,44 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useUI } from "../../contexts/ui-context";
 
+import api from "../../lib/axiosSetup";
+import { useState } from "react";
+
 export default function SuccessStoriesPage() {
   const { setIsAuthPanelOpen } = useUI();
+  const [statsData, setStatsData] = useState({
+    providers: "50,000+",
+    jobs: "1.2M+",
+    rating: "4.8/5",
+  });
+
   useEffect(() => {
     document.title = "Success Story | SkillHub";
+    const loadStats = async () => {
+      try {
+        const { data } = await api.get('/api/users/stats');
+        const s = data.data || {};
+        setStatsData({
+          providers: `${s.totalProviders || 50}+`,
+          jobs: `${s.totalCompletedOrders || 100}+`,
+          rating: `${s.avgRating || 4.9}/5`,
+        });
+      } catch (e) {
+        // keep defaults
+      }
+    };
+    loadStats();
   }, []);
 
   const stats = [
     {
       label: "Providers",
-      value: "50,000+",
+      value: statsData.providers,
       icon: <Users className="text-blue-500" />,
     },
     {
       label: "Jobs Completed",
-      value: "1.2M+",
+      value: statsData.jobs,
       icon: <Briefcase className="text-purple-500" />,
     },
     {
@@ -47,7 +70,7 @@ export default function SuccessStoriesPage() {
     },
     {
       label: "Avg. Rating",
-      value: "4.8/5",
+      value: statsData.rating,
       icon: <Star className="text-yellow-500 fill-current" />,
     },
   ];

@@ -95,22 +95,31 @@ export const becomeProviderSchema = z.object({
 export const updateProviderSchema = z.object({
   body: z.object({
     full_name: z.string().optional(),
-
-    phone: z.string().regex(phoneRegex, "Invalid phone").optional(),
-
+    phone: z.string().optional(),
     location: z.string().optional(),
     bio: z.string().optional(),
-
     hourly_rate: z.preprocess(
-      (v) => (v === "" ? undefined : Number(v)),
+      (v) => (v === "" || v === undefined ? undefined : Number(v)),
       z.number().nonnegative().optional(),
     ),
-
+    service_price: z.preprocess(
+      (v) => (v === "" || v === undefined ? undefined : Number(v)),
+      z.number().nonnegative().optional(),
+    ),
+    service_name: z.string().optional(),
+    service_description: z.string().optional(),
     years_experience: z.preprocess(
-      (v) => (v === "" ? undefined : Number(v)),
+      (v) => (v === "" || v === undefined ? undefined : Number(v)),
       z.number().nonnegative().optional(),
     ),
-  }),
+    website: z.string().optional(),
+    availability: z.string().optional(),
+    certifications: z.array(z.string()).optional(),
+    languages: z.array(z.string()).optional(),
+    isAvailable: z.boolean().optional(),
+    urgentAvailable: z.boolean().optional(),
+    galleryImages: z.array(z.string()).optional(),
+  }).passthrough(),
 
   params: z.object({}).optional(),
   query: z.object({}).optional(),
@@ -118,7 +127,7 @@ export const updateProviderSchema = z.object({
 
 export const updateOrderStatusSchema = z.object({
   body: z.object({
-    status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
+    status: z.enum(["pending", "in_progress", "completed", "cancelled", "accepted", "ongoing", "rejected"]),
     notes: z.string().optional(),
   }),
   params: z.object({ orderId: z.string().regex(objectIdRegex) }),

@@ -21,10 +21,11 @@ const uploadOnCloudinary = async (filePathOrUrl) => {
       fs.unlinkSync(filePathOrUrl);
     }
 
-    // ⭐ ONLY RETURN WHAT YOU NEED
     return {
       public_id: response.public_id,
-      originalUrl: response.secure_url
+      originalUrl: response.secure_url,
+      secure_url: response.secure_url,
+      url: response.secure_url,
     };
 
   } catch (error) {

@@ -13,7 +13,6 @@ router.route("/create").post(
 )
 
 router.route("/provider/:id").get(
-    isAuthenticated,
     validate(getProviderReviewsSchema),
     getProviderReviews
 )

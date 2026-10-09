@@ -8,19 +8,11 @@ import compression from 'compression';
 import router from './routes/index.routes.js';
 import config from "./config/config.js";
 import {cleanupTmpDir} from "./middlewares/upload.middleware.js"
-import redisClient from './config/redis.config.js';
-import rateLimit from 'express-rate-limit';
+import { leakyBucketRateLimiter } from './middlewares/rateLimit.middleware.js';
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"
 import {errorHandler} from './middlewares/error.middleware.js';
 
-
-let RedisStore;
-try {
-    RedisStore = (await import('rate-limit-redis')).default;
-} catch (err) {
-    RedisStore = null;
-}
 
 const app = express();
 cleanupTmpDir();
@@ -32,29 +24,12 @@ app.use(helmet());
 app.use(cors({ origin: `${config.origin}`, credentials: true, methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], }));
 app.use(compression());
 
-// Configure rate limiter (use Redis if available, otherwise memory store)
-const limiterOptions = {
-    windowMs: 5 * 60 * 1000, 
-    max: 100,
-    standardHeaders: true,
-    legacyHeaders: false
-};
-
-if (RedisStore && redisClient) {
-    try {
-        app.use(rateLimit({
-            ...limiterOptions,
-            store: new RedisStore({ sendCommand: (...args) => redisClient.sendCommand(args) }),
-        }));
-        console.log('✅ Rate limiter: using Redis store');
-    } catch (err) {
-        console.error('⚠️ Failed to initialize Redis rate limiter, falling back to memory store:', err);
-        app.use(rateLimit(limiterOptions));
-    }
-} else {
-    app.use(rateLimit(limiterOptions));
-    console.log('✅ Rate limiter: using in-memory store');
-}
+// Configure Redis-backed leaky bucket rate limiter
+app.use(leakyBucketRateLimiter({
+    maxRequests: 100,
+    windowMs: 5 * 60 * 1000,
+    message: 'Too many requests, please try again later.',
+}));
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));

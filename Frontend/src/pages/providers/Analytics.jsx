@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DollarSign, TrendingUp, Calendar, BarChart3, ArrowUpRight, ArrowDownRight,
   Star, Users, CheckCircle, Clock, Package, Zap, Target, Award
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { mockMonthlyEarnings, mockProviderStats, mockProviderOrders } from '../../data/providerMockData';
+import api from '../../lib/axiosSetup';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'motion/react';
 import {
@@ -28,11 +28,11 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="bg-card border border-border rounded-xl p-3 shadow-xl text-sm">
         <p className="text-foreground mb-1">{label}</p>
-        {payload.map((p, i) => (
-          <p key={i} style={{ color: p.color }} className="text-xs">
-            {p.name}: {p.name === 'earnings' || p.name === 'revenue' ? `$${p.value.toLocaleString()}` : p.value}
-          </p>
-        ))}
+            {payload.map((p, i) => (
+              <p key={i} style={{ color: p.color }} className="text-xs">
+                {p.name}: {p.name === 'earnings' || p.name === 'revenue' ? `$${(typeof p.value === 'number' ? p.value.toLocaleString() : String(p.value || 0))}` : (p.value ?? '-')}
+              </p>
+            ))}
       </div>
     );
   }
@@ -41,34 +41,45 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function ProviderAnalyticsPage() {
   const [activeTab, setActiveTab] = useState('earnings');
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [stats, setStats] = useState({});
+  const [weeklyData, setWeeklyData] = useState([]);
 
-  const stats = mockProviderStats;
-  const growthPct = ((stats.thisMonthEarnings - 2350) / 2350) * 100;
-  const avgOrderValue = stats.totalEarnings / stats.completedOrders;
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const { data } = await api.get('/api/providers/analytics');
+        const d = data.data || data;
+        setMonthlyData(d.monthlyData || d.monthly || []);
+        setStats(d.stats || d || {});
+        if (d.weeklyData && Array.isArray(d.weeklyData)) {
+          setWeeklyData(d.weeklyData);
+        } else {
+          setWeeklyData(d.monthlyData || []);
+        }
+      } catch (err) {
+        // ignore — keep defaults
+      }
+    };
+    fetch();
+  }, []);
 
-  // Pie chart data: normal vs urgent
+  const previousMonthEarnings = (monthlyData && monthlyData.length > 1) ? (monthlyData[monthlyData.length - 2]?.earnings || 0) : 0;
+  const growthPct = previousMonthEarnings > 0 
+    ? Math.round((((stats.thisMonthEarnings || 0) - previousMonthEarnings) / previousMonthEarnings) * 100) 
+    : 0;
+  const avgOrderValue = Math.round((stats.totalEarnings || 0) / Math.max(stats.completedOrders || 1, 1));
+
   const urgencyData = [
-    { name: 'Normal Orders', value: mockProviderOrders.filter(o => o.urgency === 'normal').length, color: '#3B82F6' },
-    { name: 'Urgent Orders', value: mockProviderOrders.filter(o => o.urgency === 'urgent').length, color: '#F59E0B' },
+    { name: 'Normal Orders', value: stats.normalOrdersCount || 0, color: '#3B82F6' },
+    { name: 'Urgent Orders', value: stats.urgentOrdersCount || 0, color: '#F59E0B' },
   ];
 
-  // Completion rate per month (mock)
-  const completionData = mockMonthlyEarnings.map(m => ({
+  const completionData = (monthlyData || []).map(m => ({
     ...m,
-    completed: Math.round(m.orders * 0.88),
-    cancelled: Math.round(m.orders * 0.12),
+    completed: Math.round((m.orders || 0) * 0.88),
+    cancelled: Math.round((m.orders || 0) * 0.12),
   }));
-
-  // Weekly data (mock)
-  const weeklyData = [
-    { day: 'Mon', earnings: 480, orders: 2 },
-    { day: 'Tue', earnings: 320, orders: 1 },
-    { day: 'Wed', earnings: 750, orders: 3 },
-    { day: 'Thu', earnings: 900, orders: 3 },
-    { day: 'Fri', earnings: 650, orders: 2 },
-    { day: 'Sat', earnings: 300, orders: 1 },
-    { day: 'Sun', earnings: 0, orders: 0 },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -101,12 +112,12 @@ export default function ProviderAnalyticsPage() {
             initial="hidden" animate="visible" variants={containerVariants}>
             {[
               {
-                label: 'Total Revenue', value: `$${stats.totalEarnings.toLocaleString()}`,
+                label: 'Total Revenue', value: `$${(stats.totalEarnings || 0).toLocaleString()}`,
                 sub: 'All time earnings', icon: DollarSign, color: 'from-emerald-400 to-green-600',
                 badge: null
               },
               {
-                label: 'This Month', value: `$${stats.thisMonthEarnings.toLocaleString()}`,
+                label: 'This Month', value: `$${(stats.thisMonthEarnings || 0).toLocaleString()}`,
                 sub: 'Current month', icon: TrendingUp, color: 'from-blue-400 to-indigo-600',
                 badge: `${growthPct > 0 ? '+' : ''}${growthPct.toFixed(1)}%`, positive: growthPct >= 0
               },
@@ -178,7 +189,7 @@ export default function ProviderAnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={mockMonthlyEarnings} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                      <AreaChart data={monthlyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
@@ -314,8 +325,8 @@ export default function ProviderAnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {[
-                    { label: 'Revenue Goal', current: stats.thisMonthEarnings, target: 4000, unit: '$', color: 'from-blue-500 to-indigo-600' },
+                    {[
+                    { label: 'Revenue Goal', current: stats.thisMonthEarnings || 0, target: 4000, unit: '$', color: 'from-blue-500 to-indigo-600' },
                     { label: 'Orders Goal', current: 12, target: 15, unit: '', color: 'from-emerald-500 to-green-600' },
                     { label: 'Rating Goal', current: stats.averageRating * 20, target: 100, unit: '', color: 'from-amber-500 to-orange-500', label2: `${stats.averageRating} / 5.0` },
                   ].map((g, i) => {
@@ -328,8 +339,8 @@ export default function ProviderAnalyticsPage() {
                             {pct}%
                           </span>
                         </div>
-                        <p className="text-foreground text-lg mb-1">
-                          {g.label2 || `${g.unit}${typeof g.current === 'number' && g.unit === '$' ? g.current.toLocaleString() : g.current} / ${g.unit}${g.target}`}
+                          <p className="text-foreground text-lg mb-1">
+                          {g.label2 || `${g.unit}${typeof g.current === 'number' && g.unit === '$' ? g.current.toLocaleString() : (g.current || 0)} / ${g.unit}${g.target}`}
                         </p>
                         <div className="w-full bg-secondary rounded-full h-2.5 overflow-hidden">
                           <motion.div className={`h-full rounded-full bg-linear-to-r ${g.color}`}
@@ -356,7 +367,7 @@ export default function ProviderAnalyticsPage() {
                     <div>
                       <p className="text-blue-200 text-xs mb-1">Your Service</p>
                       <p className="text-white text-lg">Web Development</p>
-                      <p className="text-blue-200 text-sm">{stats.completedOrders} completed · ${stats.totalEarnings.toLocaleString()} total revenue</p>
+                      <p className="text-blue-200 text-sm">{stats.completedOrders || 0} completed · ${(stats.totalEarnings || 0).toLocaleString()} total revenue</p>
                     </div>
                   </div>
                   <div className="flex gap-4 text-center">

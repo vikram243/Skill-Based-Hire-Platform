@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   User, Mail, Phone, MapPin, Camera, Save, DollarSign, Briefcase,
   Globe, Clock, Shield, Star, Award, CheckCircle, Edit3, Image,
-  Languages, X, Plus, Link, Info, Zap, Package
+  Languages, X, Plus, Link, Info, Zap, Package, Loader2
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -13,8 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Switch } from '../../components/ui/switch';
 import { toast } from 'sonner';
-import { mockProviderProfile, mockProviderGallery, mockProviderStats } from '../../data/providerMockData';
+import api from '../../lib/axiosSetup';
 import { motion, AnimatePresence } from 'motion/react';
+
+const fallbackGallery = [];
+const fallbackStats = { averageRating: 5.0, completedOrders: 0, totalEarnings: 0, repeatClients: 0 };
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -26,18 +29,180 @@ const itemVariants = {
 };
 
 export default function ProviderProfilePage() {
-  const [profile, setProfile] = useState({ ...mockProviderProfile });
-  const [galleryImages, setGalleryImages] = useState(mockProviderGallery);
+  const [profile, setProfile] = useState(null);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [stats, setStats] = useState(fallbackStats);
   const [isAvailable, setIsAvailable] = useState(true);
   const [urgentAvailable, setUrgentAvailable] = useState(true);
   const [newCert, setNewCert] = useState('');
-  const [certifications, setCertifications] = useState(mockProviderProfile.certifications);
+  const [certifications, setCertifications] = useState([]);
+  const [newLang, setNewLang] = useState('');
+  const [showAddLang, setShowAddLang] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
 
-  const handleSave = () => toast.success('✅ Profile updated successfully!');
+  const avatarInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
-  const handleRemoveGallery = (img) => {
-    setGalleryImages(prev => prev.filter(i => i !== img));
-    toast.success('Image removed from portfolio');
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const payload = {
+        full_name: profile.full_name,
+        phone: profile.phone,
+        bio: profile.bio,
+        location: profile.location,
+        hourly_rate: Number(profile.hourly_rate || profile.service_price || 0),
+        service_price: Number(profile.service_price || profile.hourly_rate || 0),
+        service_name: profile.service_name,
+        service_description: profile.service_description,
+        years_experience: Number(profile.years_experience || 0),
+        availability: profile.availability,
+        website: profile.website,
+        certifications,
+        languages: profile.languages || [],
+        isAvailable,
+        urgentAvailable,
+        galleryImages,
+      };
+      await api.patch('/api/providers/update-profile', payload);
+      toast.success('✅ Profile updated successfully!');
+    } catch (err) {
+      toast.error('Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // load profile
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data } = await api.get('/api/providers/profile');
+        const d = data.data || data;
+        const defaults = {
+          full_name: '',
+          email: '',
+          phone: '',
+          bio: '',
+          location: '',
+          service_name: '',
+          service_price: 0,
+          years_experience: 0,
+          certifications: [],
+          languages: [],
+          avatar_url: '',
+          service_description: '',
+          website: '',
+          availability: '',
+          isAvailable: true,
+          urgentAvailable: true,
+        };
+        const incoming = d.profile || d || {};
+        const normalized = { ...defaults, ...incoming };
+        setProfile(normalized);
+        setGalleryImages(d.galleryImages || normalized.galleryImages || []);
+        setCertifications(normalized.certifications || d.certifications || []);
+        setStats(d.stats || normalized.stats || fallbackStats);
+        if (incoming.isAvailable !== undefined) setIsAvailable(incoming.isAvailable);
+        if (incoming.urgentAvailable !== undefined) setUrgentAvailable(incoming.urgentAvailable);
+      } catch (err) {
+        toast.error('Could not load provider profile');
+        setProfile({
+          full_name: '', email: '', phone: '', bio: '', location: '',
+          service_name: '', service_price: 0, years_experience: 0,
+          certifications: [], languages: []
+        });
+        setGalleryImages(fallbackGallery);
+        setStats(fallbackStats);
+      }
+    };
+    load();
+  }, []);
+
+  const handleAvatarFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('avatar', file);
+    try {
+      setAvatarUploading(true);
+      toast.loading('Uploading avatar...', { id: 'avatar-upload' });
+      const { data } = await api.post('/api/providers/avatar', form);
+      const url = data.data?.avatar_url;
+      if (url) {
+        setProfile(prev => ({ ...prev, avatar_url: url }));
+        toast.success('Avatar updated successfully!', { id: 'avatar-upload' });
+      }
+    } catch (err) {
+      toast.error('Failed to upload avatar', { id: 'avatar-upload' });
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
+
+  const handleGalleryFiles = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const form = new FormData();
+    files.forEach(f => form.append('images', f));
+    try {
+      setGalleryUploading(true);
+      toast.loading('Uploading portfolio image(s)...', { id: 'gallery-upload' });
+      const { data } = await api.post('/api/providers/portfolio/upload', form);
+      const updated = data.data?.galleryImages || [];
+      setGalleryImages(updated);
+      toast.success('Portfolio updated!', { id: 'gallery-upload' });
+    } catch (err) {
+      toast.error('Failed to upload portfolio images', { id: 'gallery-upload' });
+    } finally {
+      setGalleryUploading(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveGallery = async (img) => {
+    try {
+      await api.delete('/api/providers/portfolio/delete', { data: { imageUrl: img } });
+      setGalleryImages(prev => prev.filter(i => i !== img));
+      toast.success('Image removed from portfolio');
+    } catch (err) {
+      setGalleryImages(prev => prev.filter(i => i !== img));
+      toast.info('Image removed');
+    }
+  };
+
+  const handleToggleAvailable = async (val) => {
+    setIsAvailable(val);
+    try {
+      await api.patch('/api/providers/availability', { isAvailable: val });
+      toast.success(val ? '🟢 Available for orders' : '🔴 Currently unavailable');
+    } catch (err) {
+      // rollback
+    }
+  };
+
+  const handleToggleUrgent = async (val) => {
+    setUrgentAvailable(val);
+    try {
+      await api.patch('/api/providers/availability', { urgentAvailable: val });
+      toast.success(val ? '⚡ Accepting urgent orders' : 'Urgent orders paused');
+    } catch (err) {
+      // rollback
+    }
+  };
+
+  const handleAddLanguage = () => {
+    if (!newLang.trim()) return;
+    const current = profile.languages || [];
+    if (!current.includes(newLang.trim())) {
+      setProfile({ ...profile, languages: [...current, newLang.trim()] });
+    }
+    setNewLang('');
+    setShowAddLang(false);
+    toast.success('Language added!');
   };
 
   const handleAddCert = () => {
@@ -50,6 +215,15 @@ export default function ProviderProfilePage() {
   const handleRemoveCert = (cert) => {
     setCertifications(prev => prev.filter(c => c !== cert));
   };
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+        <p className="text-muted-foreground text-sm">Loading provider profile...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,11 +252,24 @@ export default function ProviderProfilePage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
                   {/* Avatar */}
                   <div className="relative shrink-0">
-                    <img src={profile.avatar_url} alt={profile.full_name}
+                    <img src={profile.avatar_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400"} alt={profile.full_name}
                       className="h-20 w-20 md:h-24 md:w-24 rounded-2xl object-cover ring-4 ring-white/30 shadow-xl" />
-                    <button onClick={() => toast.info('Upload photo feature')}
-                      className="absolute -bottom-2 -right-2 p-2 bg-white rounded-xl shadow-lg">
-                      <Camera className="h-3.5 w-3.5 text-blue-700" />
+                    <input
+                      type="file"
+                      ref={avatarInputRef}
+                      onChange={handleAvatarFile}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      disabled={avatarUploading}
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="absolute -bottom-2 -right-2 p-2 bg-white rounded-xl shadow-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                      {avatarUploading ? (
+                        <Loader2 className="h-3.5 w-3.5 text-blue-700 animate-spin" />
+                      ) : (
+                        <Camera className="h-3.5 w-3.5 text-blue-700" />
+                      )}
                     </button>
                   </div>
                   {/* Info */}
@@ -96,10 +283,10 @@ export default function ProviderProfilePage() {
                     <p className="text-blue-200 text-sm mb-2">{profile.service_name} · {profile.location}</p>
                     <div className="flex flex-wrap gap-3">
                       <span className="flex items-center gap-1 text-blue-200 text-xs">
-                        <Star className="h-3.5 w-3.5 text-amber-300 fill-amber-300" /> {mockProviderStats.averageRating} rating
+                        <Star className="h-3.5 w-3.5 text-amber-300 fill-amber-300" /> {stats?.averageRating || 0} rating
                       </span>
                       <span className="flex items-center gap-1 text-blue-200 text-xs">
-                        <Award className="h-3.5 w-3.5" /> {mockProviderStats.completedOrders} completed
+                        <Award className="h-3.5 w-3.5" /> {stats?.completedOrders || 0} completed
                       </span>
                       <span className="flex items-center gap-1 text-blue-200 text-xs">
                         <Briefcase className="h-3.5 w-3.5" /> {profile.years_experience} yrs experience
@@ -112,12 +299,12 @@ export default function ProviderProfilePage() {
                       <div className="flex items-center gap-2 mb-2">
                         <div className={`h-2 w-2 rounded-full ${isAvailable ? 'bg-green-400' : 'bg-red-400'}`} />
                         <span className="text-white text-xs">Available for orders</span>
-                        <Switch checked={isAvailable} onCheckedChange={setIsAvailable} className="scale-75" />
+                        <Switch checked={isAvailable} onCheckedChange={handleToggleAvailable} className="scale-75 cursor-pointer" />
                       </div>
                       <div className="flex items-center gap-2">
                         <Zap className={`h-3 w-3 ${urgentAvailable ? 'text-amber-300' : 'text-white/40'}`} />
                         <span className="text-white/80 text-xs">Accept urgent</span>
-                        <Switch checked={urgentAvailable} onCheckedChange={setUrgentAvailable} className="scale-75" />
+                        <Switch checked={urgentAvailable} onCheckedChange={handleToggleUrgent} className="scale-75 cursor-pointer" />
                       </div>
                     </div>
                   </div>
@@ -183,7 +370,7 @@ export default function ProviderProfilePage() {
                             placeholder="Tell clients about your expertise, approach, and what makes you stand out..."
                             className="resize-none"
                           />
-                          <p className="text-muted-foreground text-xs mt-1">{profile.bio.length}/500 characters</p>
+                          <p className="text-muted-foreground text-xs mt-1">{(profile.bio || '').length}/500 characters</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -198,8 +385,8 @@ export default function ProviderProfilePage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          {profile.languages.map((lang, i) => (
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {(profile.languages || []).map((lang, i) => (
                             <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary rounded-full border border-border/40">
                               <span className="text-foreground text-sm">{lang}</span>
                               <button onClick={() => setProfile({ ...profile, languages: profile.languages.filter(l => l !== lang) })}
@@ -208,10 +395,52 @@ export default function ProviderProfilePage() {
                               </button>
                             </div>
                           ))}
-                          <Button variant="outline" size="sm" onClick={() => toast.info('Add language feature')}
-                            className="h-8 text-xs gap-1">
-                            <Plus className="h-3 w-3" /> Add Language
-                          </Button>
+                          {showAddLang ? (
+                            <div className="flex items-center gap-1.5">
+                              <Input
+                                placeholder="e.g. Spanish"
+                                value={newLang}
+                                onChange={e => setNewLang(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && newLang.trim()) {
+                                    if (!profile.languages?.includes(newLang.trim())) {
+                                      setProfile({ ...profile, languages: [...(profile.languages || []), newLang.trim()] });
+                                    }
+                                    setNewLang('');
+                                    setShowAddLang(false);
+                                  }
+                                }}
+                                className="h-8 w-28 text-xs"
+                                autoFocus
+                              />
+                              <Button
+                                size="sm"
+                                className="h-8 text-xs px-2"
+                                onClick={() => {
+                                  if (newLang.trim() && !profile.languages?.includes(newLang.trim())) {
+                                    setProfile({ ...profile, languages: [...(profile.languages || []), newLang.trim()] });
+                                  }
+                                  setNewLang('');
+                                  setShowAddLang(false);
+                                }}
+                              >
+                                Add
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 text-xs px-2"
+                                onClick={() => { setNewLang(''); setShowAddLang(false); }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button variant="outline" size="sm" onClick={() => setShowAddLang(true)}
+                              className="h-8 text-xs gap-1">
+                              <Plus className="h-3 w-3" /> Add Language
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -340,10 +569,10 @@ export default function ProviderProfilePage() {
                       <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           {[
-                            { label: 'Total Orders', value: mockProviderStats.completedOrders },
-                            { label: 'Total Revenue', value: `$${mockProviderStats.totalEarnings.toLocaleString()}` },
-                            { label: 'Avg Rating', value: `${mockProviderStats.averageRating}★` },
-                            { label: 'Repeat Clients', value: mockProviderStats.repeatClients },
+                            { label: 'Total Orders', value: stats.completedOrders || 0 },
+                            { label: 'Total Revenue', value: `$${(stats.totalEarnings || 0).toLocaleString()}` },
+                            { label: 'Avg Rating', value: `${stats.averageRating || 0}★` },
+                            { label: 'Repeat Clients', value: stats.repeatClients || 0 },
                           ].map((m, i) => (
                             <div key={i} className="p-3 rounded-xl bg-secondary border border-border/40 text-center">
                               <p className="text-foreground text-lg">{m.value}</p>
@@ -456,8 +685,21 @@ export default function ProviderProfilePage() {
                             </CardTitle>
                             <CardDescription>Showcase your best work — {galleryImages.length} images</CardDescription>
                           </div>
-                          <Button variant="outline" onClick={() => toast.info('Upload image functionality')} className="gap-1.5 text-sm">
-                            <Camera className="h-3.5 w-3.5" /> Upload
+                          <input
+                            ref={galleryInputRef}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={handleGalleryFiles}
+                          />
+                          <Button
+                            variant="outline"
+                            disabled={galleryUploading}
+                            onClick={() => galleryInputRef.current?.click()}
+                            className="gap-1.5 text-sm"
+                          >
+                            <Camera className="h-3.5 w-3.5" /> {galleryUploading ? 'Uploading...' : 'Upload'}
                           </Button>
                         </div>
                       </CardHeader>
@@ -479,10 +721,13 @@ export default function ProviderProfilePage() {
                               </motion.div>
                             ))}
                             {/* Upload placeholder */}
-                            <button onClick={() => toast.info('Upload image functionality')}
-                              className="h-36 md:h-44 rounded-xl border-2 border-dashed border-border/40 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-blue-400/50 hover:text-blue-500 transition-all duration-200">
+                            <button
+                              disabled={galleryUploading}
+                              onClick={() => galleryInputRef.current?.click()}
+                              className="h-36 md:h-44 rounded-xl border-2 border-dashed border-border/40 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-blue-400/50 hover:text-blue-500 transition-all duration-200"
+                            >
                               <Plus className="h-6 w-6" />
-                              <span className="text-xs">Add Image</span>
+                              <span className="text-xs">{galleryUploading ? 'Uploading...' : 'Add Image'}</span>
                             </button>
                           </div>
                         </AnimatePresence>

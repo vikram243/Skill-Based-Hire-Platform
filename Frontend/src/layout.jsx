@@ -20,11 +20,12 @@ const Layout = () => {
   const { pathname } = useLocation();
   const isProviderRoute = pathname.startsWith("/provider");
   const isChatRoute = pathname.startsWith("/chat");
+  const isAdminRoute = pathname.startsWith("/admin");
 
   return (
     <>
       <ScrollRestoration />
-      {(!isProviderRoute && !isChatRoute) && (
+      {(!isProviderRoute && !isChatRoute && !isAdminRoute) && (
         <Navigation
           setIsAuthPanelOpen={setIsAuthPanelOpen}
           isDarkMode={isDarkMode}
@@ -37,7 +38,7 @@ const Layout = () => {
       <Outlet />
 
 
-      {(!isProviderRoute && !isChatRoute) && <Footer />}
+      {(!isProviderRoute && !isChatRoute && !isAdminRoute) && <Footer />}
 
       <Suspense fallback={null}>
         {isAuthPanelOpen && (

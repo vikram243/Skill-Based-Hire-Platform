@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Calendar, DollarSign, Star, TrendingUp, Users, Package,
   CheckCircle2, XCircle, AlertTriangle, Clock, ArrowUpRight,
@@ -9,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Progress } from '../../components/ui/progress';
-import { mockProviderStats, mockProviderOrders, mockActivityFeed, mockMonthlyEarnings } from '../../data/providerMockData';
+import api from '../../lib/axiosSetup';
+// activity fallback removed — use empty feed when API fails
 import { toast } from 'sonner';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'motion/react';
@@ -24,13 +26,24 @@ const itemVariants = {
 };
 
 export default function ProviderDashboard({  onNavigate }) {
-  const [upcomingOrders, setUpcomingOrders] = useState(
-    mockProviderOrders.filter(o => o.status === 'pending').sort((a, b) => {
-      const w = { urgent: 0, normal: 1 };
-      return w[a.urgency] - w[b.urgency];
-    })
-  );
-  const [activeOrders, setActiveOrders] = useState(mockProviderOrders.filter(o => o.status === 'in_progress'));
+  const { user } = useSelector((state) => state.user);
+  const [providerInfo, setProviderInfo] = useState(null);
+  const [upcomingOrders, setUpcomingOrders] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [stats, setStats] = useState({
+    totalEarnings: 0,
+    thisMonthEarnings: 0,
+    activeOrders: 0,
+    completedOrders: 0,
+    pendingOrders: 0,
+    averageRating: 0,
+    responseRate: 0,
+    onTimeDelivery: 0,
+    totalClients: 0,
+    repeatClients: 0,
+  });
+  const [monthlyEarnings, setMonthlyEarnings] = useState([]);
+  const [activityFeed, setActivityFeed] = useState([]);
   const [greeting, setGreeting] = useState('');
 
   // Core rule: only 1 active (in_progress) order at a time
@@ -44,33 +57,88 @@ export default function ProviderDashboard({  onNavigate }) {
     else setGreeting('Good Evening');
   }, []);
 
-  const handleAccept = (id) => {
+  const handleAccept = async (id) => {
     if (hasActiveOrder) {
       toast.error(`⚠️ Complete your active order with ${currentActiveOrder?.customer_name} first!`);
       return;
     }
-    const o = mockProviderOrders.find(x => x.id === id);
-    if (o) {
-      o.status = 'in_progress';
-      setUpcomingOrders(p => p.filter(x => x.id !== id));
-      setActiveOrders([{ ...o, status: 'in_progress', progress: 0 }]);
-      toast.success(`✅ Accepted order from ${o.customer_name} — now in progress!`);
-    }
-  };
-  const handleReject = (id) => {
-    const o = mockProviderOrders.find(x => x.id === id);
-    if (o) { o.status = 'cancelled'; setUpcomingOrders(p => p.filter(x => x.id !== id)); toast.info(`Order from ${o.customer_name} declined.`); }
-  };
-  const handleMarkComplete = (id) => {
-    const o = activeOrders.find(x => x.id === id);
-    if (o) {
-      setActiveOrders([]);
-      toast.success(`🎉 Order from ${o.customer_name} completed! You can now accept new orders.`);
+    try {
+      const { data } = await api.patch(`/api/providers/orders/${id}/status`, { status: 'in_progress' });
+      const updated = data.data || data;
+      setUpcomingOrders(prev => prev.filter(o => o.id !== id));
+      setActiveOrders([{ ...updated, id: updated._id || updated.id, progress: updated.progress || 0 }]);
+      toast.success('✅ Order accepted — now in progress!');
+    } catch (err) {
+      toast.error('Failed to accept order');
     }
   };
 
-  const stats = mockProviderStats;
-  const maxEarning = Math.max(...mockMonthlyEarnings.map(m => m.earnings));
+  const handleReject = async (id) => {
+    try {
+      await api.patch(`/api/providers/orders/${id}/status`, { status: 'cancelled' });
+      setUpcomingOrders(prev => prev.filter(o => o.id !== id));
+      toast.info('Order declined');
+    } catch (err) {
+      toast.error('Failed to decline order');
+    }
+  };
+
+  const handleMarkComplete = async (id) => {
+    try {
+      const { data } = await api.patch(`/api/providers/orders/${id}/status`, { status: 'completed' });
+      setActiveOrders([]);
+      toast.success('🎉 Order completed! You can now accept new orders.');
+    } catch (err) {
+      toast.error('Failed to mark order complete');
+    }
+  };
+
+  const maxEarning = monthlyEarnings.length ? Math.max(...monthlyEarnings.map(m => m.earnings)) : 0;
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [{ data: dash }, { data: analytics }, { data: reviewsRes }] = await Promise.all([
+          api.get('/api/providers/dashboard'),
+          api.get('/api/providers/analytics'),
+          api.get('/api/providers/reviews'),
+        ]);
+
+        setStats({
+          totalEarnings: (dash.data.stats && dash.data.stats.totalEarnings) || 0,
+          thisMonthEarnings: (dash.data.stats && dash.data.stats.thisMonthEarnings) || 0,
+          activeOrders: (dash.data.stats && dash.data.stats.activeOrders) || 0,
+          completedOrders: (dash.data.stats && dash.data.stats.completedOrders) || 0,
+          pendingOrders: (dash.data.stats && dash.data.stats.pendingOrders) || 0,
+          averageRating: (dash.data.stats && dash.data.stats.averageRating) || 0,
+          responseRate: (dash.data.stats && dash.data.stats.responseRate) || 0,
+          onTimeDelivery: (dash.data.stats && dash.data.stats.onTimeDelivery) || 0,
+          totalClients: (dash.data.stats && dash.data.stats.totalClients) || 0,
+          repeatClients: (dash.data.stats && dash.data.stats.repeatClients) || 0,
+        });
+        setUpcomingOrders((dash.data.upcomingOrders || []).map(o => ({ ...o, id: o.id || o._id })));
+        setActiveOrders((dash.data.activeOrders || []).map(o => ({ ...o, id: o.id || o._id })));
+        setProviderInfo(dash.data.providerInfo || null);
+
+        // monthly earnings shape: use monthlyData if provided
+        const monthly = analytics.data.monthlyData || analytics.data.data?.monthlyData || analytics.data.monthlyData || [];
+        setMonthlyEarnings(Array.isArray(monthly) ? monthly : (analytics.data.data?.monthlyData || []));
+
+        // build a simple activity feed from reviews and upcoming orders
+        const revs = reviewsRes.data.data?.reviews || reviewsRes.data.reviews || [];
+        const feed = [
+          ...((dash.data.upcomingOrders || []).slice(0, 3).map(o => ({ id: `order-${o.id}`, type: 'order_new', message: `New order request from ${o.customer_name}`, time: 'just now', icon: 'bell' }))),
+          ...revs.slice(0, 5).map(r => ({ id: `rev-${r.id}`, type: 'review_received', message: `New ${r.rating}-star review from ${r.customer_name}`, time: new Date(r.created_at).toLocaleDateString(), icon: 'star' })),
+        ];
+        setActivityFeed(feed.length ? feed : []);
+      } catch (err) {
+        toast.error('Could not load provider dashboard data');
+        setActivityFeed([]);
+      }
+    };
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,8 +161,10 @@ export default function ProviderDashboard({  onNavigate }) {
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <p className="text-blue-200 text-sm mb-1">{greeting}, 👋</p>
-                <h1 className="text-2xl md:text-3xl text-white mb-1">John Smith</h1>
-                <p className="text-blue-200">Web Development Provider</p>
+                <h1 className="text-2xl md:text-3xl text-white mb-1 font-bold">
+                  {providerInfo?.businessName || providerInfo?.name || user?.fullName || 'Service Provider'}
+                </h1>
+                <p className="text-blue-200">{providerInfo?.skillName || 'Verified Professional'}</p>
                 <div className="flex flex-wrap gap-2 mt-3">
                   <span className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs">
                     <Star className="h-3 w-3 fill-yellow-300 text-yellow-300" /> {stats.averageRating} Rating
@@ -125,12 +195,12 @@ export default function ProviderDashboard({  onNavigate }) {
           >
             {[
               {
-                label: 'Total Earnings', value: `$${stats.totalEarnings.toLocaleString()}`,
+                label: 'Total Earnings', value: `$${(stats.totalEarnings || 0).toLocaleString()}`,
                 sub: 'All time revenue', icon: DollarSign, color: 'from-emerald-400 to-green-600',
                 badge: '+12.5%', positive: true
               },
               {
-                label: 'This Month', value: `$${stats.thisMonthEarnings.toLocaleString()}`,
+                label: 'This Month', value: `$${(stats.thisMonthEarnings || 0).toLocaleString()}`,
                 sub: 'Monthly revenue', icon: TrendingUp, color: 'from-blue-400 to-indigo-600',
                 badge: '+18.2%', positive: true
               },
@@ -319,7 +389,7 @@ export default function ProviderDashboard({  onNavigate }) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockActivityFeed.map((item, i) => (
+                    {activityFeed.map((item, i) => (
                       <motion.div key={item.id}
                         initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.5 + i * 0.08 }}
@@ -441,8 +511,8 @@ export default function ProviderDashboard({  onNavigate }) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockMonthlyEarnings.map((m, i) => {
-                      const pct = (m.earnings / maxEarning) * 100;
+                    {(monthlyEarnings || []).map((m, i) => {
+                      const pct = (m.earnings / (maxEarning || 1)) * 100;
                       return (
                         <div key={i} className="flex items-center gap-3">
                           <span className="text-muted-foreground text-xs w-8 shrink-0">{m.month}</span>
@@ -453,7 +523,7 @@ export default function ProviderDashboard({  onNavigate }) {
                               transition={{ delay: 0.6 + i * 0.07, duration: 0.6, ease: 'easeOut' }}
                             />
                           </div>
-                          <span className="text-foreground text-xs w-16 text-right shrink-0">${m.earnings.toLocaleString()}</span>
+                          <span className="text-foreground text-xs w-16 text-right shrink-0">${(m.earnings || 0).toLocaleString()}</span>
                         </div>
                       );
                     })}
