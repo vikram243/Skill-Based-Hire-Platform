@@ -7,13 +7,18 @@ import {
   refreshAccessToken,
   updateProfile,
   switchToProviderMode,
-  switchToUserMode
+  switchToUserMode,
+  getPublicPlatformStats,
+  submitContactInquiry
 } from '../controllers/user.controller.js';
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { sendOtpSchema, verifyOtpSchema, registerSchema, refreshSchema, updateProfileSchema } from '../validators/user.validator.js';
 import { upload } from '../middlewares/upload.middleware.js';
 const router = Router();
+
+router.get("/stats", getPublicPlatformStats);
+router.post("/contact", submitContactInquiry);
 
 router.route("/send-otp").post(
   validate(sendOtpSchema),

@@ -5,12 +5,15 @@ import { ApiError } from '../utils/api.handeller.js';
 export const requireProviderMode = asyncHandler(async (req, res, next) => {
   if (!req.user) throw new ApiError(401, 'Not authenticated');
 
-  if (!req.user.isProvider) {
-    throw new ApiError(403, 'User is not a provider');
+  const isProviderUser = req.user.isProvider || Boolean(req.user.providerProfile);
+  if (!isProviderUser) {
+    throw new ApiError(403, 'User is not a registered provider');
   }
 
   if (!req.user.isProviderMode) {
-    throw new ApiError(403, 'Provider mode is not enabled');
+    req.user.isProviderMode = true;
+    req.user.isProvider = true;
+    await req.user.save();
   }
 
   next();

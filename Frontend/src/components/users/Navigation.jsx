@@ -10,23 +10,30 @@ import { Button } from "../ui/button.jsx";
 import { Input } from "../ui/input.jsx";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar.jsx";
 import { LocationPickerPanel } from "./LocationPickerPanel.jsx";
+import NotificationDropdown from "../ui/NotificationDropdown.jsx";
 import { useSelector, useDispatch } from "react-redux";
 import api from "../../lib/axiosSetup.js";
 import { updateLocation } from "../../slices/userSlice.js";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Home,
   MessageCircle,
   FileText,
   User,
-  Map,
   MapPin,
   ChevronDown,
   Moon,
   Sun,
+  ShieldAlert,
+  Sparkles,
+  Menu,
+  X,
+  Briefcase,
+  HelpCircle,
+  LayoutGrid
 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 import {
   Menubar,
@@ -48,58 +55,19 @@ export default function Navigation({
   const { isAuthenticated, user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
-  const userLocationFromDb = user?.location?.address || "Select location";
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const userLocationFromDb = user?.location?.address || user?.location?.city || "Select Location";
   const userLocationAddress = user?.location?.address;
   const navigate = useNavigate();
   const location = useLocation();
-  const currentPage = location.pathname.split("/")[1];
 
-  const handleNavigate = useCallback(
-    (id) => {
-      let target = "/";
-      switch (id) {
-        case "orders":
-          target = "/orders";
-          break;
-        case "chat":
-          target = "/chat";
-          break;
-        case "search":
-          target = "/search";
-          break;
-        case "profile":
-          target = "/profile";
-          break;
-        default:
-          target = "/";
-      }
-
-      if (location.pathname === target) return;
-
-      navigate(target);
-    },
-    [location.pathname, navigate],
-  );
-
-  const handleSearch = useCallback(() => {
-    if (!isAuthenticated) {
-      setIsAuthPanelOpen(true);
-      return;
+  const handleSearchSubmit = useCallback(() => {
+    if (searchQuery && searchQuery.trim().length > 0) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate("/search");
     }
-
-    navigate("/search");
-  }, [isAuthenticated, navigate, setIsAuthPanelOpen]);
-
-  const navItems = useMemo(
-    () => [
-      { id: "/", label: "Home", icon: Home },
-      { id: "orders", label: "Orders", icon: FileText },
-      { id: "search", label: "Search", icon: Search },
-      { id: "chat", label: "Chat", icon: MessageCircle },
-      { id: "profile", label: "Profile", icon: null },
-    ],
-    [],
-  );
+  }, [navigate, searchQuery]);
 
   // If user has no saved location, fetch via IP and persist
   const fetchIpLocationAndSave = useCallback(async () => {
@@ -125,7 +93,7 @@ export default function Navigation({
         /* ignore */
       }
     } catch (err) {
-      console.error("IP location failed", err);
+      // IP lookup fallback
     }
   }, [dispatch]);
 
@@ -140,267 +108,347 @@ export default function Navigation({
     }
   }, [isAuthenticated, userLocationAddress, fetchIpLocationAndSave]);
 
+  const navLinks = [
+    { label: "Explore", to: "/search" },
+    { label: "Services", to: "/services" },
+    { label: "How It Works", to: "/how-it-works" },
+  ];
+
   return (
     <>
-      {/* Desktop Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/50 backdrop-blur-2xl supports-backdrop-filter:bg-background/40">
-        <div className="container flex h-18 items-center justify-between px-4 mx-auto py-3">
-          {/* Logo */}
-          <div
-            className="flex items-center space-x-3 cursor-pointer group"
-            onClick={() => navigate("/")}
-          >
-              <div className="w-10 h-10 bg-linear-to-br from-(--primary-gradient-start) to-(--primary-gradient-end) rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
-                <span className="font-bold text-lg">S</span>
+      <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/70">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
+          {/* Logo & Brand */}
+          <div className="flex items-center gap-6">
+            <Link
+              to="/"
+              className="flex items-center space-x-2.5 group transition-transform active:scale-95"
+            >
+              <div className="w-9 h-9 bg-linear-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:shadow-lg transition-all">
+                <span className="font-extrabold text-lg">S</span>
               </div>
-            <h1 className="font-bold text-xl bg-linear-to-r from-(--primary-gradient-start) to-(--primary-gradient-end) bg-clip-text text-transparent">
-              SkillHub
-            </h1>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-xl tracking-tight text-foreground leading-none">
+                  SkillHub
+                </span>
+                <span className="text-[10px] text-muted-foreground font-semibold tracking-wider uppercase leading-tight mt-0.5">
+                  Pro Network
+                </span>
+              </div>
+            </Link>
+
+            {/* Quick Links on Large Screens */}
+            <nav className="hidden lg:flex items-center space-x-1 text-sm font-medium">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`px-3 py-1.5 rounded-lg transition-colors ${
+                    location.pathname === link.to
+                      ? "text-primary font-semibold bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           </div>
 
-          {/* Desktop Search */}
-          {isAuthenticated && (
-            <div className="hidden md:flex flex-1 max-w-2xl mx-8">
-              <div className="flex w-full gap-3">
-                {/* Location Selector */}
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsLocationPickerOpen(true)}
-                  className="h-11 px-4 border-2 border-border/60 hover:border-(--primary-gradient-start) transition-all duration-200 min-w-40 justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-red-400" />
-                    <span className="text-sm truncate max-w-22">
-                      {userLocationFromDb}
-                    </span>
-                  </div>
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-
-                {/* Search Input */}
-                <div className="flex-1 relative group">
-                  <Input
-                    placeholder="Search skills or services..."
-                    value={searchQuery}
-                    onChange={(e) => onSearchChange?.(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter")
-                        onSearch ? onSearch() : handleSearch();
-                    }}
-                    className="pr-16 h-11 bg-input-background border-2 border-border/60 shadow-sm focus:shadow-md focus:border-(--primary-gradient-start) transition-all duration-200"
-                  />
-                  {/* Keyboard Shortcut Hint */}
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 hidden lg:flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                    <kbd className="pointer-events-none inline-flex h-6 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                      <span className="text-xs">⌘</span>K
-                    </kbd>
-                  </div>
+          {/* Search Bar (Visible on desktop/tablet for all users) */}
+          <div className="hidden md:flex flex-1 max-w-xl mx-4 lg:mx-8">
+            <div className="flex w-full gap-2">
+              {/* Location Picker Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsLocationPickerOpen(true)}
+                className="h-10 px-3 border border-border bg-card/60 hover:bg-card text-xs font-medium justify-between shrink-0 max-w-36 text-muted-foreground hover:text-foreground"
+              >
+                <div className="flex items-center gap-1.5 truncate">
+                  <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                  <span className="truncate">{userLocationFromDb}</span>
                 </div>
+                <ChevronDown className="w-3 h-3 ml-1 opacity-60 shrink-0" />
+              </Button>
+
+              {/* Search Input Box */}
+              <div className="flex-1 relative">
+                <Input
+                  placeholder="Find plumbers, electricians, tutors, cleaners..."
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange?.(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      onSearch ? onSearch() : handleSearchSubmit();
+                    }
+                  }}
+                  className="h-10 pl-9 pr-14 text-sm bg-card/60 border border-border rounded-xl focus:bg-card focus:border-primary transition-all"
+                />
+                <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => (onSearch ? onSearch() : handleSearch())}
-                  className="h-11 w-11 border-2 border-border hover:border-(--primary-gradient-start) hover:bg-(--primary-gradient-start)/10 transition-all duration-200"
+                  size="sm"
+                  onClick={() => (onSearch ? onSearch() : handleSearchSubmit())}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-2.5 bg-primary text-white hover:bg-primary/90 text-xs rounded-lg shadow-xs"
                 >
-                  <Search className="w-5 h-5" />
+                  Search
                 </Button>
               </div>
             </div>
-          )}
+          </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          {/* Right Action Icons & Auth */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Dark Mode Toggle */}
             <button
-              aria-pressed={isDarkMode}
               onClick={onToggleDarkMode}
-              title={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
-              className="p-2 cursor-pointer flex items-center text-amber-400 dark:text-blue-500 transition-colors"
+              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer"
+              aria-label="Toggle theme"
             >
               {isDarkMode ? (
-                <Moon className="w-4 h-4" />
+                <Sun className="w-4 h-4 text-amber-400" />
               ) : (
-                <Sun className="w-4 h-4" />
+                <Moon className="w-4 h-4 text-slate-700" />
               )}
             </button>
+
+            {/* Authenticated State */}
             {isAuthenticated ? (
               <>
-                <Menubar>
+                {/* Real-time Notifications */}
+                <NotificationDropdown />
+
+                {/* User Menu */}
+                <Menubar className="border-0 bg-transparent p-0">
                   <MenubarMenu>
-                    <MenubarTrigger>
-                      <div className="flex items-center gap-3 pl-1 pr-4 py-1 rounded-full bg-secondary/30 border border-border cursor-pointer hover:bg-secondary/50 transition-colors">
-                        <div className="w-7 h-7 rounded-full bg-linear-to-br from-blue-400 to-indigo-800 flex items-center border justify-center text-white text-sm font-bold">
-                          {user?.avatar ? (
-                            <img
-                              src={user.avatar}
-                              alt={user.firstName}
-                              className="w-full h-full rounded-full"
-                            />
-                          ) : user?.fullName ? (
-                            user.fullName.charAt(0).toUpperCase()
-                          ) : (
-                            "U"
-                          )}
-                        </div>
-                        <span className="text-sm font-medium hidden sm:inline-block">
-                          {user?.fullName?.split(" ")[0]}
+                    <MenubarTrigger className="p-0 border-0 focus:bg-transparent">
+                      <div className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-secondary/50 border border-border cursor-pointer hover:bg-secondary transition-all">
+                        <Avatar className="w-7 h-7">
+                          <AvatarImage src={user?.avatar} alt={user?.fullName || "User"} />
+                          <AvatarFallback className="text-xs font-semibold bg-primary text-white">
+                            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs font-semibold max-w-24 truncate hidden sm:inline text-foreground">
+                          {user?.fullName?.split(" ")[0] || "Account"}
                         </span>
+                        <ChevronDown className="w-3 h-3 text-muted-foreground hidden sm:inline" />
                       </div>
                     </MenubarTrigger>
-                    <MenubarContent className="min-w-36 mr-1 mt-2 font-semibold">
-                      <MenubarItem onClick={() => handleNavigate("chat")}>
-                        <MessageCircle />
-                        Chat
+                    <MenubarContent className="min-w-44 mr-2 mt-2 font-medium rounded-xl border-border bg-card shadow-xl">
+                      <MenubarItem onClick={() => navigate("/profile")} className="cursor-pointer">
+                        <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                        My Profile
                       </MenubarItem>
-                      <MenubarSeparator />
-                      <MenubarItem onClick={() => handleNavigate("orders")}>
-                        <FileText className="focus:text-accent-foreground" />
-                        Orders
+                      <MenubarItem onClick={() => navigate("/orders")} className="cursor-pointer">
+                        <FileText className="w-4 h-4 mr-2 text-muted-foreground" />
+                        My Bookings
                       </MenubarItem>
-                      <MenubarSeparator />
-                      <MenubarItem onClick={() => handleNavigate("profile")}>
-                        <User className="focus:text-accent-foreground" />
-                        View Profile
+                      <MenubarItem onClick={() => navigate("/chat")} className="cursor-pointer">
+                        <MessageCircle className="w-4 h-4 mr-2 text-muted-foreground" />
+                        Messages
                       </MenubarItem>
+                      
+                      {user?.isProvider && (
+                        <>
+                          <MenubarSeparator />
+                          <MenubarItem onClick={() => navigate("/provider/dashboard")} className="text-blue-600 dark:text-blue-400 font-semibold cursor-pointer">
+                            <Briefcase className="w-4 h-4 mr-2" />
+                            Provider Dashboard
+                          </MenubarItem>
+                        </>
+                      )}
+
+                      {user?.isAdmin && (
+                        <>
+                          <MenubarSeparator />
+                          <MenubarItem onClick={() => navigate("/admin/dashboard")} className="text-purple-600 dark:text-purple-400 font-bold cursor-pointer">
+                            <ShieldAlert className="w-4 h-4 mr-2" />
+                            Admin Console
+                          </MenubarItem>
+                        </>
+                      )}
                     </MenubarContent>
                   </MenubarMenu>
                 </Menubar>
               </>
             ) : (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
-                  className="cursor-pointer"
+                  size="sm"
                   onClick={() => setIsAuthPanelOpen(true)}
+                  className="text-xs font-semibold hover:bg-muted text-foreground cursor-pointer"
                 >
                   Sign In
                 </Button>
                 <Button
-                  variant="outline"
                   size="sm"
-                  onClick={() => navigate("/admin-login")}
-                  className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-                >
-                  Admin
-                </Button>
-              </div>
-            )}
-
-            <LocationPickerPanel
-              isOpen={isLocationPickerOpen}
-              onClose={() => setIsLocationPickerOpen(false)}
-              currentLocation={userLocationFromDb}
-              onLocationSelect={() => {}}
-            />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="flex gap-2 md:hidden">
-            {!isAuthenticated && (
-              <div className="md:hidden flex items-center justify-center gap-2">
-                <Button
-                  variant="ghost"
-                  className="cursor-pointer"
                   onClick={() => setIsAuthPanelOpen(true)}
+                  className="text-xs font-semibold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-xs cursor-pointer hidden sm:flex"
                 >
-                  Sign In
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate("/admin-login")}
-                  className="text-xs cursor-pointer text-muted-foreground hover:text-foreground"
-                >
-                  Admin
+                  Join as Pro
                 </Button>
               </div>
             )}
-            {isAuthenticated && (
-              <Button
-                variant="ghost"
-                onClick={() => setIsLocationPickerOpen(true)}
-                className="px-4 border rounded-full border-border/60 hover:border-(--primary-gradient-start) transition-all duration-200 justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-red-400" />
-                </div>
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            )}
+
+            {/* Mobile Hamburger Menu Toggle */}
             <button
-              aria-pressed={isDarkMode}
-              onClick={onToggleDarkMode}
-              title={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
-              className="p-2 cursor-pointer flex items-center md:hidden text-amber-400 dark:text-blue-500 transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
+              aria-label="Toggle menu"
             >
-              {isDarkMode ? (
-                <Moon className="w-4 h-4" />
-              ) : (
-                <Sun className="w-4 h-4" />
-              )}
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Search Bar in sub-header */}
+        <div className="md:hidden px-4 pb-3 pt-1 border-t border-border/40 bg-card/40">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsLocationPickerOpen(true)}
+              className="h-9 px-2 text-xs border border-border shrink-0 max-w-28 text-muted-foreground"
+            >
+              <MapPin className="w-3.5 h-3.5 text-red-500 mr-1 shrink-0" />
+              <span className="truncate">{userLocationFromDb}</span>
+            </Button>
+            <div className="relative flex-1">
+              <Input
+                placeholder="Search services or pros..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSearchSubmit();
+                }}
+                className="h-9 text-xs pl-8 pr-3 bg-background border-border rounded-lg"
+              />
+              <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Drawer Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="lg:hidden border-b border-border bg-card px-4 py-4 space-y-3"
+            >
+              <div className="space-y-1">
+                <Link
+                  to="/search"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-muted text-foreground"
+                >
+                  <Search className="w-4 h-4 text-primary" />
+                  Explore All Providers
+                </Link>
+                <Link
+                  to="/services"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-muted text-foreground"
+                >
+                  <LayoutGrid className="w-4 h-4 text-primary" />
+                  Service Categories
+                </Link>
+                <Link
+                  to="/how-it-works"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-muted text-foreground"
+                >
+                  <HelpCircle className="w-4 h-4 text-primary" />
+                  How SkillHub Works
+                </Link>
+                <Link
+                  to="/safety"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-muted text-foreground"
+                >
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Safety & Guarantee
+                </Link>
+              </div>
+
+              {!isAuthenticated && (
+                <div className="pt-3 border-t border-border flex flex-col gap-2">
+                  <Button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsAuthPanelOpen(true);
+                    }}
+                    className="w-full text-xs font-semibold bg-primary text-white"
+                  >
+                    Sign In / Sign Up
+                  </Button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
-      {/* Mobile Bottom Navigation */}
-      {isAuthenticated && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-2xl border-t border-border">
-          <div className="flex items-center justify-around py-2">
-            {navItems.slice(0, 5).map((item) => {
-              const Icon = item.icon;
-              let targetPath = "/";
-              switch (item.id) {
-                case "orders":
-                  targetPath = "/orders";
-                  break;
-                case "chat":
-                  targetPath = "/chats";
-                  break;
-                case "profile":
-                  targetPath = "/profile";
-                  break;
-                case "search":
-                  targetPath = "/search";
-                  break;
-                default:
-                  targetPath = "/";
-              }
-              const isActive = location.pathname === targetPath;
+      {/* Location Picker Modal */}
+      <LocationPickerPanel
+        isOpen={isLocationPickerOpen}
+        onClose={() => setIsLocationPickerOpen(false)}
+        currentLocation={userLocationFromDb}
+        onLocationSelect={() => {}}
+      />
 
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavigate(item.id)}
-                  className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
-                    isActive ? "text-blue-500" : "text-muted-foreground"
-                  }`}
-                >
-                  {item.id === "profile" ? (
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={user?.avatar} alt={user?.firstName} />
-                      <AvatarFallback className="text-xs">
-                        {user?.firstName
-                          ? user.firstName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                          : "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    Icon && <Icon className="w-4 h-4" />
-                  )}
-                  <span className="text-xs">{item.label}</span>
-                  {isActive && (
-                    <motion.div layoutId="mobile-nav-dot" className="h-1 w-1 rounded-full bg-blue-500 mt-1" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+      {/* Mobile Bottom Floating Nav for quick access */}
+      {isAuthenticated && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border px-6 py-2 flex items-center justify-between">
+          <Link
+            to="/"
+            className={`flex flex-col items-center gap-1 text-[11px] font-medium ${
+              location.pathname === "/" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <Home className="w-4 h-4" />
+            Home
+          </Link>
+          <Link
+            to="/search"
+            className={`flex flex-col items-center gap-1 text-[11px] font-medium ${
+              location.pathname.startsWith("/search") ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <Search className="w-4 h-4" />
+            Explore
+          </Link>
+          <Link
+            to="/orders"
+            className={`flex flex-col items-center gap-1 text-[11px] font-medium ${
+              location.pathname === "/orders" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            Bookings
+          </Link>
+          <Link
+            to="/chat"
+            className={`flex flex-col items-center gap-1 text-[11px] font-medium ${
+              location.pathname === "/chat" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <MessageCircle className="w-4 h-4" />
+            Chat
+          </Link>
+          <Link
+            to="/profile"
+            className={`flex flex-col items-center gap-1 text-[11px] font-medium ${
+              location.pathname === "/profile" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <User className="w-4 h-4" />
+            Profile
+          </Link>
         </nav>
       )}
     </>

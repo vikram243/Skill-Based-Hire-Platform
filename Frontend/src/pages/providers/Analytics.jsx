@@ -52,9 +52,11 @@ export default function ProviderAnalyticsPage() {
         const d = data.data || data;
         setMonthlyData(d.monthlyData || d.monthly || []);
         setStats(d.stats || d || {});
-        // derive a simple weekly sample from monthly if not provided
-        const sampleWeek = [6,5,4,3,2,1,0].map((i, idx) => ({ day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][idx], earnings: Math.round(((d.monthlyData || d.monthly || [])[0]?.earnings || 400) / 7), orders: 1 }));
-        setWeeklyData(sampleWeek);
+        if (d.weeklyData && Array.isArray(d.weeklyData)) {
+          setWeeklyData(d.weeklyData);
+        } else {
+          setWeeklyData(d.monthlyData || []);
+        }
       } catch (err) {
         // ignore — keep defaults
       }
@@ -62,8 +64,11 @@ export default function ProviderAnalyticsPage() {
     fetch();
   }, []);
 
-  const growthPct = ((stats.thisMonthEarnings || 0) - 2350) / 2350 * 100;
-  const avgOrderValue = (stats.totalEarnings || 0) / Math.max(stats.completedOrders || 1, 1);
+  const previousMonthEarnings = (monthlyData && monthlyData.length > 1) ? (monthlyData[monthlyData.length - 2]?.earnings || 0) : 0;
+  const growthPct = previousMonthEarnings > 0 
+    ? Math.round((((stats.thisMonthEarnings || 0) - previousMonthEarnings) / previousMonthEarnings) * 100) 
+    : 0;
+  const avgOrderValue = Math.round((stats.totalEarnings || 0) / Math.max(stats.completedOrders || 1, 1));
 
   const urgencyData = [
     { name: 'Normal Orders', value: stats.normalOrdersCount || 0, color: '#3B82F6' },

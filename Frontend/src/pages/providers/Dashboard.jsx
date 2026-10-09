@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Calendar, DollarSign, Star, TrendingUp, Users, Package,
   CheckCircle2, XCircle, AlertTriangle, Clock, ArrowUpRight,
@@ -25,6 +26,8 @@ const itemVariants = {
 };
 
 export default function ProviderDashboard({  onNavigate }) {
+  const { user } = useSelector((state) => state.user);
+  const [providerInfo, setProviderInfo] = useState(null);
   const [upcomingOrders, setUpcomingOrders] = useState([]);
   const [activeOrders, setActiveOrders] = useState([]);
   const [stats, setStats] = useState({
@@ -114,7 +117,8 @@ export default function ProviderDashboard({  onNavigate }) {
           repeatClients: (dash.data.stats && dash.data.stats.repeatClients) || 0,
         });
         setUpcomingOrders((dash.data.upcomingOrders || []).map(o => ({ ...o, id: o.id || o._id })));
-        setActiveOrders([]);
+        setActiveOrders((dash.data.activeOrders || []).map(o => ({ ...o, id: o.id || o._id })));
+        setProviderInfo(dash.data.providerInfo || null);
 
         // monthly earnings shape: use monthlyData if provided
         const monthly = analytics.data.monthlyData || analytics.data.data?.monthlyData || analytics.data.monthlyData || [];
@@ -129,7 +133,7 @@ export default function ProviderDashboard({  onNavigate }) {
         setActivityFeed(feed.length ? feed : []);
       } catch (err) {
         toast.error('Could not load provider dashboard data');
-        setActivityFeed(fallbackActivity);
+        setActivityFeed([]);
       }
     };
     load();
@@ -157,8 +161,10 @@ export default function ProviderDashboard({  onNavigate }) {
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <p className="text-blue-200 text-sm mb-1">{greeting}, 👋</p>
-                <h1 className="text-2xl md:text-3xl text-white mb-1">John Smith</h1>
-                <p className="text-blue-200">Web Development Provider</p>
+                <h1 className="text-2xl md:text-3xl text-white mb-1 font-bold">
+                  {providerInfo?.businessName || providerInfo?.name || user?.fullName || 'Service Provider'}
+                </h1>
+                <p className="text-blue-200">{providerInfo?.skillName || 'Verified Professional'}</p>
                 <div className="flex flex-wrap gap-2 mt-3">
                   <span className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs">
                     <Star className="h-3 w-3 fill-yellow-300 text-yellow-300" /> {stats.averageRating} Rating

@@ -33,18 +33,16 @@ const getAllSkillsName = asyncHandler(async (req, res) => {
             $project: {
                 name: 1,
                 icon: 1,
+                description: 1,
                 popularity: 1
             },
         },
         { $sort: { popularity: -1 } },
     ]);
 
-    if (!skills || skills.length === 0) {
-        throw new ApiError(404, "No skills found");
-    }
     return res
         .status(200)
-        .json(new ApiResponse(200, skills, "Skills fetched successfully"));
+        .json(new ApiResponse(200, skills || [], "Skills fetched successfully"));
 });
 
 // GET skills by popularity (top N)
@@ -59,17 +57,14 @@ const getPopularSkillsName = asyncHandler(async (req, res) => {
                 name: 1,
                 icon: 1,
                 description: 1,
+                popularity: 1,
             },
         },
     ]);
 
-    if (!skills || skills.length === 0) {
-        throw new ApiError(404, "No popular skills found");
-    }
-
     return res
         .status(200)
-        .json(new ApiResponse(200, skills, "Popular skills fetched successfully"));
+        .json(new ApiResponse(200, skills || [], "Popular skills fetched successfully"));
 });
 
 export {

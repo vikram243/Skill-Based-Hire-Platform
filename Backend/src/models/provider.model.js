@@ -74,12 +74,39 @@ const ProviderSchema = new mongoose.Schema(
       default: [],
     },
 
+    portfolio: {
+      type: [String],
+      default: [],
+    },
+
+    certifications: {
+      type: [String],
+      default: [],
+    },
+
+    languages: {
+      type: [String],
+      default: ["English"],
+    },
+
+    website: {
+      type: String,
+      default: "",
+    },
+
+    availability: {
+      type: String,
+      default: "Mon–Fri, 9am–6pm",
+    },
+
     agreedToTOS: { type: Boolean, default: false },
     consentBackgroundCheck: { type: Boolean, default: false },
 
-    isOnline: { type: Boolean, default: false },
+    isOnline: { type: Boolean, default: true },
 
-    isAvailable: { type: Boolean, default: false },
+    isAvailable: { type: Boolean, default: true },
+
+    urgentAvailable: { type: Boolean, default: true },
 
     location: {
       geo: {

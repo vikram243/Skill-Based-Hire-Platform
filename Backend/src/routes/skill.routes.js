@@ -8,7 +8,6 @@ const router = Router();
 
 
 router.route("/getAllSkills").get(
-    isAuthenticated,
     getAllSkillsName
 );
 
@@ -19,7 +18,6 @@ router.route("/createSkill").post(
 );
 
 router.route("/getSkills/popular").get(
-    isAuthenticated,
     getPopularSkillsName
 );
 

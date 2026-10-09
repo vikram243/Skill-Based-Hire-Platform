@@ -11,6 +11,7 @@ export const getSafeUser = (user) => ({
   avatar: user.avatarUrl,
   location: user.location,
   bio: user.bio,
+  isAdmin: Boolean(user.isAdmin || user.role === 'admin'),
   providerStatus: user.providerProfile?.applicationStatus ?? null,
   submittedAt: user.providerProfile?.submittedAt ?? null,
   isApplicationAttampted: user?.isAttampted ?? null,

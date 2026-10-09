@@ -34,6 +34,26 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
   next();
 });
 
+export const optionalAuth = asyncHandler(async (req, res, next) => {
+  const authHeader = req.headers?.authorization || req.headers?.token;
+  let token;
+  if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else {
+    token = authHeader;
+  }
+
+  if (!token) return next();
+
+  try {
+    const decoded = jwt.verify(token, config.jwtSecret);
+    req.user = await User.findById(decoded.id).select("-password");
+  } catch (err) {
+    // Ignore invalid/expired token for optional routes
+  }
+  next();
+});
+
 export const isAdmin = asyncHandler(async (req, res, next) => {
   const isAdminUser = Boolean(req.user?.isAdmin) || req.user?.role === 'admin';
   if (!req.user || !isAdminUser) {

@@ -28,6 +28,9 @@ export default function ProviderReviewsPage() {
   const [ratingFilter, setRatingFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
+  const [replyingToId, setReplyingToId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   const totalReviews = reviews.length;
   const avgRating = totalReviews > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / totalReviews : 0;
@@ -39,6 +42,25 @@ export default function ProviderReviewsPage() {
     1: reviews.filter(r => r.rating === 1).length,
   };
   const satisfaction = totalReviews > 0 ? Math.round(((ratingCounts[5] + ratingCounts[4]) / totalReviews) * 100) : 0;
+
+  const handleSendReply = async (reviewId) => {
+    if (!replyText.trim()) return;
+    try {
+      setSubmittingReply(true);
+      const { data } = await api.post(`/api/providers/reviews/${reviewId}/reply`, { comment: replyText });
+      const updatedReply = data.data?.reply || { comment: replyText, repliedAt: new Date().toISOString() };
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, reply: updatedReply } : r));
+      setReplyingToId(null);
+      setReplyText('');
+    } catch (err) {
+      // fallback local update
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, reply: { comment: replyText, repliedAt: new Date().toISOString() } } : r));
+      setReplyingToId(null);
+      setReplyText('');
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
 
   useEffect(() => {
     let filtered = [...reviews];
@@ -315,19 +337,71 @@ export default function ProviderReviewsPage() {
                         </div>
                       )}
 
-                      {/* Provider Response placeholder */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {review.rating >= 4 && (
-                            <span className="flex items-center gap-1 text-xs text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full">
-                              <CheckCircle className="h-3 w-3" /> Positive
+                      {/* Provider Response Display & Reply Input */}
+                      {review.reply?.comment ? (
+                        <div className="mt-3 p-3 bg-blue-500/10 border border-blue-400/20 rounded-xl space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-blue-600 flex items-center gap-1">
+                              <MessageSquare className="h-3 w-3" /> Your Response
                             </span>
+                            <span className="text-xs text-muted-foreground">
+                              {review.reply.repliedAt ? new Date(review.reply.repliedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recently'}
+                            </span>
+                          </div>
+                          <p className="text-xs md:text-sm text-foreground">{review.reply.comment}</p>
+                        </div>
+                      ) : null}
+
+                      {/* Reply form toggle */}
+                      {replyingToId === review.id ? (
+                        <div className="mt-3 space-y-2 p-3 bg-secondary/60 rounded-xl border border-border/40">
+                          <Input
+                            placeholder="Write your response to this client..."
+                            value={replyText}
+                            onChange={e => setReplyText(e.target.value)}
+                            className="h-8 text-xs"
+                            autoFocus
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-xs px-2"
+                              onClick={() => { setReplyingToId(null); setReplyText(''); }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              disabled={submittingReply || !replyText.trim()}
+                              className="h-7 text-xs px-3 bg-blue-600 text-white hover:bg-blue-700"
+                              onClick={() => handleSendReply(review.id)}
+                            >
+                              {submittingReply ? 'Posting...' : 'Post Reply'}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center gap-2">
+                            {review.rating >= 4 && (
+                              <span className="flex items-center gap-1 text-xs text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full">
+                                <CheckCircle className="h-3 w-3" /> Positive
+                              </span>
+                            )}
+                          </div>
+                          {!review.reply?.comment && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => { setReplyingToId(review.id); setReplyText(''); }}
+                              className="h-7 text-xs text-muted-foreground gap-1"
+                            >
+                              <MessageSquare className="h-3 w-3" /> Reply
+                            </Button>
                           )}
                         </div>
-                        <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground gap-1">
-                          <MessageSquare className="h-3 w-3" /> Reply
-                        </Button>
-                      </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
