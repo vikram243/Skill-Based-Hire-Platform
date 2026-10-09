@@ -25,4 +25,4 @@ Disallow: /provider
 Disallow: /provider/*
 Disallow: /chat
 
-Sitemap: https://skillhub.local/sitemap.xml
+Sitemap: https://myskillhub.in/sitemap.xml
